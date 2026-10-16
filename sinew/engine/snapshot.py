@@ -18,7 +18,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from sinew import schema
-from sinew.db import client, graph
+from sinew.db import client, graph, read_all
 
 SNAPSHOTS = Path(__file__).resolve().parents[2] / "seed" / "snapshot"
 CHUNK = 2000
@@ -30,9 +30,8 @@ def path(tenant: str) -> Path:
 
 def export(tenant: str) -> dict:
     g = graph(tenant)
-    nodes = g.ro_query("MATCH (n) RETURN labels(n)[0], properties(n)").result_set
-    edges = g.ro_query(
-        "MATCH (a)-[r]->(b) RETURN labels(a)[0], a.id, type(r), properties(r), labels(b)[0], b.id").result_set
+    nodes = read_all(g, "(n)", "labels(n)[0], properties(n)")
+    edges = read_all(g, "(a)-[r]->(b)", "labels(a)[0], a.id, type(r), properties(r), labels(b)[0], b.id", alias="r")
     return {"version": 1, "nodes": [[label, props] for label, props in nodes],
             "edges": [list(e) for e in edges]}
 

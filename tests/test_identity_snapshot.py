@@ -66,3 +66,15 @@ def test_an_older_copy_is_replaced_by_the_snapshot():
     g.query("MATCH (c:Customer) DETACH DELETE c")
     assert snapshot.ensure_loaded(T) == "restored"
     assert fingerprint() == before
+
+
+def test_snapshot_keeps_more_rows_than_one_query_can_return():
+    from sinew import db
+    g = client().select_graph(T)
+    g.query("UNWIND range(1, 12000) AS i CREATE (:Doc {id: 'd' + toString(i)})")  # more than RESULTSET_SIZE
+    g.query("MATCH (d:Doc) WHERE d.id IN ['d1', 'd2'] WITH collect(d) AS ds "
+            "UNWIND range(1, 11000) AS i WITH ds[0] AS a, ds[1] AS b, i CREATE (a)-[:CITES {n: i}]->(b)")
+    snapshot.save(T)
+    snapshot.restore(T)
+    assert g.ro_query("MATCH (d:Doc) RETURN count(d)").result_set == [[12000]]
+    assert g.ro_query("MATCH ()-[r:CITES]->() RETURN count(r)").result_set == [[11000]]
