@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pydantic import BaseModel, Field
 
 from sinew.db import graph
-from sinew.engine import derive
+from sinew.engine import derive, identity
 from sinew.engine import assumptions
 from sinew.engine.contract import ASSUMPTION_FIELDS, CONTRACT, LINE_FIELDS, P0, P1, P3, PROMISE_KINDS
 from sinew.engine.writers import CHOOSABLE
@@ -124,6 +124,10 @@ def process(tenant: str, events: list[Event | dict]) -> Result:
             result.stale += 1  # older than what we hold: its properties were ignored, its links kept
         result.signals.extend(derive.run(c, ev.type, clean))
         newest[ev.source] = max(newest.get(ev.source, 0), ev.occurred_at)
+    # A new or changed profile can join or split customers: rerun the merge once per batch.
+    if any((e if isinstance(e, Event) else Event.model_validate(e)).type == "profile.upserted" for e in events) \
+            and result.accepted:
+        identity.merge(tenant)
     # Freshness watermark per source: what the UI's "data as of" badge reads.
     for source, at in newest.items():
         g.query(

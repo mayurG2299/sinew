@@ -4,13 +4,16 @@ from fastapi import FastAPI, HTTPException, Request
 
 from sinew import config
 from sinew.db import graph
-from sinew.engine import pipeline, signing
+from sinew.engine import pipeline, signing, snapshot
 
 app = FastAPI(title="Sinew", version="0.1.0")
 
 
 @app.get("/api/health")
 def health(tenant: str = "northwind"):
+    if tenant not in config.TENANTS:
+        raise HTTPException(404, "unknown tenant")
+    refill = snapshot.ensure_loaded(tenant)  # free instance can restart or come back older: refill if so
     g = graph(tenant)
     exists = tenant in g.client.list_graphs()  # a graph only exists after its first write
     nodes = g.ro_query("MATCH (n) RETURN count(n)").result_set[0][0] if exists else 0
@@ -18,6 +21,8 @@ def health(tenant: str = "northwind"):
         "ok": True,
         "tenant": tenant,
         "nodes": nodes,
+        "refill": refill,
+        "version": snapshot.graph_version(tenant) if exists else None,
         "graph_host": "local" if config.FALKORDB_HOST == "localhost" else "cloud",
     }
 

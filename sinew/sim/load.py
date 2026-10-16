@@ -11,7 +11,7 @@ from pathlib import Path
 
 from sinew import schema
 from sinew.db import client, graph
-from sinew.engine import assumptions, promises
+from sinew.engine import assumptions, identity, promises, snapshot
 from sinew.engine.sdk import SinewClient
 from sinew.sim import privacy_check
 from sinew.sim.northwind import NOW, ROOT
@@ -37,10 +37,13 @@ def load(tenant: str, fresh: bool = True) -> dict:
     broken_promises = promises.sweep(tenant, now=NOW)
     nodes = g.ro_query("MATCH (n) RETURN count(n)").result_set[0][0]
     edges = g.ro_query("MATCH ()-[r]->() RETURN count(r)").result_set[0][0]
+    merged = identity.merge(tenant)
     privacy = privacy_check.scan(tenant)
     if privacy["leaks"]:
         raise SystemExit(f"PRIVACY CHECK FAILED: {privacy['leaks'][:5]}")
-    return {"tenant": tenant, **totals, "privacy": {"checked": privacy["personal_values_checked"], "leaks": 0}, "seconds": round(time.time() - started), "nodes": nodes, "edges": edges,
+    snapshot_bytes = snapshot.save(tenant)  # only a graph that passed the privacy scan becomes the refill
+    return {"tenant": tenant, **totals, "privacy": {"checked": privacy["personal_values_checked"], "leaks": 0},
+            "identity": merged, "snapshot_kb": snapshot_bytes // 1024, "seconds": round(time.time() - started), "nodes": nodes, "edges": edges,
             "assumptions": checks, "promises_broken_now": broken_promises}
 
 
