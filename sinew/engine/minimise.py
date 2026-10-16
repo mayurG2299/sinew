@@ -66,6 +66,10 @@ WITHHELD = "[text withheld: name check unavailable]"
 def _names_analyzer():
     global _analyzer
     if _analyzer is None:
+        import logging
+
+        for name in ("presidio-analyzer", "presidio_analyzer", "presidio-anonymizer"):
+            logging.getLogger(name).setLevel(logging.ERROR)
         from presidio_analyzer import AnalyzerEngine
         from presidio_analyzer.nlp_engine import NlpEngineProvider
 
