@@ -5,6 +5,7 @@ so "who else is affected through this hub" is 2 hops instead of 6. It must hold 
 arrives first, the ticket or the scan, so both event types run the same rule.
 """
 
+from sinew.engine import promises
 from sinew.engine.writers import Ctx
 
 # Ticket -> Order -> ... -> X, written as Ticket -TOUCHES-> X
@@ -32,6 +33,17 @@ def touches_for_order(c: Ctx, order_id: str):
         touches_for_ticket(c, ticket_id)
 
 
+def affects(c: Ctx):
+    """Which hubs each decision affects, by rule. Recomputed in full: there are only a handful of decisions."""
+    c.g.query("MATCH (:Decision)-[r:AFFECTS]->() DELETE r")
+    c.g.query(  # chose a courier for a region: the region's hubs run by that courier
+        "MATCH (d:Decision)-[:CHOSE]->(k:Courier), (d)-[:FOR]->(r:Region)<-[:IN]-(h:Hub)-[:RUN_BY]->(k) "
+        "MERGE (d)-[:AFFECTS]->(h)")
+    c.g.query(  # launched a campaign: every hub in the regions it targets
+        "MATCH (d:Decision)-[:CHOSE]->(:Campaign)-[:TARGETS]->(:Region)<-[:IN]-(h:Hub) MERGE (d)-[:AFFECTS]->(h)")
+    c.g.query("MATCH (d:Decision)-[:CHOSE]->(h:Hub) MERGE (d)-[:AFFECTS]->(h)")
+
+
 def run(c: Ctx, event_type: str, p: dict) -> list[dict]:
     signals: list[dict] = []
     if event_type == "ticket.created":
@@ -43,8 +55,22 @@ def run(c: Ctx, event_type: str, p: dict) -> list[dict]:
         ).result_set
         for (order_id,) in rows:
             touches_for_order(c, order_id)
+            if p["status"] == "delivered":
+                promises.match_actions(c.g, order_id)
         if (p.get("late_hours") or 0) > 0 or p["status"] == "delayed":
             signals.append({"signal": "late_scan", "shipment": p["shipment_id"], "hub": p["hub_id"]})
+    elif event_type == "refund.issued":
+        promises.match_actions(c.g, p["order_id"])
+    elif event_type in ("promise.proposed", "promise.confirmed"):
+        rows = c.g.ro_query("MATCH (:Promise {id: $id})-[:CONCERNS]->(o:Order) RETURN o.id",
+                            {"id": p["promise_id"]}).result_set
+        for (order_id,) in rows:  # the action may already have happened before the promise was logged
+            promises.match_actions(c.g, order_id)
+    elif event_type in ("decision.recorded", "campaign.upserted", "hub.upserted"):
+        affects(c)
+        if event_type == "campaign.upserted":
+            c.g.query("MATCH (t:Ticket)-[:ABOUT]->(:Order)-[:USED]->(:Coupon)-[:OF]->(x:Campaign {id: $k}) "
+                      "MERGE (t)-[:TOUCHES]->(x)", {"k": p["campaign_id"]})
     elif event_type in ("order.placed", "shipment.created"):
         touches_for_order(c, p["order_id"])
     return signals

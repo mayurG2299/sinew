@@ -244,6 +244,86 @@ def ticket_updated(c: Ctx, p: dict):
         link(c, "Ticket", p["ticket_id"], "HANDLED_BY", "User", p["handled_by"])
 
 
+# ---------------------------------------------------------------- marketing
+
+
+def campaign_upserted(c: Ctx, p: dict):
+    upsert(c, "Campaign", p["campaign_id"], {
+        "name": p["name"], "starts": p["starts"], "ends": p["ends"], "status": p["status"],
+        "category": p.get("category", ""),
+    })
+    link(c, "Campaign", p["campaign_id"], "TARGETS", "Region", p["region"])
+    if p.get("category"):
+        link(c, "Campaign", p["campaign_id"], "FOR", "Category", p["category"])
+    if p.get("owner"):
+        link(c, "Campaign", p["campaign_id"], "OWNED_BY", "User", p["owner"])
+    for code in p.get("coupon_codes", []):
+        link(c, "Coupon", code, "OF", "Campaign", p["campaign_id"])
+
+
+# ---------------------------------------------------------------- decisions
+
+CHOOSABLE = {"Courier", "Hub", "Supplier", "Warehouse", "Campaign"}
+
+
+def decision_recorded(c: Ctx, p: dict):
+    upsert(c, "Decision", p["decision_id"], {
+        "title": p["title"], "made_at": p["made_at"], "status": p.get("status", "active"),
+        "chose_kind": p["chose_kind"],
+    })
+    link(c, "Decision", p["decision_id"], "OWNED_BY", "User", p["owner"])
+    link(c, "Decision", p["decision_id"], "CHOSE", p["chose_kind"], p["chose_id"])
+    if p.get("region"):
+        link(c, "Decision", p["decision_id"], "FOR", "Region", p["region"])
+    for earlier in p.get("builds_on", []):
+        link(c, "Decision", p["decision_id"], "BUILDS_ON", "Decision", earlier)
+    if p.get("doc_id"):
+        link(c, "Decision", p["decision_id"], "RECORDED_IN", "Doc", p["doc_id"])
+    for a in p["assumptions"]:
+        c.g.query(
+            "MERGE (d:Decision {id: $d}) MERGE (a:Assumption {id: $a}) "
+            "SET a.statement = $statement, a.metric = $metric, a.op = $op, a.threshold = $threshold, "
+            "    a.window_days = $window, a.scope_hub = $hub, a.scope_courier = $courier, "
+            "    a.status = coalesce(a.status, 'unchecked') "
+            "MERGE (d)-[:RESTS_ON]->(a)",
+            {"d": p["decision_id"], "a": a["assumption_id"], "statement": a["statement"],
+             "metric": a["metric"], "op": a["op"], "threshold": a["threshold"], "window": a["window_days"],
+             "hub": a.get("scope_hub"), "courier": a.get("scope_courier")},
+        )
+        if a.get("scope_hub"):
+            link(c, "Assumption", a["assumption_id"], "ABOUT", "Hub", a["scope_hub"])
+        if a.get("scope_courier"):
+            link(c, "Assumption", a["assumption_id"], "ABOUT", "Courier", a["scope_courier"])
+
+
+# ---------------------------------------------------------------- promises
+
+
+def promise_proposed(c: Ctx, p: dict):
+    upsert(c, "Promise", p["promise_id"], {
+        "kind": p["kind"], "due_at": p["due_at"], "amount": p.get("amount", 0), "made_at": c.occurred_at,
+    })
+    c.g.query("MATCH (p:Promise {id: $id}) WHERE p.status IS NULL SET p.status = 'proposed'",
+              {"id": p["promise_id"]})
+    link(c, "Promise", p["promise_id"], "MADE_IN", "Ticket", p["ticket_id"])
+    link(c, "Promise", p["promise_id"], "CONCERNS", "Order", p["order_id"])
+    link(c, "Promise", p["promise_id"], "MADE_BY", "User", p["made_by"])
+
+
+def promise_confirmed(c: Ctx, p: dict):
+    c.g.query(
+        "MATCH (p:Promise {id: $id}) WHERE p.status = 'proposed' SET p.status = 'open', p.confirmed_by = $by",
+        {"id": p["promise_id"], "by": p["confirmed_by"]},
+    )
+
+
+def promise_rejected(c: Ctx, p: dict):
+    c.g.query(
+        "MATCH (p:Promise {id: $id}) WHERE p.status = 'proposed' SET p.status = 'rejected', p.rejected_by = $by",
+        {"id": p["promise_id"], "by": p["rejected_by"]},
+    )
+
+
 WRITERS = {
     "staff.upserted": staff_upserted, "team.upserted": team_upserted,
     "supplier.upserted": supplier_upserted, "product.upserted": product_upserted,
@@ -255,4 +335,7 @@ WRITERS = {
     "payment.captured": payment_captured, "refund.issued": refund_issued, "return.created": return_created,
     "shipment.created": shipment_created, "scan.recorded": scan_recorded,
     "ticket.created": ticket_created, "ticket.updated": ticket_updated,
+    "campaign.upserted": campaign_upserted, "decision.recorded": decision_recorded,
+    "promise.proposed": promise_proposed, "promise.confirmed": promise_confirmed,
+    "promise.rejected": promise_rejected,
 }

@@ -68,6 +68,29 @@ CONTRACT: dict[str, dict[str, tuple[str, bool]]] = {
         "issue_type": (B, False), "order_id": (B, False), "handled_by": (B, False), "text": (P3, True),
     },
     "ticket.updated": {"ticket_id": (B, True), "status": (B, True), "handled_by": (B, False)},
+    # --- marketing ---
+    "campaign.upserted": {
+        "campaign_id": (B, True), "name": (B, True), "starts": (P2, True), "ends": (P2, True),
+        "region": (B, True), "category": (B, False), "status": (B, True), "owner": (B, False),
+        "coupon_codes": (B, False),
+    },
+    # --- decisions (from the decision log form, or meeting notes confirmed by a person) ---
+    "decision.recorded": {
+        "decision_id": (B, True), "title": (B, True), "made_at": (P2, True), "owner": (B, True),
+        "chose_kind": (B, True), "chose_id": (B, True), "region": (B, False), "builds_on": (B, False),
+        "status": (B, False), "doc_id": (B, False), "assumptions": (B, True),
+    },
+    # --- promises (proposed by the AI from the agent's own reply, confirmed by a person or an action) ---
+    "promise.proposed": {
+        "promise_id": (B, True), "ticket_id": (B, True), "order_id": (B, True), "kind": (B, True),
+        "due_at": (P2, True), "made_by": (B, True), "amount": (B, False),
+    },
+    "promise.confirmed": {"promise_id": (B, True), "confirmed_by": (B, True)},
+    "promise.rejected": {"promise_id": (B, True), "rejected_by": (B, True)},
 }
+
+ASSUMPTION_FIELDS = {"assumption_id", "statement", "metric", "op", "threshold", "window_days",
+                     "scope_hub", "scope_courier"}
+PROMISE_KINDS = {"refund", "delivery"}
 
 LINE_FIELDS = {"line_id", "sku", "batch_id", "qty", "price"}

@@ -13,7 +13,9 @@ from pydantic import BaseModel, Field
 
 from sinew.db import graph
 from sinew.engine import derive
-from sinew.engine.contract import CONTRACT, LINE_FIELDS, P0, P1, P3
+from sinew.engine import assumptions
+from sinew.engine.contract import ASSUMPTION_FIELDS, CONTRACT, LINE_FIELDS, P0, P1, P3, PROMISE_KINDS
+from sinew.engine.writers import CHOOSABLE
 from sinew.engine.minimise import keyed_hash, normalise, redact
 from sinew.engine.writers import WRITERS, Ctx
 
@@ -56,6 +58,19 @@ def _validate(ev: Event) -> dict:
     for line in ev.payload.get("lines", []) or []:
         if set(line) - LINE_FIELDS or not {"line_id", "sku", "qty", "price"} <= set(line):
             raise Rejected("order line does not match the contract")
+    if ev.type == "decision.recorded":
+        if ev.payload["chose_kind"] not in CHOOSABLE:
+            raise Rejected(f"chose_kind must be one of {sorted(CHOOSABLE)}")
+        if not ev.payload["assumptions"]:
+            raise Rejected("a decision needs at least one assumption")
+        for a in ev.payload["assumptions"]:
+            if set(a) - ASSUMPTION_FIELDS or not {"assumption_id", "statement"} <= set(a):
+                raise Rejected("assumption does not match the contract")
+            why = assumptions.check_shape(a)
+            if why:  # decision 4: an assumption must be machine-checkable before it can be saved
+                raise Rejected(f"assumption {a['assumption_id']} is not checkable: {why}")
+    if ev.type == "promise.proposed" and ev.payload["kind"] not in PROMISE_KINDS:
+        raise Rejected(f"promise kind must be one of {sorted(PROMISE_KINDS)}")
     return spec
 
 
