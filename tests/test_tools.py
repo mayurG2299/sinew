@@ -1,27 +1,16 @@
 """The graph tools on the real Northwind data (restored from the snapshot into the test tenant)."""
 
-import shutil
-
 import pytest
 
 from sinew.db import client
-from sinew.engine import snapshot
-from sinew.tools import guard, impact, trace
+from sinew.tools import impact, trace
 
 T = "store2"
 
 
 @pytest.fixture(scope="module", autouse=True)
-def northwind(tmp_path_factory):
-    tmp = tmp_path_factory.mktemp("nw")
-    real_snapshots, real_records = snapshot.SNAPSHOTS, guard.SOURCE_RECORDS
-    shutil.copy(real_snapshots / "northwind.json.gz", tmp / f"{T}.json.gz")
-    shutil.copy(real_records / "northwind_personal.json", tmp / f"{T}_personal.json")
-    snapshot.SNAPSHOTS, guard.SOURCE_RECORDS = tmp, tmp
-    snapshot.restore(T)
+def _data(northwind_copy):
     yield
-    client().select_graph(T).delete()
-    snapshot.SNAPSHOTS, guard.SOURCE_RECORDS = real_snapshots, real_records
 
 
 @pytest.fixture(scope="module")

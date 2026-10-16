@@ -196,3 +196,30 @@ def related_issues(tenant: str, user_id: str, ticket_id: str, days: int = 7) -> 
     return Answer("related_issues", "answered_path", data={"ticket": ticket_id, "days": days, "shared": data},
                   paths=[[ticket_id, d["id"], f"{d['other_tickets']} other tickets"] for d in data],
                   ms=round((time.perf_counter() - start) * 1000, 1))
+
+
+def search_tickets(tenant: str, user_id: str, text: str, limit: int = 10) -> Answer:
+    """Full-text search over cleaned ticket summaries, limited to customers the viewer may see."""
+    start = time.perf_counter()
+    v = guard.Viewer.load(tenant, user_id)
+    if v is None:
+        return unknown("search_tickets", f"user {user_id}")
+    if v.role not in guard.SUPPORT_ROLES:
+        return refused("search_tickets", f"role {v.role} has no support purpose for ticket text")
+    rows = graph(tenant).ro_query(
+        "CALL db.idx.fulltext.queryNodes('Ticket', $q) YIELD node, score "
+        "MATCH (node)-[:FROM]->(:Profile)-[:OF]->(c:Customer) "
+        "RETURN node.id, node.issue_type, node.at, node.summary_clean, c.id, score ORDER BY score DESC LIMIT 50",
+        {"q": text}).result_set
+    allowed = []
+    for tid, issue, at, summary, cust, score in rows:
+        if guard.customer_access(v, cust)[0]:
+            allowed.append({"ticket": tid, "issue": issue, "at": at, "summary": summary, "customer": cust})
+        if len(allowed) >= limit:
+            break
+    hidden = [{"count": len(rows) - len(allowed), "reason": "matches outside your access"}] if len(rows) > len(allowed) else []
+    if not allowed:
+        return Answer("search_tickets", "not_in_graph", reason=f"no tickets you can see match {text!r}", hidden=hidden,
+                      ms=round((time.perf_counter() - start) * 1000, 1))
+    return Answer("search_tickets", "answered_path", data=allowed, hidden=hidden,
+                  paths=[[a["customer"], a["ticket"]] for a in allowed], ms=round((time.perf_counter() - start) * 1000, 1))
