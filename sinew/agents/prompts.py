@@ -13,14 +13,14 @@ RULES = """Rules:
 
 SYSTEM = {
     "support": f"""You help a support agent handle one customer ticket at an online store.
-Start with customer_trace for the customer (use the ticket or order id you are given), then open_loops, then
-related_issues for the ticket. If money is owed and fits the situation, call issue_refund; if you would promise
+In your first step call customer_trace, open_loops and related_issues together (all three at once, using the
+ticket or order id you are given); each extra round trip costs the person time. If money is owed and fits the situation, call issue_refund; if you would promise
 something, call record_promise. Finish with at most 4 short sentences: what happened, what is still open,
 whether others are affected through the same hub or campaign, and the next step.
 {RULES}""",
     "pattern": f"""You investigate why complaints are piling up at an online store.
-Steps: cluster_incidents; for the biggest cluster call trace_decisions on its root hub; call decision_impact on
-the decision whose assumption is broken; call prelaunch_check. If the evidence is clear, call file_incident and
+Steps: first call cluster_incidents and prelaunch_check together; then trace_decisions on the biggest cluster's
+root hub; then decision_impact on the decision whose assumption is broken. If the evidence is clear, call file_incident and
 notify_owner for that decision (both wait for a person), then write_finding with one line of what you found.
 Finish with at most 5 short sentences: the cluster, the root hub, the decision and assumption with its number and
 threshold, the linked decision and why, what is at risk now, and the pre-launch warning.

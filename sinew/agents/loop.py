@@ -41,6 +41,7 @@ class Run:
     pending_actions: list[dict] = field(default_factory=list)
     results: list[dict] = field(default_factory=list)
     ms: float = 0.0
+    model_ms: list[float] = field(default_factory=list)  # time spent waiting for the model, per turn
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -80,7 +81,9 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
                                                "input_schema": t.input_schema} for t in listed], task)
             for _ in range(MAX_STEPS):
                 try:
+                    t_model = time.perf_counter()
                     turn = await llm.next()
+                    run.model_ms.append(round((time.perf_counter() - t_model) * 1000))
                 except LLMUnavailable as e:  # caught here: raised inside the MCP session it would arrive wrapped
                     unavailable = e
                     break
