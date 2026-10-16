@@ -52,13 +52,19 @@ def network_and_decisions():
     ]
 
 
-def scans(day_from, day_to, per_day, late_every=0):
+def scans(day_from, day_to, per_day, late_every=0, coupon=None):
     out, n = [], 0
     for day in range(day_from, day_to):
         for i in range(per_day):
             n += 1
             sid = f"sh-{day}-{i}"
             late = 30 if late_every and n % late_every == 0 else 0
+            order = {"order_id": f"o-{day}-{i}", "profile_id": "pf", "placed_at": day * DAY, "status": "placed",
+                     "currency": "USD", "total": 10, "lines": [{"line_id": f"l-{day}-{i}", "sku": "x", "qty": 1,
+                                                                 "price": 10}]}
+            if coupon and i % 2 == 0:  # half the sale-week orders use the coupon
+                order["coupon_code"] = coupon
+            out.append(ev(f"o{sid}", "order.placed", order, at=day * DAY))
             out.append(ev(f"s{sid}", "shipment.created", {"shipment_id": sid, "order_id": f"o-{day}-{i}",
                                                           "courier_id": "courier-y", "promised_at": day * DAY}))
             out.append(ev(f"c{sid}", "scan.recorded", {"scan_id": f"sc-{sid}", "shipment_id": sid, "hub_id": "hub-w2",
@@ -81,17 +87,24 @@ def test_quiet_weeks_keep_the_assumption_holding():
 
 def test_flash_sale_breaks_the_courier_assumption_and_is_linked_to_it():
     # Sale week: double the volume through W2, and 3 in 10 scans late.
-    pipeline.process(T, network_and_decisions() + scans(1, 9, per_day=8) + scans(10, 17, per_day=20, late_every=3))
+    pipeline.process(T, network_and_decisions() + scans(1, 9, per_day=8) + scans(10, 17, per_day=20, late_every=3, coupon="FEST40"))
     out = {r["assumption"]: r for r in assumptions.evaluate(T, now=17 * DAY)}
     assert out["as-ontime"]["holds"] is False and out["as-ontime"]["value"] < 0.9
     assert out["as-load"]["holds"] is False and out["as-load"]["value"] == 2.0
     assert q("MATCH (a:Assumption {id: 'as-ontime'}) RETURN a.status") == [["broken"]]
     link = q("MATCH (d:Decision)-[r:BREAKS]->(:Assumption {id: 'as-ontime'}) RETURN d.id, r.basis")
-    assert link == [["dec-flash-sale", "campaign fest40 ran in this hub's region during the window"]]
+    assert link == [["dec-flash-sale", "campaign fest40 ran during the window; 50% of parcels through hub-w2 "
+                                       "in the window used its coupon"]]  # not the August courier decision
     # Evaluating again the same day adds no new evidence.
     before = q("MATCH (e:Evidence) RETURN count(e)")
     assumptions.evaluate(T, now=17 * DAY)
     assert q("MATCH (e:Evidence) RETURN count(e)") == before
+
+
+def test_campaign_without_coupon_traffic_is_not_linked():
+    pipeline.process(T, network_and_decisions() + scans(1, 9, per_day=8) + scans(10, 17, per_day=20, late_every=3))
+    assumptions.evaluate(T, now=17 * DAY)
+    assert q("MATCH (:Decision)-[r:BREAKS]->(:Assumption {id: 'as-ontime'}) RETURN count(r)") == [[0]]
 
 
 def test_unclear_assumption_is_refused():

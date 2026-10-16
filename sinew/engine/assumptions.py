@@ -14,25 +14,26 @@ from sinew.db import graph
 
 DAY = 86_400
 MIN_SAMPLE = 10  # fewer observations than this: no evidence either way
+ARRIVALS = ["in_transit", "delayed"]  # a parcel arriving at a hub; delivery scans are not hub load
 
 
 def courier_on_time_rate(g: Graph, a: dict, start: int, end: int):
     """Share of scans at the hub, for the courier's shipments, that were not late."""
     total, on_time = g.ro_query(
         "MATCH (sc:Scan)-[:AT]->(:Hub {id: $hub}), (sc)-[:FOR]->(:Shipment)-[:VIA]->(:Courier {id: $courier}) "
-        "WHERE sc.at >= $start AND sc.at < $end "
+        "WHERE sc.at >= $start AND sc.at < $end AND sc.status IN $arrivals "
         "RETURN count(sc), sum(CASE WHEN coalesce(sc.late_hours, 0) = 0 THEN 1 ELSE 0 END)",
-        {"hub": a["scope_hub"], "courier": a["scope_courier"], "start": start, "end": end},
+        {"hub": a["scope_hub"], "courier": a["scope_courier"], "start": start, "end": end, "arrivals": ARRIVALS},
     ).result_set[0]
     return (on_time / total, total) if total >= MIN_SAMPLE else (None, total)
 
 
 def hub_load_ratio(g: Graph, a: dict, start: int, end: int):
-    """Busiest day's scan count at the hub divided by its daily capacity."""
+    """Busiest day's parcel count through the hub divided by its daily capacity (parcels/day)."""
     rows = g.ro_query(
-        "MATCH (sc:Scan)-[:AT]->(h:Hub {id: $hub}) WHERE sc.at >= $start AND sc.at < $end "
-        "WITH h, sc.at / $day AS d, count(sc) AS n RETURN h.capacity, max(n), sum(n)",
-        {"hub": a["scope_hub"], "start": start, "end": end, "day": DAY},
+        "MATCH (sc:Scan)-[:AT]->(h:Hub {id: $hub}), (sc)-[:FOR]->(s:Shipment) WHERE sc.at >= $start AND sc.at < $end AND sc.status IN $arrivals "
+        "WITH h, sc.at / $day AS d, count(DISTINCT s) AS n RETURN h.capacity, max(n), sum(n)",
+        {"hub": a["scope_hub"], "start": start, "end": end, "day": DAY, "arrivals": ARRIVALS},
     ).result_set
     if not rows or rows[0][0] in (None, 0) or (rows[0][2] or 0) < MIN_SAMPLE:
         return None, (rows[0][2] if rows else 0) or 0
@@ -102,15 +103,44 @@ def evaluate(tenant: str, now: int | None = None) -> list[dict]:
     return out
 
 
+MIN_CAMPAIGN_SHARE = 0.2  # a campaign is linked only if at least this share of the hub's parcels used its coupon
+
+
 def _link_overlapping_decisions(g: Graph, aid: str, own_decision: str, evidence_id: str, start: int, end: int):
-    """Other decisions that touch the same hub and were live during the window get a BREAKS link."""
-    g.query(
-        "MATCH (a:Assumption {id: $aid})-[:ABOUT]->(h:Hub) "
-        "MATCH (d:Decision)-[:AFFECTS]->(h) WHERE d.id <> $own AND d.made_at <= $end "
+    """Link other decisions to a break only on evidence inside the window, and say what the evidence is.
+
+    - a campaign: it ran during the window and a real share of the parcels through the hub used its coupon
+    - any other decision: it was made inside the window
+    This records an overlap in the data, never a cause.
+    """
+    rows = g.ro_query(
+        "MATCH (a:Assumption {id: $aid})-[:ABOUT]->(h:Hub)<-[:AFFECTS]-(d:Decision) WHERE d.id <> $own "
         "OPTIONAL MATCH (d)-[:CHOSE]->(k:Campaign) "
-        "WITH a, d, k WHERE k IS NULL OR (k.starts < $end AND k.ends >= $start) "
-        "MERGE (d)-[r:BREAKS]->(a) SET r.evidence = $eid, "
-        "  r.basis = CASE WHEN k IS NULL THEN 'decision affects this hub and was live during the window' "
-        "               ELSE 'campaign ' + k.id + \" ran in this hub's region during the window\" END",
-        {"aid": aid, "own": own_decision, "eid": evidence_id, "start": start, "end": end},
-    )
+        "RETURN DISTINCT d.id, d.made_at, h.id, k.id, k.starts, k.ends",
+        {"aid": aid, "own": own_decision},
+    ).result_set
+    for did, made_at, hub, campaign, starts, ends in rows:
+        if campaign is None:
+            if not (start <= made_at < end):
+                continue
+            basis = f"decision made during the evidence window and affects {hub}"
+        else:
+            if not (starts < end and ends >= start):
+                continue
+            total, with_coupon = g.ro_query(
+                "MATCH (sc:Scan)-[:AT]->(:Hub {id: $hub}), (sc)-[:FOR]->(s:Shipment)<-[:SHIPPED_AS]-(o:Order) "
+                "WHERE sc.at >= $start AND sc.at < $end AND sc.status IN $arrivals "
+                "OPTIONAL MATCH (o)-[:USED]->(:Coupon)-[:OF]->(k:Campaign {id: $k}) "
+                "RETURN count(DISTINCT s), count(DISTINCT CASE WHEN k IS NOT NULL THEN s END)",
+                {"hub": hub, "start": start, "end": end, "arrivals": ARRIVALS, "k": campaign},
+            ).result_set[0]
+            share = with_coupon / total if total else 0
+            if share < MIN_CAMPAIGN_SHARE:
+                continue
+            basis = (f"campaign {campaign} ran during the window; {round(share * 100)}% of parcels through "
+                     f"{hub} in the window used its coupon")
+        g.query(
+            "MATCH (d:Decision {id: $d}), (a:Assumption {id: $aid}) "
+            "MERGE (d)-[r:BREAKS]->(a) SET r.evidence = $eid, r.basis = $basis",
+            {"d": did, "aid": aid, "eid": evidence_id, "basis": basis},
+        )

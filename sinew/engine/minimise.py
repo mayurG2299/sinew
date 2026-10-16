@@ -52,6 +52,13 @@ _PATTERNS = [
 ]
 
 
+# Second layer for names the model misses: a capitalised name after a common self-introduction or sign-off.
+_NAME = r"[A-Z][a-z'’-]+(?:\s+[A-Z][a-z'’-]+){0,2}"
+_NAME_CUES = re.compile(
+    rf"(?:\b(?:I'm|I am|This is|this is|My name is|my name is|Regards,?|Thanks,?|Thank you,?|Cheers,?)\s+|^\s*-\s*|\s-\s+)({_NAME})",
+    re.MULTILINE,
+)
+
 _analyzer = None
 WITHHELD = "[text withheld: name check unavailable]"
 
@@ -80,6 +87,7 @@ def redact(text: str) -> str:
                    key=lambda r: r.start, reverse=True)
     for r in spans:
         text = text[:r.start] + "[NAME]" + text[r.end:]
+    text = _NAME_CUES.sub(lambda m: m.group(0)[: m.start(1) - m.start(0)] + "[NAME]", text)
     for token, pattern in _PATTERNS:
         text = pattern.sub(token, text)
     return text
