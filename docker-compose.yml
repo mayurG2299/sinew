@@ -1,6 +1,6 @@
 services:
   falkordb:
-    image: falkordb/falkordb:6.0.1
+    image: falkordb/falkordb:v4.22.0
     ports:
       - "6379:6379"   # database
       - "3000:3000"   # FalkorDB Browser
