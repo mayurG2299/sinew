@@ -80,15 +80,22 @@ def _names_analyzer():
     return _analyzer
 
 
-def redact(text: str) -> str:
-    """Remove names, emails, phones, cards and handles. Fails closed: no name check, no text."""
+def redact(text: str, allow: frozenset[str] = frozenset()) -> str:
+    """Remove names, emails, phones, cards and handles. Fails closed: no name check, no text.
+
+    `allow` holds the company's own business words (product titles); the name model sometimes takes
+    "Hand Mixer" for a person, which would blank the meaning of the ticket.
+    """
     try:
         found = _names_analyzer().analyze(text=text, language="en", entities=["PERSON"])
     except Exception:
         return WITHHELD
     # Codes like "B7" or "W2" are business ids, not people.
-    spans = sorted((r for r in found if not any(ch.isdigit() for ch in text[r.start:r.end])),
-                   key=lambda r: r.start, reverse=True)
+    def business(span: str) -> bool:
+        s = span.lower().strip(" .,!?;:'\"")
+        return any(ch.isdigit() for ch in s) or any(s in a for a in allow)
+
+    spans = sorted((r for r in found if not business(text[r.start:r.end])), key=lambda r: r.start, reverse=True)
     for r in spans:
         text = text[:r.start] + "[NAME]" + text[r.end:]
     text = _NAME_CUES.sub(lambda m: m.group(0)[: m.start(1) - m.start(0)] + "[NAME]", text)

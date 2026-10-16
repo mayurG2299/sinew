@@ -129,7 +129,8 @@ def decision_impact(tenant: str, decision_id: str) -> Answer:
     promises = g.ro_query(
         "MATCH (s:Shipment) WHERE s.last_hub IN $hubs AND s.status IN ['in_transit', 'delayed'] "
         "MATCH (s)<-[:SHIPPED_AS]-(o:Order)<-[:CONCERNS]-(p:Promise) WHERE p.status IN ['open', 'proposed'] "
-        "RETURN p.id, p.kind, p.due_at, o.id ORDER BY p.due_at", {"hubs": hubs}).result_set
+        "OPTIONAL MATCH (p)-[:MADE_IN]->(t:Ticket) "
+        "RETURN p.id, p.kind, p.due_at, o.id, t.id ORDER BY p.due_at", {"hubs": hubs}).result_set
     data = {
         "decision": decision_id, "keystone_rank": rank.get(decision_id), "decisions_ranked": len(rank),
         "dependent_decisions": [{"decision": d, "title": t, "hops": n} for d, t, n in dependents],
@@ -137,8 +138,8 @@ def decision_impact(tenant: str, decision_id: str) -> Answer:
         "parcels_in_transit": sum(len(r[3]) for r in at_risk),
         "customers_at_risk": [{"customer": c, "tier": tier, "order_value": round(v, 2), "orders": o,
                                "open_tickets": t, "late_hours": late} for c, tier, v, o, t, late in at_risk],
-        "promises_at_risk": [{"promise": p, "kind": k, "due_at": due, "order": o,
-                              "hours_left": round((due - now) / 3600, 1)} for p, k, due, o in promises],
+        "promises_at_risk": [{"promise": p, "kind": k, "due_at": due, "order": o, "ticket": t,
+                              "hours_left": round((due - now) / 3600, 1)} for p, k, due, o, t in promises],
     }
     paths = [[decision_id, h] for h in hubs] + [[d, "BUILDS_ON", decision_id] for d, _, _ in dependents]
     return Answer("decision_impact", "answered_path", data=data, paths=paths, ms=_ms(start))

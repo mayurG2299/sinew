@@ -74,7 +74,7 @@ def _validate(ev: Event) -> dict:
     return spec
 
 
-def _minimise(tenant: str, ev: Event, spec: dict) -> tuple[dict, list, list]:
+def _minimise(tenant: str, ev: Event, spec: dict, allow: frozenset[str] = frozenset()) -> tuple[dict, list, list]:
     clean, identifiers, personal = {}, [], []
     country = ev.payload.get("country")
     for name, value in ev.payload.items():
@@ -87,7 +87,7 @@ def _minimise(tenant: str, ev: Event, spec: dict) -> tuple[dict, list, list]:
             if normalised:
                 identifiers.append((name, keyed_hash(tenant, name, normalised)))
         elif cls == P3:
-            clean[name] = redact(str(value))[:500]
+            clean[name] = redact(str(value), allow)[:500]
         else:
             clean[name] = value
     return clean, identifiers, personal
@@ -106,6 +106,7 @@ def process(tenant: str, events: list[Event | dict]) -> Result:
     result = Result()
     now = int(time.time())
     newest: dict[str, int] = {}
+    allow: frozenset[str] | None = None  # product titles, read once per batch, only if a text field arrives
     for raw in events:
         ev = raw if isinstance(raw, Event) else Event.model_validate(raw)
         try:
@@ -114,7 +115,10 @@ def process(tenant: str, events: list[Event | dict]) -> Result:
             _quarantine(g, ev, str(e), now)
             result.quarantined.append({"event_id": ev.event_id, "reason": str(e)})
             continue
-        clean, identifiers, personal = _minimise(tenant, ev, spec)
+        if allow is None and any(c == P3 for c, _ in spec.values()):
+            allow = frozenset(r[0].lower() for r in g.ro_query(
+                "MATCH (p:Product) WHERE p.title IS NOT NULL RETURN p.title").result_set)
+        clean, identifiers, personal = _minimise(tenant, ev, spec, allow or frozenset())
         c = Ctx(g=g, tenant=tenant, event_id=ev.event_id, source=ev.source, occurred_at=ev.occurred_at,
                 sua=ev.source_updated_at or ev.occurred_at, now=now,
                 identifiers=identifiers, personal_fields=personal)

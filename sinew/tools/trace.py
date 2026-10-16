@@ -112,11 +112,16 @@ def customer_trace(tenant: str, user_id: str, ref: str) -> Answer:
         "RETURN o.id, r.id, r.reason, r.status, r.at", {"c": customer}).result_set:
         items.append({"at": at, "kind": "return", "id": rt, "order": oid, "reason": reason_, "status": status})
 
-    for tid, at, channel, status, issue, summary, oid, handler, pid in g.ro_query(
+    other_queue = 0
+    for tid, at, channel, status, issue, summary, oid, handler, pid, queue in g.ro_query(
         "MATCH (c:Customer {id: $c})<-[:OF]-(p:Profile)<-[:FROM]-(t:Ticket) "
         "OPTIONAL MATCH (t)-[:ABOUT]->(o:Order) OPTIONAL MATCH (t)-[:HANDLED_BY]->(u:User) "
-        "RETURN t.id, t.at, t.channel, t.status, t.issue_type, t.summary_clean, o.id, u.id, p.id",
+        "OPTIONAL MATCH (t)-[:IN]->(q:Queue) "
+        "RETURN t.id, t.at, t.channel, t.status, t.issue_type, t.summary_clean, o.id, u.id, p.id, q.id",
         {"c": customer}).result_set:
+        if v.role == "contractor" and queue not in v.queues:
+            other_queue += 1
+            continue
         items.append({"at": at, "kind": "ticket", "id": tid, "channel": channel, "status": status, "issue": issue,
                       "summary": summary, "order": oid, "handled_by": handler})
         paths.append([customer, pid, tid] + ([oid] if oid else []))
@@ -130,7 +135,7 @@ def customer_trace(tenant: str, user_id: str, ref: str) -> Answer:
         items.append({"at": made, "kind": "promise", "id": prid, "promise": kind, "due_at": due, "status": status,
                       "order": oid, "ticket": tid, "made_by": by, "kept_by": kept_by})
 
-    hidden = []
+    hidden = [{"kind": "ticket", "count": other_queue, "reason": "tickets in other teams' queues"}] if other_queue else []
     for kind, why in guard.HIDDEN_FOR.get(v.role, {}).items():
         n = sum(1 for i in items if i["kind"] == kind)
         if n:

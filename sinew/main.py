@@ -82,6 +82,8 @@ def inbox(as_user: str, tenant: str = "northwind", limit: int = 40):
     ).result_set
     out = []
     for tid, at, issue, status, summary, cust, region, queue in rows:
+        if v.role == "contractor" and queue not in v.queues:
+            continue  # contractors work their own queue only
         if guard.customer_access(v, cust)[0]:
             out.append({"ticket": tid, "at": at, "issue": issue, "status": status, "summary": summary,
                         "customer": cust, "region": region, "queue": queue})
