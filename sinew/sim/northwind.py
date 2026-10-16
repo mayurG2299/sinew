@@ -350,8 +350,12 @@ def build():
                 stats["late_w2"] += 1
         elif rng.random() < 0.05:
             late_hours = rng.choice([12, 24])
-        emit("scan.recorded", {"scan_id": f"{sid}-1", "shipment_id": sid, "hub_id": path[0], "status": "in_transit"},
-             placed + 8 * 3600, "courier")
+        # Nothing is emitted after the demo's "now": a parcel that hasn't reached a hub yet has no scan there.
+        if placed + 8 * 3600 < NOW:
+            emit("scan.recorded", {"scan_id": f"{sid}-1", "shipment_id": sid, "hub_id": path[0],
+                                   "status": "in_transit"}, placed + 8 * 3600, "courier")
+        if arrive >= NOW:
+            continue
         emit("scan.recorded", {"scan_id": f"{sid}-2", "shipment_id": sid, "hub_id": path[-1],
                                "status": "delayed" if late_hours else "in_transit", "late_hours": late_hours},
              arrive, "courier")

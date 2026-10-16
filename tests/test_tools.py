@@ -44,7 +44,7 @@ def test_impact_of_the_courier_decision():
     d = impact.decision_impact(T, "dec-courier-y").data
     assert d["keystone_rank"] == 1
     assert {x["decision"] for x in d["dependent_decisions"]} == {"dec-2day-west", "dec-drop-backup"}
-    assert d["parcels_in_transit"] == 34
+    assert d["parcels_in_transit"] == 23
     values = [c["order_value"] for c in d["customers_at_risk"]]
     assert values == sorted(values, reverse=True)
     due = [p["due_at"] for p in d["promises_at_risk"]]
