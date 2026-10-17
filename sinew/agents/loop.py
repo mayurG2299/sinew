@@ -18,7 +18,7 @@ from pathlib import Path
 
 from mcp import Client
 
-from sinew.agents import check, prompts
+from sinew.agents import check, prompts, router
 from sinew.agents.llm import Gemini, LLMUnavailable
 from sinew.engine import snapshot
 from sinew.mcp_server import build_server
@@ -92,8 +92,28 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
         async with Client(server) as mcp:
             listed = [t for t in (await mcp.list_tools()).tools if t.name in allowed]
             destructive = {t.name for t in listed if t.annotations and t.annotations.destructive_hint}
+            # The graph goes first: walk from what the question names, without the model choosing, and hand the
+            # results over with the question. The model may still call more read tools if it needs them.
+            todo, facts = router.route(tenant, task), []
+            while todo:
+                name, args = todo.pop(0)
+                t0 = time.perf_counter()
+                out = await mcp.call_tool(name, args)
+                try:
+                    result = json.loads(out.content[0].text)
+                except Exception:
+                    continue
+                run.results.append(result)
+                run.steps.append({"tool": name, "args": args, "outcome": result.get("outcome"),
+                                  "ms": round((time.perf_counter() - t0) * 1000, 1), "tool_ms": result.get("ms"),
+                                  "by": "graph"})
+                facts.append(f"{name} {json.dumps(args)}: {for_model(result)}")
+                todo += router.follow_up(name, result)
+            message = task if not facts else (
+                f"{task}\n\nSinew already looked this up in the company graph for this person (permissions applied). "
+                "Answer from these results; call another tool only if something needed is missing.\n\n" + "\n\n".join(facts))
             llm.start(prompts.SYSTEM[agent], [{"name": t.name, "description": t.description or "",
-                                               "input_schema": t.input_schema} for t in listed], task)
+                                               "input_schema": t.input_schema} for t in listed], message)
             for _ in range(MAX_STEPS):
                 try:
                     t_model = time.perf_counter()

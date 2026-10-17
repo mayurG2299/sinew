@@ -12,7 +12,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-from sinew.tools import actions, docs, guard, impact, pulse, trace
+from sinew.tools import actions, docs, focus, guard, impact, pulse, trace
 
 READ = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
 WRITE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False)
@@ -32,6 +32,25 @@ def build_server(tenant: str, user_id: str, run_id: str | None = None, read_only
         """Complete history of one customer: orders, payments, scans, refunds, returns, tickets and promises,
         filtered by what you may see. Personal details are fetched live and only for allowed roles."""
         return guard.gate(tenant, user_id, "customer_trace") or trace.customer_trace(tenant, user_id, customer).as_dict()
+
+    @mcp.tool(annotations=READ)
+    def order_detail(order: Annotated[str, Field(min_length=1, max_length=40, description="order number, e.g. #4581")]) -> dict:
+        """One order and only what hangs off it: items, payment, delivery with every scan, refunds, tickets and
+        commitments. Use this whenever a specific order is named."""
+        return guard.gate(tenant, user_id, "order_detail") or focus.order_detail(tenant, user_id, order).as_dict()
+
+    @mcp.tool(annotations=READ)
+    def decision_detail(decision: Annotated[str, Field(min_length=2, max_length=200, description="the decision's title "
+                                                       "words or id")]) -> dict:
+        """One decision: what it assumed, what the data shows now, which hubs it affects, what it overlaps with
+        and which decisions rely on it. Use this whenever a specific decision or plan is named."""
+        return guard.gate(tenant, user_id, "decision_detail") or focus.decision_detail(tenant, user_id, decision).as_dict()
+
+    @mcp.tool(annotations=READ)
+    def hub_status(hub: Annotated[str, Field(min_length=2, max_length=40, description="e.g. Hub W2")]) -> dict:
+        """One hub now: courier, capacity, parcels there and late, on-time this week, busiest day, and the
+        decisions that affect it."""
+        return guard.gate(tenant, user_id, "hub_status") or focus.hub_status(tenant, user_id, hub).as_dict()
 
     @mcp.tool(annotations=READ)
     def open_loops(customer: Id) -> dict:

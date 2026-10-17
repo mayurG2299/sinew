@@ -1,0 +1,2461 @@
+[
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4208?",
+  "expect": "total 24.68",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4208\", \"placed\": \"29 Sep, 16:52\", \"customer_orders_in_total\": 4, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:52\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"1 Oct, 16:52\", \"late"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4208 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4208\", \"placed\": \"29 Sep, 16:52\", \"customer_orders_in_total\": 4, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:52\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"1 Oct, 16:52\", \"late"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4208 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4208\", \"placed\": \"29 Sep, 16:52\", \"customer_orders_in_total\": 4, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:52\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"1 Oct, 16:52\", \"late"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4208 go through?",
+  "expect": "hub-n1, hub-n2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4208\", \"placed\": \"29 Sep, 16:52\", \"customer_orders_in_total\": 4, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:52\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"1 Oct, 16:52\", \"late"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4208 placed in total?",
+  "expect": "4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4208\", \"placed\": \"29 Sep, 16:52\", \"customer_orders_in_total\": 4, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:52\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"1 Oct, 16:52\", \"late"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4208?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4208?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4396?",
+  "expect": "total 30.4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4396\", \"placed\": \"10 Oct, 03:29\", \"customer_orders_in_total\": 6, \"total\": 30.4, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Knife Set\", \"qty\": 1, \"price\": 30.4}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 03:29\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 03:29\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4396 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4396\", \"placed\": \"10 Oct, 03:29\", \"customer_orders_in_total\": 6, \"total\": 30.4, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Knife Set\", \"qty\": 1, \"price\": 30.4}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 03:29\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 03:29\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4396 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4396\", \"placed\": \"10 Oct, 03:29\", \"customer_orders_in_total\": 6, \"total\": 30.4, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Knife Set\", \"qty\": 1, \"price\": 30.4}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 03:29\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 03:29\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4396 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4396\", \"placed\": \"10 Oct, 03:29\", \"customer_orders_in_total\": 6, \"total\": 30.4, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Knife Set\", \"qty\": 1, \"price\": 30.4}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 03:29\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 03:29\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4396 placed in total?",
+  "expect": "6",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4396\", \"placed\": \"10 Oct, 03:29\", \"customer_orders_in_total\": 6, \"total\": 30.4, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Knife Set\", \"qty\": 1, \"price\": 30.4}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 03:29\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 03:29\", \"lat"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4396?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4396?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4134?",
+  "expect": "total 64.09",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1015,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4134\", \"placed\": \"25 Sep, 12:04\", \"customer_orders_in_total\": 4, \"total\": 64.09, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": 1, \"price\": 64.09}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 12:04\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 12:04\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4134 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1015,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4134\", \"placed\": \"25 Sep, 12:04\", \"customer_orders_in_total\": 4, \"total\": 64.09, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": 1, \"price\": 64.09}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 12:04\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 12:04\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4134 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1015,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4134\", \"placed\": \"25 Sep, 12:04\", \"customer_orders_in_total\": 4, \"total\": 64.09, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": 1, \"price\": 64.09}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 12:04\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 12:04\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4134 go through?",
+  "expect": "hub-n1, hub-n2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1015,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4134\", \"placed\": \"25 Sep, 12:04\", \"customer_orders_in_total\": 4, \"total\": 64.09, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": 1, \"price\": 64.09}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 12:04\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 12:04\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4134 placed in total?",
+  "expect": "4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1015,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4134\", \"placed\": \"25 Sep, 12:04\", \"customer_orders_in_total\": 4, \"total\": 64.09, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": 1, \"price\": 64.09}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 12:04\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 12:04\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4134?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4134?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What was the total of order #4016?",
+  "expect": "total 35.0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4016\", \"placed\": \"18 Sep, 13:15\", \"customer_orders_in_total\": 5, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \"price\": 35.0}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"20 Sep, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"20 Sep, 13:15\", \"late_h"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Has order #4016 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4016\", \"placed\": \"18 Sep, 13:15\", \"customer_orders_in_total\": 5, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \"price\": 35.0}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"20 Sep, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"20 Sep, 13:15\", \"late_h"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Was order #4016 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4016\", \"placed\": \"18 Sep, 13:15\", \"customer_orders_in_total\": 5, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \"price\": 35.0}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"20 Sep, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"20 Sep, 13:15\", \"late_h"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Which hubs did order #4016 go through?",
+  "expect": "hub-s1, hub-s3",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4016\", \"placed\": \"18 Sep, 13:15\", \"customer_orders_in_total\": 5, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \"price\": 35.0}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"20 Sep, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"20 Sep, 13:15\", \"late_h"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "How many orders has the customer who ordered #4016 placed in total?",
+  "expect": "5",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1010,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4016\", \"placed\": \"18 Sep, 13:15\", \"customer_orders_in_total\": 5, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \"price\": 35.0}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"20 Sep, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"20 Sep, 13:15\", \"late_h"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4016?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4016?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What was the total of order #4468?",
+  "expect": "total 150.25",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1186,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4468\", \"placed\": \"12 Oct, 20:50\", \"customer_orders_in_total\": 2, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"14 Oct, 20:50\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"14 Oct, 20:50\", \""
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Has order #4468 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1186,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4468\", \"placed\": \"12 Oct, 20:50\", \"customer_orders_in_total\": 2, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"14 Oct, 20:50\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"14 Oct, 20:50\", \""
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Was order #4468 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1186,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4468\", \"placed\": \"12 Oct, 20:50\", \"customer_orders_in_total\": 2, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"14 Oct, 20:50\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"14 Oct, 20:50\", \""
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Which hubs did order #4468 go through?",
+  "expect": "hub-s1, hub-s2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1186,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4468\", \"placed\": \"12 Oct, 20:50\", \"customer_orders_in_total\": 2, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"14 Oct, 20:50\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"14 Oct, 20:50\", \""
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "How many orders has the customer who ordered #4468 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1186,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4468\", \"placed\": \"12 Oct, 20:50\", \"customer_orders_in_total\": 2, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"14 Oct, 20:50\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"14 Oct, 20:50\", \""
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What is happening with order #4468?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4468?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What was the total of order #4127?",
+  "expect": "total 67.84",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1247,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4127\", \"placed\": \"25 Sep, 05:32\", \"customer_orders_in_total\": 4, \"total\": 67.84, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 05:32\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 05:32\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Has order #4127 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1247,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4127\", \"placed\": \"25 Sep, 05:32\", \"customer_orders_in_total\": 4, \"total\": 67.84, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 05:32\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 05:32\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Was order #4127 refunded?",
+  "expect": "refunded 67.84",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1247,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4127\", \"placed\": \"25 Sep, 05:32\", \"customer_orders_in_total\": 4, \"total\": 67.84, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 05:32\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 05:32\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Which hubs did order #4127 go through?",
+  "expect": "hub-s1, hub-s2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1247,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4127\", \"placed\": \"25 Sep, 05:32\", \"customer_orders_in_total\": 4, \"total\": 67.84, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 05:32\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 05:32\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "How many orders has the customer who ordered #4127 placed in total?",
+  "expect": "4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1247,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4127\", \"placed\": \"25 Sep, 05:32\", \"customer_orders_in_total\": 4, \"total\": 67.84, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 05:32\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"27 Sep, 05:32\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4127?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4127?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4045?",
+  "expect": "total 56.63",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4045\", \"placed\": \"20 Sep, 12:13\", \"customer_orders_in_total\": 7, \"total\": 56.63, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 56.63}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 12:13\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"22 Sep, 12:13\", \"la"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4045 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4045\", \"placed\": \"20 Sep, 12:13\", \"customer_orders_in_total\": 7, \"total\": 56.63, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 56.63}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 12:13\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"22 Sep, 12:13\", \"la"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4045 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4045\", \"placed\": \"20 Sep, 12:13\", \"customer_orders_in_total\": 7, \"total\": 56.63, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 56.63}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 12:13\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"22 Sep, 12:13\", \"la"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4045 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4045\", \"placed\": \"20 Sep, 12:13\", \"customer_orders_in_total\": 7, \"total\": 56.63, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 56.63}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 12:13\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"22 Sep, 12:13\", \"la"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4045 placed in total?",
+  "expect": "7",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1013,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4045\", \"placed\": \"20 Sep, 12:13\", \"customer_orders_in_total\": 7, \"total\": 56.63, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 56.63}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 12:13\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"22 Sep, 12:13\", \"la"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4045?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4045?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4240?",
+  "expect": "total 74.37",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1056,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4240\", \"placed\": \"2 Oct, 04:02\", \"customer_orders_in_total\": 2, \"total\": 74.37, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Bath Towels\", \"qty\": 1, \"price\": 49.69}, {\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 04:02\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4240 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1056,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4240\", \"placed\": \"2 Oct, 04:02\", \"customer_orders_in_total\": 2, \"total\": 74.37, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Bath Towels\", \"qty\": 1, \"price\": 49.69}, {\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 04:02\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4240 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1056,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4240\", \"placed\": \"2 Oct, 04:02\", \"customer_orders_in_total\": 2, \"total\": 74.37, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Bath Towels\", \"qty\": 1, \"price\": 49.69}, {\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 04:02\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4240 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1056,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4240\", \"placed\": \"2 Oct, 04:02\", \"customer_orders_in_total\": 2, \"total\": 74.37, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Bath Towels\", \"qty\": 1, \"price\": 49.69}, {\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 04:02\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4240 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1056,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4240\", \"placed\": \"2 Oct, 04:02\", \"customer_orders_in_total\": 2, \"total\": 74.37, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Bath Towels\", \"qty\": 1, \"price\": 49.69}, {\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 04:02\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4240?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4240?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4328?",
+  "expect": "total 33.98",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1299,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4328\", \"placed\": \"7 Oct, 21:16\", \"customer_orders_in_total\": 6, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 33.98}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 15:16\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 21:16\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4328 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1299,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4328\", \"placed\": \"7 Oct, 21:16\", \"customer_orders_in_total\": 6, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 33.98}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 15:16\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 21:16\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4328 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1299,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4328\", \"placed\": \"7 Oct, 21:16\", \"customer_orders_in_total\": 6, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 33.98}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 15:16\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 21:16\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4328 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1299,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4328\", \"placed\": \"7 Oct, 21:16\", \"customer_orders_in_total\": 6, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 33.98}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 15:16\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 21:16\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4328 placed in total?",
+  "expect": "6",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1299,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4328\", \"placed\": \"7 Oct, 21:16\", \"customer_orders_in_total\": 6, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 33.98}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 15:16\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 21:16\", \""
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What is happening with order #4328?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4328?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4294?",
+  "expect": "total 27.88",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1328,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4294\", \"placed\": \"6 Oct, 04:35\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"8 Oct, 04:35\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"8 Oct, 04:35\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4294 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1328,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4294\", \"placed\": \"6 Oct, 04:35\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"8 Oct, 04:35\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"8 Oct, 04:35\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4294 refunded?",
+  "expect": "refunded 27.88",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1328,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4294\", \"placed\": \"6 Oct, 04:35\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"8 Oct, 04:35\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"8 Oct, 04:35\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4294 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1328,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4294\", \"placed\": \"6 Oct, 04:35\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"8 Oct, 04:35\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"8 Oct, 04:35\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4294 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1328,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4294\", \"placed\": \"6 Oct, 04:35\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"8 Oct, 04:35\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"8 Oct, 04:35\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4294?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4294?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4412?",
+  "expect": "total 102.42",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1070,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4412\", \"placed\": \"10 Oct, 16:48\", \"customer_orders_in_total\": 2, \"total\": 102.42, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Resistance Bands\", \"qty\": 1, \"price\": 15.93}, {\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 16:48\", \"status\": \"delivered\", \"couri"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4412 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1070,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4412\", \"placed\": \"10 Oct, 16:48\", \"customer_orders_in_total\": 2, \"total\": 102.42, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Resistance Bands\", \"qty\": 1, \"price\": 15.93}, {\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 16:48\", \"status\": \"delivered\", \"couri"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4412 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1070,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4412\", \"placed\": \"10 Oct, 16:48\", \"customer_orders_in_total\": 2, \"total\": 102.42, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Resistance Bands\", \"qty\": 1, \"price\": 15.93}, {\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 16:48\", \"status\": \"delivered\", \"couri"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4412 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1070,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4412\", \"placed\": \"10 Oct, 16:48\", \"customer_orders_in_total\": 2, \"total\": 102.42, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Resistance Bands\", \"qty\": 1, \"price\": 15.93}, {\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 16:48\", \"status\": \"delivered\", \"couri"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4412 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1070,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4412\", \"placed\": \"10 Oct, 16:48\", \"customer_orders_in_total\": 2, \"total\": 102.42, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Resistance Bands\", \"qty\": 1, \"price\": 15.93}, {\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 16:48\", \"status\": \"delivered\", \"couri"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4412?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4412?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4244?",
+  "expect": "total 41.31",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1346,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"4 Oct, 13:15\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4244 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1346,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"4 Oct, 13:15\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4244 refunded?",
+  "expect": "refunded 41.31",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1346,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"4 Oct, 13:15\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4244 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1346,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"4 Oct, 13:15\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4244 placed in total?",
+  "expect": "6",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1346,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 13:15\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"4 Oct, 13:15\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4244?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4244?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4480?",
+  "expect": "total 253.41",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1017,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4480\", \"placed\": \"13 Oct, 08:26\", \"customer_orders_in_total\": 2, \"total\": 253.41, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Camping Stove\", \"qty\": 1, \"price\": 253.41}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 08:26\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"15 Oct, 08:26\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4480 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1017,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4480\", \"placed\": \"13 Oct, 08:26\", \"customer_orders_in_total\": 2, \"total\": 253.41, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Camping Stove\", \"qty\": 1, \"price\": 253.41}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 08:26\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"15 Oct, 08:26\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4480 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1017,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4480\", \"placed\": \"13 Oct, 08:26\", \"customer_orders_in_total\": 2, \"total\": 253.41, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Camping Stove\", \"qty\": 1, \"price\": 253.41}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 08:26\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"15 Oct, 08:26\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4480 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1017,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4480\", \"placed\": \"13 Oct, 08:26\", \"customer_orders_in_total\": 2, \"total\": 253.41, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Camping Stove\", \"qty\": 1, \"price\": 253.41}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 08:26\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"15 Oct, 08:26\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4480 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1017,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4480\", \"placed\": \"13 Oct, 08:26\", \"customer_orders_in_total\": 2, \"total\": 253.41, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Camping Stove\", \"qty\": 1, \"price\": 253.41}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 08:26\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"15 Oct, 08:26\", "
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What is happening with order #4480?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4480?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4364?",
+  "expect": "total 83.45",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1319,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4364\", \"placed\": \"8 Oct, 23:51\", \"customer_orders_in_total\": 4, \"total\": 83.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}, {\"item\": \"Jump Rope\", \"qty\": 1, \"price\": 15.61}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"11 Oct, 23:51\", \"status\": \"delivered\", \"courier\": \"cour"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4364 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1319,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4364\", \"placed\": \"8 Oct, 23:51\", \"customer_orders_in_total\": 4, \"total\": 83.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}, {\"item\": \"Jump Rope\", \"qty\": 1, \"price\": 15.61}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"11 Oct, 23:51\", \"status\": \"delivered\", \"courier\": \"cour"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4364 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1319,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4364\", \"placed\": \"8 Oct, 23:51\", \"customer_orders_in_total\": 4, \"total\": 83.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}, {\"item\": \"Jump Rope\", \"qty\": 1, \"price\": 15.61}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"11 Oct, 23:51\", \"status\": \"delivered\", \"courier\": \"cour"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4364 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1319,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4364\", \"placed\": \"8 Oct, 23:51\", \"customer_orders_in_total\": 4, \"total\": 83.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}, {\"item\": \"Jump Rope\", \"qty\": 1, \"price\": 15.61}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"11 Oct, 23:51\", \"status\": \"delivered\", \"courier\": \"cour"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4364 placed in total?",
+  "expect": "4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1319,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4364\", \"placed\": \"8 Oct, 23:51\", \"customer_orders_in_total\": 4, \"total\": 83.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}, {\"item\": \"Jump Rope\", \"qty\": 1, \"price\": 15.61}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"11 Oct, 23:51\", \"status\": \"delivered\", \"courier\": \"cour"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4364?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4364?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4252?",
+  "expect": "total 137.85",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1336,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4252\", \"placed\": \"3 Oct, 10:22\", \"customer_orders_in_total\": 3, \"total\": 137.85, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Speaker Mini\", \"qty\": 1, \"price\": 137.85}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"5 Oct, 10:22\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"5 Oct, 10:22\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4252 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1336,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4252\", \"placed\": \"3 Oct, 10:22\", \"customer_orders_in_total\": 3, \"total\": 137.85, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Speaker Mini\", \"qty\": 1, \"price\": 137.85}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"5 Oct, 10:22\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"5 Oct, 10:22\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4252 refunded?",
+  "expect": "refunded 137.85",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1336,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4252\", \"placed\": \"3 Oct, 10:22\", \"customer_orders_in_total\": 3, \"total\": 137.85, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Speaker Mini\", \"qty\": 1, \"price\": 137.85}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"5 Oct, 10:22\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"5 Oct, 10:22\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4252 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1336,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4252\", \"placed\": \"3 Oct, 10:22\", \"customer_orders_in_total\": 3, \"total\": 137.85, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Speaker Mini\", \"qty\": 1, \"price\": 137.85}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"5 Oct, 10:22\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"5 Oct, 10:22\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4252 placed in total?",
+  "expect": "3",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1336,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4252\", \"placed\": \"3 Oct, 10:22\", \"customer_orders_in_total\": 3, \"total\": 137.85, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Speaker Mini\", \"qty\": 1, \"price\": 137.85}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"5 Oct, 10:22\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"5 Oct, 10:22\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4252?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4252?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What was the total of order #4497?",
+  "expect": "total 41.31",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1174,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4497\", \"placed\": \"13 Oct, 23:04\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 23:04\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"15 Oct, 23:04\", \"late"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Has order #4497 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1174,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4497\", \"placed\": \"13 Oct, 23:04\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 23:04\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"15 Oct, 23:04\", \"late"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Was order #4497 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1174,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4497\", \"placed\": \"13 Oct, 23:04\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 23:04\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"15 Oct, 23:04\", \"late"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Which hubs did order #4497 go through?",
+  "expect": "hub-s1, hub-s2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1174,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4497\", \"placed\": \"13 Oct, 23:04\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 23:04\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"15 Oct, 23:04\", \"late"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "How many orders has the customer who ordered #4497 placed in total?",
+  "expect": "6",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1174,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4497\", \"placed\": \"13 Oct, 23:04\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 23:04\", \"status\": \"delivered\", \"courier\": \"courier-x\", \"promised_by\": \"15 Oct, 23:04\", \"late"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What is happening with order #4497?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4497?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What was the total of order #4154?",
+  "expect": "total 127.6",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1014,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4154\", \"placed\": \"26 Sep, 11:49\", \"customer_orders_in_total\": 1, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"28 Sep, 11:49\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"28 Sep, 11:49\", \"lat"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Has order #4154 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1014,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4154\", \"placed\": \"26 Sep, 11:49\", \"customer_orders_in_total\": 1, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"28 Sep, 11:49\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"28 Sep, 11:49\", \"lat"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Was order #4154 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1014,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4154\", \"placed\": \"26 Sep, 11:49\", \"customer_orders_in_total\": 1, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"28 Sep, 11:49\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"28 Sep, 11:49\", \"lat"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Which hubs did order #4154 go through?",
+  "expect": "hub-s1, hub-s3",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1014,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4154\", \"placed\": \"26 Sep, 11:49\", \"customer_orders_in_total\": 1, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"28 Sep, 11:49\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"28 Sep, 11:49\", \"lat"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "How many orders has the customer who ordered #4154 placed in total?",
+  "expect": "1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1014,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4154\", \"placed\": \"26 Sep, 11:49\", \"customer_orders_in_total\": 1, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"28 Sep, 11:49\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"28 Sep, 11:49\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4154?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4154?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4049?",
+  "expect": "total 181.16",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4049\", \"placed\": \"20 Sep, 13:10\", \"customer_orders_in_total\": 4, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 13:10\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 13:10\", \"l"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4049 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4049\", \"placed\": \"20 Sep, 13:10\", \"customer_orders_in_total\": 4, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 13:10\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 13:10\", \"l"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4049 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4049\", \"placed\": \"20 Sep, 13:10\", \"customer_orders_in_total\": 4, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 13:10\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 13:10\", \"l"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4049 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4049\", \"placed\": \"20 Sep, 13:10\", \"customer_orders_in_total\": 4, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 13:10\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 13:10\", \"l"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4049 placed in total?",
+  "expect": "4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4049\", \"placed\": \"20 Sep, 13:10\", \"customer_orders_in_total\": 4, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 13:10\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 13:10\", \"l"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4049?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4049?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4359?",
+  "expect": "total 127.6",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1008,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4359\", \"placed\": \"8 Oct, 18:52\", \"customer_orders_in_total\": 5, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 18:52\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"10 Oct, 18:52\", \"late"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4359 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1008,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4359\", \"placed\": \"8 Oct, 18:52\", \"customer_orders_in_total\": 5, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 18:52\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"10 Oct, 18:52\", \"late"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4359 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1008,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4359\", \"placed\": \"8 Oct, 18:52\", \"customer_orders_in_total\": 5, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 18:52\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"10 Oct, 18:52\", \"late"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4359 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1008,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4359\", \"placed\": \"8 Oct, 18:52\", \"customer_orders_in_total\": 5, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 18:52\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"10 Oct, 18:52\", \"late"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4359 placed in total?",
+  "expect": "5",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1008,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4359\", \"placed\": \"8 Oct, 18:52\", \"customer_orders_in_total\": 5, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 18:52\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"10 Oct, 18:52\", \"late"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4359?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4359?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4082?",
+  "expect": "total 364.58",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1290,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4082\", \"placed\": \"22 Sep, 14:10\", \"customer_orders_in_total\": 2, \"total\": 364.58, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Trek Poles\", \"qty\": 1, \"price\": 218.2}, {\"item\": \"Tent 2P\", \"qty\": 1, \"price\": 146.38}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 14:10\", \"status\": \"delivered\", \"courier\": \""
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4082 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1290,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4082\", \"placed\": \"22 Sep, 14:10\", \"customer_orders_in_total\": 2, \"total\": 364.58, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Trek Poles\", \"qty\": 1, \"price\": 218.2}, {\"item\": \"Tent 2P\", \"qty\": 1, \"price\": 146.38}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 14:10\", \"status\": \"delivered\", \"courier\": \""
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4082 refunded?",
+  "expect": "refunded 364.58",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1290,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4082\", \"placed\": \"22 Sep, 14:10\", \"customer_orders_in_total\": 2, \"total\": 364.58, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Trek Poles\", \"qty\": 1, \"price\": 218.2}, {\"item\": \"Tent 2P\", \"qty\": 1, \"price\": 146.38}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 14:10\", \"status\": \"delivered\", \"courier\": \""
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4082 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1290,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4082\", \"placed\": \"22 Sep, 14:10\", \"customer_orders_in_total\": 2, \"total\": 364.58, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Trek Poles\", \"qty\": 1, \"price\": 218.2}, {\"item\": \"Tent 2P\", \"qty\": 1, \"price\": 146.38}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 14:10\", \"status\": \"delivered\", \"courier\": \""
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4082 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1290,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4082\", \"placed\": \"22 Sep, 14:10\", \"customer_orders_in_total\": 2, \"total\": 364.58, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Trek Poles\", \"qty\": 1, \"price\": 218.2}, {\"item\": \"Tent 2P\", \"qty\": 1, \"price\": 146.38}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 14:10\", \"status\": \"delivered\", \"courier\": \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4082?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4082?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What was the total of order #4072?",
+  "expect": "total 274.28",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1075,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4072\", \"placed\": \"22 Sep, 05:41\", \"customer_orders_in_total\": 2, \"total\": 274.28, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1, \"price\": 166.54}, {\"item\": \"Headlamp\", \"qty\": 1, \"price\": 107.74}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 05:41\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Has order #4072 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1075,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4072\", \"placed\": \"22 Sep, 05:41\", \"customer_orders_in_total\": 2, \"total\": 274.28, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1, \"price\": 166.54}, {\"item\": \"Headlamp\", \"qty\": 1, \"price\": 107.74}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 05:41\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Was order #4072 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1075,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4072\", \"placed\": \"22 Sep, 05:41\", \"customer_orders_in_total\": 2, \"total\": 274.28, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1, \"price\": 166.54}, {\"item\": \"Headlamp\", \"qty\": 1, \"price\": 107.74}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 05:41\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "Which hubs did order #4072 go through?",
+  "expect": "hub-s1, hub-s3",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1075,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4072\", \"placed\": \"22 Sep, 05:41\", \"customer_orders_in_total\": 2, \"total\": 274.28, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1, \"price\": 166.54}, {\"item\": \"Headlamp\", \"qty\": 1, \"price\": 107.74}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 05:41\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "How many orders has the customer who ordered #4072 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1075,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4072\", \"placed\": \"22 Sep, 05:41\", \"customer_orders_in_total\": 2, \"total\": 274.28, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1, \"price\": 166.54}, {\"item\": \"Headlamp\", \"qty\": 1, \"price\": 107.74}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 05:41\", \"status\": \"delivered\", \"courier\":"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4072?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4072?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4573?",
+  "expect": "total 67.14",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 953,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4573\", \"placed\": \"16 Oct, 08:50\", \"customer_orders_in_total\": 4, \"total\": 67.14, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Plant Pot\", \"qty\": 1, \"price\": 43.61}, {\"item\": \"Doormat\", \"qty\": 1, \"price\": 23.53}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courier-y\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4573 been delivered?",
+  "expect": "delivered=False",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 953,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4573\", \"placed\": \"16 Oct, 08:50\", \"customer_orders_in_total\": 4, \"total\": 67.14, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Plant Pot\", \"qty\": 1, \"price\": 43.61}, {\"item\": \"Doormat\", \"qty\": 1, \"price\": 23.53}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courier-y\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4573 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 953,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4573\", \"placed\": \"16 Oct, 08:50\", \"customer_orders_in_total\": 4, \"total\": 67.14, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Plant Pot\", \"qty\": 1, \"price\": 43.61}, {\"item\": \"Doormat\", \"qty\": 1, \"price\": 23.53}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courier-y\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4573 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 953,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4573\", \"placed\": \"16 Oct, 08:50\", \"customer_orders_in_total\": 4, \"total\": 67.14, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Plant Pot\", \"qty\": 1, \"price\": 43.61}, {\"item\": \"Doormat\", \"qty\": 1, \"price\": 23.53}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courier-y\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4573 placed in total?",
+  "expect": "4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 953,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4573\", \"placed\": \"16 Oct, 08:50\", \"customer_orders_in_total\": 4, \"total\": 67.14, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Plant Pot\", \"qty\": 1, \"price\": 43.61}, {\"item\": \"Doormat\", \"qty\": 1, \"price\": 23.53}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courier-y\", "
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4573?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4573?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4034?",
+  "expect": "total 181.89",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1031,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4034\", \"placed\": \"19 Sep, 22:36\", \"customer_orders_in_total\": 5, \"total\": 181.89, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headphones 700\", \"qty\": 1, \"price\": 181.89}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"21 Sep, 22:36\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"21 Sep, 22:36\","
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4034 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1031,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4034\", \"placed\": \"19 Sep, 22:36\", \"customer_orders_in_total\": 5, \"total\": 181.89, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headphones 700\", \"qty\": 1, \"price\": 181.89}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"21 Sep, 22:36\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"21 Sep, 22:36\","
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4034 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1031,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4034\", \"placed\": \"19 Sep, 22:36\", \"customer_orders_in_total\": 5, \"total\": 181.89, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headphones 700\", \"qty\": 1, \"price\": 181.89}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"21 Sep, 22:36\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"21 Sep, 22:36\","
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4034 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1031,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4034\", \"placed\": \"19 Sep, 22:36\", \"customer_orders_in_total\": 5, \"total\": 181.89, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headphones 700\", \"qty\": 1, \"price\": 181.89}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"21 Sep, 22:36\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"21 Sep, 22:36\","
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4034 placed in total?",
+  "expect": "5",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1031,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4034\", \"placed\": \"19 Sep, 22:36\", \"customer_orders_in_total\": 5, \"total\": 181.89, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headphones 700\", \"qty\": 1, \"price\": 181.89}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"21 Sep, 22:36\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"21 Sep, 22:36\","
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4034?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4034?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4407?",
+  "expect": "total 76.56",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1297,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4407\", \"placed\": \"10 Oct, 09:37\", \"customer_orders_in_total\": 1, \"total\": 76.56, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 76.56}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"13 Oct, 03:37\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 09:37\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4407 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1297,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4407\", \"placed\": \"10 Oct, 09:37\", \"customer_orders_in_total\": 1, \"total\": 76.56, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 76.56}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"13 Oct, 03:37\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 09:37\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4407 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1297,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4407\", \"placed\": \"10 Oct, 09:37\", \"customer_orders_in_total\": 1, \"total\": 76.56, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 76.56}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"13 Oct, 03:37\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 09:37\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4407 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1297,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4407\", \"placed\": \"10 Oct, 09:37\", \"customer_orders_in_total\": 1, \"total\": 76.56, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 76.56}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"13 Oct, 03:37\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 09:37\", "
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4407 placed in total?",
+  "expect": "1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1297,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4407\", \"placed\": \"10 Oct, 09:37\", \"customer_orders_in_total\": 1, \"total\": 76.56, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 76.56}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"13 Oct, 03:37\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"12 Oct, 09:37\", "
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What is happening with order #4407?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4407?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4207?",
+  "expect": "total 181.16",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1011,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4207\", \"placed\": \"29 Sep, 16:39\", \"customer_orders_in_total\": 8, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:39\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"1 Oct, 16:39\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4207 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1011,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4207\", \"placed\": \"29 Sep, 16:39\", \"customer_orders_in_total\": 8, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:39\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"1 Oct, 16:39\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4207 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1011,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4207\", \"placed\": \"29 Sep, 16:39\", \"customer_orders_in_total\": 8, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:39\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"1 Oct, 16:39\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4207 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1011,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4207\", \"placed\": \"29 Sep, 16:39\", \"customer_orders_in_total\": 8, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:39\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"1 Oct, 16:39\", \"lat"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4207 placed in total?",
+  "expect": "8",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1011,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4207\", \"placed\": \"29 Sep, 16:39\", \"customer_orders_in_total\": 8, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:39\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"1 Oct, 16:39\", \"lat"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What is happening with order #4207?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4207?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4076?",
+  "expect": "total 150.25",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4076\", \"placed\": \"22 Sep, 10:00\", \"customer_orders_in_total\": 5, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 10:00\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"24 Sep, 10:00\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4076 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4076\", \"placed\": \"22 Sep, 10:00\", \"customer_orders_in_total\": 5, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 10:00\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"24 Sep, 10:00\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4076 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4076\", \"placed\": \"22 Sep, 10:00\", \"customer_orders_in_total\": 5, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 10:00\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"24 Sep, 10:00\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4076 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4076\", \"placed\": \"22 Sep, 10:00\", \"customer_orders_in_total\": 5, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 10:00\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"24 Sep, 10:00\", \""
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4076 placed in total?",
+  "expect": "5",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4076\", \"placed\": \"22 Sep, 10:00\", \"customer_orders_in_total\": 5, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 10:00\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"24 Sep, 10:00\", \""
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4076?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4076?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4362?",
+  "expect": "total 86.49",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1171,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4362\", \"placed\": \"8 Oct, 20:45\", \"customer_orders_in_total\": 5, \"total\": 86.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 20:45\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"10 Oct, 20:45\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4362 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1171,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4362\", \"placed\": \"8 Oct, 20:45\", \"customer_orders_in_total\": 5, \"total\": 86.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 20:45\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"10 Oct, 20:45\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4362 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1171,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4362\", \"placed\": \"8 Oct, 20:45\", \"customer_orders_in_total\": 5, \"total\": 86.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 20:45\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"10 Oct, 20:45\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4362 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1171,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4362\", \"placed\": \"8 Oct, 20:45\", \"customer_orders_in_total\": 5, \"total\": 86.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 20:45\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"10 Oct, 20:45\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4362 placed in total?",
+  "expect": "5",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1171,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4362\", \"placed\": \"8 Oct, 20:45\", \"customer_orders_in_total\": 5, \"total\": 86.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 20:45\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"10 Oct, 20:45\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4362?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4362?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4043?",
+  "expect": "total 88.05",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1020,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4043\", \"placed\": \"20 Sep, 10:14\", \"customer_orders_in_total\": 2, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"price\": 88.05}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 10:14\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 10:14\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4043 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1020,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4043\", \"placed\": \"20 Sep, 10:14\", \"customer_orders_in_total\": 2, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"price\": 88.05}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 10:14\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 10:14\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4043 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1020,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4043\", \"placed\": \"20 Sep, 10:14\", \"customer_orders_in_total\": 2, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"price\": 88.05}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 10:14\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 10:14\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4043 go through?",
+  "expect": "hub-n1, hub-n2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1020,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4043\", \"placed\": \"20 Sep, 10:14\", \"customer_orders_in_total\": 2, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"price\": 88.05}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 10:14\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 10:14\", \"late_ho"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4043 placed in total?",
+  "expect": "2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1020,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4043\", \"placed\": \"20 Sep, 10:14\", \"customer_orders_in_total\": 2, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"price\": 88.05}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 10:14\", \"status\": \"delivered\", \"courier\": \"courier-z\", \"promised_by\": \"22 Sep, 10:14\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is happening with order #4043?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4043?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "What was the total of order #4584?",
+  "expect": "total 155.48",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 854,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4584\", \"placed\": \"16 Oct, 20:01\", \"customer_orders_in_total\": 6, \"total\": 155.48, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}, {\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courie"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Has order #4584 been delivered?",
+  "expect": "delivered=False",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 854,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4584\", \"placed\": \"16 Oct, 20:01\", \"customer_orders_in_total\": 6, \"total\": 155.48, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}, {\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courie"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Was order #4584 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 854,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4584\", \"placed\": \"16 Oct, 20:01\", \"customer_orders_in_total\": 6, \"total\": 155.48, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}, {\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courie"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "Which hubs did order #4584 go through?",
+  "expect": "hub-n1",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 854,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4584\", \"placed\": \"16 Oct, 20:01\", \"customer_orders_in_total\": 6, \"total\": 155.48, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}, {\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courie"
+ },
+ {
+  "who": "u-agent-n1",
+  "q": "How many orders has the customer who ordered #4584 placed in total?",
+  "expect": "6",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 854,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4584\", \"placed\": \"16 Oct, 20:01\", \"customer_orders_in_total\": 6, \"total\": 155.48, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}, {\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": false, \"delivered_on\": null, \"status\": \"in transit\", \"courier\": \"courie"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4584?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4584?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What was the total of order #4313?",
+  "expect": "total 27.88",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4313\", \"placed\": \"7 Oct, 04:46\", \"customer_orders_in_total\": 4, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"9 Oct, 04:46\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 04:46\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Has order #4313 been delivered?",
+  "expect": "delivered=True",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4313\", \"placed\": \"7 Oct, 04:46\", \"customer_orders_in_total\": 4, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"9 Oct, 04:46\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 04:46\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Was order #4313 refunded?",
+  "expect": "refunded 0",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4313\", \"placed\": \"7 Oct, 04:46\", \"customer_orders_in_total\": 4, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"9 Oct, 04:46\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 04:46\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Which hubs did order #4313 go through?",
+  "expect": "hub-w1, hub-w2",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4313\", \"placed\": \"7 Oct, 04:46\", \"customer_orders_in_total\": 4, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"9 Oct, 04:46\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 04:46\", \"late_ho"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "How many orders has the customer who ordered #4313 placed in total?",
+  "expect": "4",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 1016,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4313\", \"placed\": \"7 Oct, 04:46\", \"customer_orders_in_total\": 4, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"9 Oct, 04:46\", \"status\": \"delivered\", \"courier\": \"courier-y\", \"promised_by\": \"9 Oct, 04:46\", \"late_ho"
+ },
+ {
+  "who": "u-agent-s1",
+  "q": "What is happening with order #4313?",
+  "expect": "refused (other region)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 164,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your team doesn't cover this customer's region\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was the total of order #4313?",
+  "expect": "refused (no support area)",
+  "ok": true,
+  "tools": [
+   "order_detail"
+  ],
+  "size": 170,
+  "got": "[{\"tool\": \"order_detail\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to support information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-lead-west",
+  "q": "How many support tickets did we get this week?",
+  "expect": "54",
+  "ok": true,
+  "tools": [
+   "company_pulse"
+  ],
+  "size": 1652,
+  "got": "[{\"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"issue\": \"late delivery\", \"tickets\": 22}, {\"issue\": \"product issue\", \"tickets\": 13}, {\"issue\": \"wrong it"
+ },
+ {
+  "who": "u-cmo",
+  "q": "What was our revenue this week?",
+  "expect": "$17,949.49",
+  "ok": true,
+  "tools": [
+   "company_pulse"
+  ],
+  "size": 2509,
+  "got": "[{\"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"finance\", \"marketing\", \"operations\"], \"operations\": {\"delivered_this_week\": 196, \"on_time_rate\": 0.8469, \"weakest_hub\": {\"hub\": \"hub-w2\", \"on_time_rate\": 0.7658}, \"parcels_late_now\": 14, \"decisions_not_holding\": [{\"decision\": \"Run the Festive Flash Sale (40% off kitchen) in the west\", \"assumed\": \""
+ },
+ {
+  "who": "u-marketing",
+  "q": "What was our revenue this week?",
+  "expect": "no revenue figure",
+  "ok": true,
+  "tools": [
+   "company_pulse"
+  ],
+  "size": 1694,
+  "got": "[{\"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"marketing\", \"operations\"], \"operations\": {\"delivered_this_week\": 196, \"on_time_rate\": 0.8469, \"weakest_hub\": {\"hub\": \"hub-w2\", \"on_time_rate\": 0.7658}, \"parcels_late_now\": 14, \"decisions_not_holding\": [{\"decision\": \"Run the Festive Flash Sale (40% off kitchen) in the west\", \"assumed\": \"Hubs can ha"
+ },
+ {
+  "who": "u-logistics",
+  "q": "What is Courier Y's on-time rate at Hub W2 this week?",
+  "expect": "77%",
+  "ok": true,
+  "tools": [
+   "hub_status",
+   "company_pulse"
+  ],
+  "size": 2363,
+  "got": "[{\"tool\": \"hub_status\", \"outcome\": \"answered_path\", \"data\": {\"hub\": \"Hub W2\", \"run_by\": \"courier-y\", \"capacity_per_day\": 14, \"parcels_there_now\": 25, \"customers_waiting\": 21, \"late_now\": 12, \"on_time_this_week\": \"77%\", \"busiest_day_parcels\": 22, \"decisions\": [{\"decision\": \"Run the Winter Sale (25% off home) in the west\", \"assumption_broken\": true}, {\"decision\": \"Run the Festive Flash Sale (40% off"
+ },
+ {
+  "who": "u-logistics",
+  "q": "How many customers are still waiting on parcels at Hub W2?",
+  "expect": "21",
+  "ok": true,
+  "tools": [
+   "hub_status"
+  ],
+  "size": 711,
+  "got": "[{\"tool\": \"hub_status\", \"outcome\": \"answered_path\", \"data\": {\"hub\": \"Hub W2\", \"run_by\": \"courier-y\", \"capacity_per_day\": 14, \"parcels_there_now\": 25, \"customers_waiting\": 21, \"late_now\": 12, \"on_time_this_week\": \"77%\", \"busiest_day_parcels\": 22, \"decisions\": [{\"decision\": \"Run the Winter Sale (25% off home) in the west\", \"assumption_broken\": true}, {\"decision\": \"Run the Festive Flash Sale (40% off"
+ },
+ {
+  "who": "u-marketing",
+  "q": "How many days until the Winter Sale starts?",
+  "expect": "10",
+  "ok": true,
+  "tools": [
+   "decision_detail"
+  ],
+  "size": 975,
+  "got": "[{\"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Run the Winter Sale (25% off home) in the west\", \"made\": \"15 Oct, 12:00\", \"owner\": \"u-marketing\", \"chose\": \"Campaign\", \"hubs\": [\"hub-w1\", \"hub-w2\", \"hub-w4\"], \"assumptions\": [{\"assumed\": \"Hub W2 can carry the Winter Sale volume\", \"needs\": \"at most 1.00x capacity\", \"now\": \"1.57x capacity\", \"holds\": false, \"measured_on\": "
+ },
+ {
+  "who": "u-cmo",
+  "q": "What does Courier Y cost per parcel?",
+  "expect": "$4.20",
+  "ok": true,
+  "tools": [
+   "decision_detail",
+   "search_docs"
+  ],
+  "size": 2961,
+  "got": "[{\"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Switch west region deliveries to Courier Y to cut cost\", \"made\": \"18 Aug, 12:00\", \"owner\": \"u-logistics\", \"chose\": \"Courier\", \"hubs\": [\"hub-w2\"], \"assumptions\": [{\"assumed\": \"Courier Y delivers at least 90% on time through Hub W2\", \"needs\": \"at least 90%\", \"now\": \"77%\", \"holds\": false, \"measured_on\": \"111 scans\", \"overl"
+ },
+ {
+  "who": "u-marketing",
+  "q": "What does Courier Y cost per parcel?",
+  "expect": "no cost figure",
+  "ok": true,
+  "tools": [
+   "decision_detail",
+   "search_docs"
+  ],
+  "size": 3309,
+  "got": "[{\"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Switch west region deliveries to Courier Y to cut cost\", \"made\": \"18 Aug, 12:00\", \"owner\": \"u-logistics\", \"chose\": \"Courier\", \"hubs\": [\"hub-w2\"], \"assumptions\": [{\"assumed\": \"Courier Y delivers at least 90% on time through Hub W2\", \"needs\": \"at least 90%\", \"now\": \"77%\", \"holds\": false, \"measured_on\": \"111 scans\", \"overl"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "Who has to approve a $300 refund?",
+  "expect": "team leads ... up to $500",
+  "ok": true,
+  "tools": [
+   "search_docs"
+  ],
+  "size": 1501,
+  "got": "[{\"tool\": \"search_docs\", \"outcome\": \"answered_path\", \"data\": [{\"passage\": \"doc-refund-policy-2\", \"doc\": \"doc-refund-policy\", \"title\": \"Refund policy\", \"kind\": \"policy\", \"heading\": \"How fast refunds must go out\", \"text\": \"Once we tell a customer a refund is on its way, it must be issued within 3 working days. If we miss that date, apologise first, issue the refund the same day and add a 10% voucher"
+ },
+ {
+  "who": "u-agent-w1",
+  "q": "What is our office leave policy?",
+  "expect": "no leave document",
+  "ok": true,
+  "tools": [
+   "search_docs"
+  ],
+  "size": 523,
+  "got": "[{\"tool\": \"search_docs\", \"outcome\": \"answered_path\", \"data\": [{\"passage\": \"doc-ops-notes-0818-2\", \"doc\": \"doc-ops-notes-0818\", \"title\": \"Operations meeting notes, 18 Aug\", \"kind\": \"meeting_notes\", \"heading\": \"Risk raised\", \"text\": \"Support asked what happens in sale weeks, because Hub W2 handles only 14 parcels a day. Answer: the backup courier covers peaks for now. Follow-up: review the backup co"
+ },
+ {
+  "who": "u-logistics",
+  "q": "Why are complaints up this week?",
+  "expect": "Hub W2 -> Courier Y decision at 77%",
+  "ok": true,
+  "tools": [
+   "cluster_incidents",
+   "prelaunch_check",
+   "trace_decisions"
+  ],
+  "size": 5641,
+  "got": "[{\"tool\": \"cluster_incidents\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"clusters\": [{\"tickets\": 22, \"ticket_ids\": [\"t-90329\", \"t-90335\", \"t-90352\", \"t-90356\", \"t-90357\", \"t-90358\", \"t-90364\", \"t-90365\", \"t-90369\", \"t-90390\", \"t-90392\", \"t-90393\", \"t-90403\", \"t-90405\", \"t-90406\", \"t-90407\", \"t-90416\", \"t-90454\", \"t-90466\", \"t-90498\", \"t-90500\", \"t-90520\"], \"issue\": \"late_delivery\", \"shared\""
+ },
+ {
+  "who": "u-contractor-1",
+  "q": "Why are complaints up this week?",
+  "expect": "refused (no operations area)",
+  "ok": true,
+  "tools": [
+   "cluster_incidents",
+   "prelaunch_check"
+  ],
+  "size": 354,
+  "got": "[{\"tool\": \"cluster_incidents\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to operations information\", \"ms\": 0.0}, {\"tool\": \"prelaunch_check\", \"outcome\": \"not_permitted\", \"data\": {}, \"paths\": [], \"hidden\": [], \"reason\": \"your role doesn't have access to operations information\", \"ms\": 0.0}]"
+ },
+ {
+  "who": "u-logistics",
+  "q": "Tell me about the courier Y switch",
+  "expect": "the Courier Y decision, 77% vs 90%",
+  "ok": true,
+  "tools": [
+   "decision_detail"
+  ],
+  "size": 883,
+  "got": "[{\"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Switch west region deliveries to Courier Y to cut cost\", \"made\": \"18 Aug, 12:00\", \"owner\": \"u-logistics\", \"chose\": \"Courier\", \"hubs\": [\"hub-w2\"], \"assumptions\": [{\"assumed\": \"Courier Y delivers at least 90% on time through Hub W2\", \"needs\": \"at least 90%\", \"now\": \"77%\", \"holds\": false, \"measured_on\": \"111 scans\", \"overl"
+ }
+]

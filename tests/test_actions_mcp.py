@@ -99,7 +99,7 @@ def test_mcp_tools_are_bound_to_a_person_and_marked():
             result = await c.call_tool("find_approver", {"amount": 300})
             return tools, json.loads(result.content[0].text)
     tools, approver = run(go())
-    assert len(tools) == 21
+    assert len(tools) == 24
     assert all("user" not in json.dumps(t.input_schema) for t in tools.values())  # can't choose who it acts as
     assert tools["issue_refund"].annotations.destructive_hint is True
     assert tools["customer_trace"].annotations.read_only_hint is True
@@ -112,4 +112,4 @@ def test_read_only_server_has_no_write_tools():
         async with Client(build_server(T, "u-sup-head", read_only=True)) as c:
             return [t.name for t in (await c.list_tools()).tools]
     names = run(go())
-    assert len(names) == 14 and "issue_refund" not in names
+    assert len(names) == 17 and "issue_refund" not in names

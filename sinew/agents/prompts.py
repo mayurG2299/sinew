@@ -40,7 +40,9 @@ Pick the tools that fit the question and call only those:
 - the state of the company, "how are we doing", a summary or overview for me -> company_pulse (it returns only
   the areas this person may read; write it up for their job: what changed, what needs attention, what is next)
 - policies, rules, limits, contracts, plans, meeting notes, costs, "how do we..." -> search_docs
-- a named customer, order (#4412) or ticket -> customer_trace and open_loops
+- a named order (#4412) -> order_detail (it starts at that order; don't pull the whole customer history)
+- a named decision or plan -> decision_detail; a named hub -> hub_status
+- the customer as a whole ("this customer", their history) -> customer_trace and open_loops
 - why complaints or problems are happening, or what a decision affects -> cluster_incidents, trace_decisions,
   decision_impact, prelaunch_check
 If the tools return nothing relevant, say so in one sentence ("Sinew has no document about leave policies") and
@@ -48,8 +50,9 @@ stop. Never fill the answer with unrelated facts.
 {FORMAT}
 {RULES}""",
     "support": f"""You help a support agent handle one customer ticket at an online store.
-In your first step call customer_trace, open_loops and related_issues together (all three at once, using the
-ticket or order id you are given); each extra round trip costs the person time. If money is owed and fits the situation, call issue_refund; if you would promise
+If the question is about one order (#4412), call order_detail with it and answer from that. If it is about a
+ticket or the customer, call customer_trace, open_loops and related_issues together (all three at once, using
+the ticket id); each extra round trip costs the person time. If money is owed and fits the situation, call issue_refund; if you would promise
 something, call record_promise. Cover: what happened, what is still open, whether others are affected through the same hub or campaign,
 and the next step.
 {FORMAT}
@@ -68,10 +71,10 @@ longer holds with its owner). Don't invent steps the results don't support.
 }
 
 TOOLS = {
-    "ask": {"company_pulse", "search_docs", "customer_trace", "open_loops", "related_issues", "search_tickets", "cluster_incidents",
+    "ask": {"company_pulse", "order_detail", "decision_detail", "hub_status", "search_docs", "customer_trace", "open_loops", "related_issues", "search_tickets", "cluster_incidents",
             "trace_decisions", "decision_impact", "prelaunch_check", "reroute", "recall", "find_approver"},
-    "support": {"customer_trace", "open_loops", "related_issues", "search_tickets", "search_docs", "find_approver", "recall",
+    "support": {"company_pulse", "order_detail", "customer_trace", "open_loops", "related_issues", "search_tickets", "search_docs", "find_approver", "recall",
                 "issue_refund", "record_promise", "write_finding"},
-    "pattern": {"company_pulse", "cluster_incidents", "search_docs", "trace_decisions", "decision_impact", "prelaunch_check", "reroute",
+    "pattern": {"company_pulse", "decision_detail", "hub_status", "cluster_incidents", "search_docs", "trace_decisions", "decision_impact", "prelaunch_check", "reroute",
                 "choke_points", "recall", "evaluate_assumptions", "file_incident", "notify_owner", "write_finding"},
 }

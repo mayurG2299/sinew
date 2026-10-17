@@ -108,6 +108,9 @@ def courier_upserted(c: Ctx, p: dict):
 def hub_upserted(c: Ctx, p: dict):
     upsert(c, "Hub", p["hub_id"], {"capacity": p.get("capacity", 0)})
     link(c, "Hub", p["hub_id"], "IN", "Region", p["region"])
+    # A hub is run by one courier at a time: a change of courier replaces the old link.
+    c.g.query("MATCH (:Hub {id: $h})-[r:RUN_BY]->(x:Courier) WHERE x.id <> $c DELETE r",
+              {"h": p["hub_id"], "c": p["courier_id"]})
     link(c, "Hub", p["hub_id"], "RUN_BY", "Courier", p["courier_id"])
 
 

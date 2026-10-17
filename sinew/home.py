@@ -26,6 +26,13 @@ def _item(id_, label, ask, agent=None, task=None, view=None, since=None, note=No
     return {"id": id_, "label": label, "since": since, "note": note, "ask": ask, "agent": agent, "task": task, "view": view}
 
 
+def _decision_item(did: str, title: str, note: str | None) -> dict:
+    """A decision line asks about that decision, starting at its node, not a general question."""
+    return _item(did, title, f"What's happening with \"{title}\"?", "ask",
+                 f"Tell me about the decision \"{title}\" ({did}): what it assumed, what the data shows now, what it "
+                 "overlaps with and what relies on it.", {"kind": "impact"}, note=note)
+
+
 def _support(v: guard.Viewer, now: int, cluster: dict | None, risk_customers: set[str]) -> dict:
     rows = guard.visible_tickets(v, 2000)
     open_rows = [r for r in rows if r[3] != "solved"]
@@ -70,9 +77,9 @@ def _decisions(tenant: str, v: guard.Viewer, cluster: dict | None) -> dict:
             if ev:
                 value, metric = ev[0]
                 note = f"{round(value * 100)}% now" if metric == "courier_on_time_rate" else f"{value:.2f}× capacity"
-            attention.append(_item(did, title, WHY, "pattern", WHY, {"kind": "impact"}, note=note))
+            attention.append(_decision_item(did, title, note))
         elif overlaps:
-            attention.append(_item(did, title, WHY, "pattern", WHY, {"kind": "impact"}, note="overlaps another decision"))
+            attention.append(_decision_item(did, title, "overlaps another decision"))
     warnings = impact.prelaunch_check(tenant).data.get("warnings", [])
     at_risk = [_item(w["campaign"], w["name"], f"Is the {w['name']} safe to launch?", view={"kind": "prelaunch"},
                      note=f"starts in {w['starts_in_days']:g} days") for w in warnings]
