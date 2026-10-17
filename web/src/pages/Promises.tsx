@@ -58,7 +58,7 @@ export function Promises({ asUser }: { asUser: string }) {
         </div>
         <div className="rounded-xl border border-stone-200 bg-white p-5">
           <p className="text-[15px] text-stone-900">
-            {broken + soon + proposed === 0 ? "Nothing needs you right now: every promise is on track."
+            {all.length === 0 ? "No promises recorded yet." : broken + soon + proposed === 0 ? "Nothing needs you right now: every promise is on track."
               : <>{broken > 0 && <><b className="text-rose-800">{broken} broken</b>{soon + proposed > 0 ? ", " : "."} </>}
                 {soon > 0 && <><b>{soon} due in the next 24 hours</b>{proposed > 0 ? ", " : "."} </>}
                 {proposed > 0 && <><b>{proposed} waiting for you to confirm</b>.</>}</>}
