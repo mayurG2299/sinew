@@ -38,10 +38,12 @@
   "expect": "hub-n1, hub-n2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 911,
-  "got": "[{\"scope\": \"order #4208\", \"from\": \"order_detail\", \"named\": [\"o-4208\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4208\", \"placed\": \"29 Sep, 16:52\", \"customer_orders_in_total\": 4, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:52"
+  "size": 2783,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4208\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -127,10 +129,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 910,
-  "got": "[{\"scope\": \"order #4396\", \"from\": \"order_detail\", \"named\": [\"o-4396\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4396\", \"placed\": \"10 Oct, 03:29\", \"customer_orders_in_total\": 6, \"total\": 30.4, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Knife Set\", \"qty\": 1, \"price\": 30.4}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"12 Oct, 03:29"
+  "size": 2782,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4396\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -216,10 +220,12 @@
   "expect": "hub-n1, hub-n2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 911,
-  "got": "[{\"scope\": \"order #4134\", \"from\": \"order_detail\", \"named\": [\"o-4134\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4134\", \"placed\": \"25 Sep, 12:04\", \"customer_orders_in_total\": 4, \"total\": 64.09, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": 1, \"price\": 64.09}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 12:04"
+  "size": 2783,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4134\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -305,10 +311,12 @@
   "expect": "hub-s1, hub-s3",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 907,
-  "got": "[{\"scope\": \"order #4016\", \"from\": \"order_detail\", \"named\": [\"o-4016\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4016\", \"placed\": \"18 Sep, 13:15\", \"customer_orders_in_total\": 5, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \"price\": 35.0}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"20 Sep, 13:15\", "
+  "size": 2779,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4016\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-s1",
@@ -394,10 +402,12 @@
   "expect": "hub-s1, hub-s2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1083,
-  "got": "[{\"scope\": \"order #4468\", \"from\": \"order_detail\", \"named\": [\"o-4468\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4468\", \"placed\": \"12 Oct, 20:50\", \"customer_orders_in_total\": 2, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"14 Oct, 20"
+  "size": 2955,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4468\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-s1",
@@ -483,10 +493,12 @@
   "expect": "hub-s1, hub-s2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1146,
-  "got": "[{\"scope\": \"order #4127\", \"from\": \"order_detail\", \"named\": [\"o-4127\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4127\", \"placed\": \"25 Sep, 05:32\", \"customer_orders_in_total\": 4, \"total\": 67.84, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"27 Sep, 05:32\", \""
+  "size": 3018,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4127\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-s1",
@@ -572,10 +584,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 912,
-  "got": "[{\"scope\": \"order #4045\", \"from\": \"order_detail\", \"named\": [\"o-4045\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4045\", \"placed\": \"20 Sep, 12:13\", \"customer_orders_in_total\": 7, \"total\": 56.63, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 56.63}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 12:1"
+  "size": 2784,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4045\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -661,10 +675,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 956,
-  "got": "[{\"scope\": \"order #4240\", \"from\": \"order_detail\", \"named\": [\"o-4240\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4240\", \"placed\": \"2 Oct, 04:02\", \"customer_orders_in_total\": 2, \"total\": 74.37, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Bath Towels\", \"qty\": 1, \"price\": 49.69}, {\"item\": \"Cushion Pair\", \"qty\": 1, \"price\": 24.68}], \"delivery\":"
+  "size": 2828,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4240\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -750,10 +766,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1198,
-  "got": "[{\"scope\": \"order #4328\", \"from\": \"order_detail\", \"named\": [\"o-4328\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4328\", \"placed\": \"7 Oct, 21:16\", \"customer_orders_in_total\": 6, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qty\": 1, \"price\": 33.98}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 1"
+  "size": 3070,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4328\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -839,10 +857,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1226,
-  "got": "[{\"scope\": \"order #4294\", \"from\": \"order_detail\", \"named\": [\"o-4294\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4294\", \"placed\": \"6 Oct, 04:35\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"8 Oct, 04:35\", "
+  "size": 3098,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4294\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -928,10 +948,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 968,
-  "got": "[{\"scope\": \"order #4412\", \"from\": \"order_detail\", \"named\": [\"o-4412\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4412\", \"placed\": \"10 Oct, 16:48\", \"customer_orders_in_total\": 2, \"total\": 102.42, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Resistance Bands\", \"qty\": 1, \"price\": 15.93}, {\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"deliver"
+  "size": 2840,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4412\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -1017,10 +1039,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1245,
-  "got": "[{\"scope\": \"order #4244\", \"from\": \"order_detail\", \"named\": [\"o-4244\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"4 Oct, 13:15\", "
+  "size": 3117,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4244\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -1106,10 +1130,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 916,
-  "got": "[{\"scope\": \"order #4480\", \"from\": \"order_detail\", \"named\": [\"o-4480\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4480\", \"placed\": \"13 Oct, 08:26\", \"customer_orders_in_total\": 2, \"total\": 253.41, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Camping Stove\", \"qty\": 1, \"price\": 253.41}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 0"
+  "size": 2788,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4480\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -1195,10 +1221,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1219,
-  "got": "[{\"scope\": \"order #4364\", \"from\": \"order_detail\", \"named\": [\"o-4364\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4364\", \"placed\": \"8 Oct, 23:51\", \"customer_orders_in_total\": 4, \"total\": 83.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Gym Bag\", \"qty\": 1, \"price\": 67.84}, {\"item\": \"Jump Rope\", \"qty\": 1, \"price\": 15.61}], \"delivery\": {\"deli"
+  "size": 3091,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4364\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -1284,10 +1312,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1235,
-  "got": "[{\"scope\": \"order #4252\", \"from\": \"order_detail\", \"named\": [\"o-4252\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4252\", \"placed\": \"3 Oct, 10:22\", \"customer_orders_in_total\": 3, \"total\": 137.85, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Speaker Mini\", \"qty\": 1, \"price\": 137.85}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"5 Oct, 10:2"
+  "size": 3107,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4252\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -1373,10 +1403,12 @@
   "expect": "hub-s1, hub-s2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1072,
-  "got": "[{\"scope\": \"order #4497\", \"from\": \"order_detail\", \"named\": [\"o-4497\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4497\", \"placed\": \"13 Oct, 23:04\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \"price\": 41.31}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"15 Oct, 23:04\""
+  "size": 2944,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4497\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-s1",
@@ -1462,10 +1494,12 @@
   "expect": "hub-s1, hub-s3",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 911,
-  "got": "[{\"scope\": \"order #4154\", \"from\": \"order_detail\", \"named\": [\"o-4154\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4154\", \"placed\": \"26 Sep, 11:49\", \"customer_orders_in_total\": 1, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"28 Sep, 11:49"
+  "size": 2783,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4154\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-s1",
@@ -1551,10 +1585,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 914,
-  "got": "[{\"scope\": \"order #4049\", \"from\": \"order_detail\", \"named\": [\"o-4049\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4049\", \"placed\": \"20 Sep, 13:10\", \"customer_orders_in_total\": 4, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 13:"
+  "size": 2786,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4049\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -1640,10 +1676,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 909,
-  "got": "[{\"scope\": \"order #4359\", \"from\": \"order_detail\", \"named\": [\"o-4359\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4359\", \"placed\": \"8 Oct, 18:52\", \"customer_orders_in_total\": 5, \"total\": 127.6, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 18:52\""
+  "size": 2781,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4359\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -1729,10 +1767,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1189,
-  "got": "[{\"scope\": \"order #4082\", \"from\": \"order_detail\", \"named\": [\"o-4082\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4082\", \"placed\": \"22 Sep, 14:10\", \"customer_orders_in_total\": 2, \"total\": 364.58, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Trek Poles\", \"qty\": 1, \"price\": 218.2}, {\"item\": \"Tent 2P\", \"qty\": 1, \"price\": 146.38}], \"delivery\": {\""
+  "size": 3061,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4082\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -1818,10 +1858,12 @@
   "expect": "hub-s1, hub-s3",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 974,
-  "got": "[{\"scope\": \"order #4072\", \"from\": \"order_detail\", \"named\": [\"o-4072\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4072\", \"placed\": \"22 Sep, 05:41\", \"customer_orders_in_total\": 2, \"total\": 274.28, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1, \"price\": 166.54}, {\"item\": \"Headlamp\", \"qty\": 1, \"price\": 107.74}], \"delivery\": "
+  "size": 2846,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4072\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-s1",
@@ -1907,10 +1949,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 875,
-  "got": "[{\"scope\": \"order #4573\", \"from\": \"order_detail\", \"named\": [\"o-4573\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4573\", \"placed\": \"16 Oct, 08:50\", \"customer_orders_in_total\": 4, \"total\": 67.14, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Plant Pot\", \"qty\": 1, \"price\": 43.61}, {\"item\": \"Doormat\", \"qty\": 1, \"price\": 23.53}], \"delivery\": {\"del"
+  "size": 2747,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4573\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -1996,10 +2040,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 929,
-  "got": "[{\"scope\": \"order #4034\", \"from\": \"order_detail\", \"named\": [\"o-4034\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4034\", \"placed\": \"19 Sep, 22:36\", \"customer_orders_in_total\": 5, \"total\": 181.89, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headphones 700\", \"qty\": 1, \"price\": 181.89}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"21 Sep, "
+  "size": 2801,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4034\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -2085,10 +2131,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1198,
-  "got": "[{\"scope\": \"order #4407\", \"from\": \"order_detail\", \"named\": [\"o-4407\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4407\", \"placed\": \"10 Oct, 09:37\", \"customer_orders_in_total\": 1, \"total\": 76.56, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 76.56}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"13 Oct, 0"
+  "size": 3070,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4407\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -2174,10 +2222,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 911,
-  "got": "[{\"scope\": \"order #4207\", \"from\": \"order_detail\", \"named\": [\"o-4207\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4207\", \"placed\": \"29 Sep, 16:39\", \"customer_orders_in_total\": 8, \"total\": 181.16, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Radio Retro\", \"qty\": 1, \"price\": 181.16}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"1 Oct, 16:3"
+  "size": 2783,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4207\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -2263,10 +2313,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 917,
-  "got": "[{\"scope\": \"order #4076\", \"from\": \"order_detail\", \"named\": [\"o-4076\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4076\", \"placed\": \"22 Sep, 10:00\", \"customer_orders_in_total\": 5, \"total\": 150.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Sleeping Bag\", \"qty\": 1, \"price\": 150.25}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"24 Sep, 10"
+  "size": 2789,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4076\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -2352,10 +2404,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 1069,
-  "got": "[{\"scope\": \"order #4362\", \"from\": \"order_detail\", \"named\": [\"o-4362\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4362\", \"placed\": \"8 Oct, 20:45\", \"customer_orders_in_total\": 5, \"total\": 86.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Yoga Mat\", \"qty\": 1, \"price\": 86.49}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"10 Oct, 20:45\", \""
+  "size": 2941,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4362\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -2441,10 +2495,12 @@
   "expect": "hub-n1, hub-n2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 919,
-  "got": "[{\"scope\": \"order #4043\", \"from\": \"order_detail\", \"named\": [\"o-4043\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4043\", \"placed\": \"20 Sep, 10:14\", \"customer_orders_in_total\": 2, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"price\": 88.05}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"22 Sep, 10:14\", \""
+  "size": 2791,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4043\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -2530,10 +2586,12 @@
   "expect": "hub-n1",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 797,
-  "got": "[{\"scope\": \"order #4584\", \"from\": \"order_detail\", \"named\": [\"o-4584\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4584\", \"placed\": \"16 Oct, 20:01\", \"customer_orders_in_total\": 6, \"total\": 155.48, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Rice Cooker\", \"qty\": 1, \"price\": 127.6}, {\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\":"
+  "size": 2669,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4584\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-n1",
@@ -2619,10 +2677,12 @@
   "expect": "hub-w1, hub-w2",
   "ok": true,
   "tools": [
-   "order_detail"
+   "company_pulse",
+   "order_detail",
+   "reconcile"
   ],
-  "size": 915,
-  "got": "[{\"scope\": \"order #4313\", \"from\": \"order_detail\", \"named\": [\"o-4313\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4313\", \"placed\": \"7 Oct, 04:46\", \"customer_orders_in_total\": 4, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, \"price\": 27.88}], \"delivery\": {\"delivered\": true, \"delivered_on\": \"9 Oct, 04:46\", "
+  "size": 2787,
+  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [\"o-4313\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints_per_100_orders\": \"28.3 complaints per 100 orders\", \"top_issues\": [{\"iss"
  },
  {
   "who": "u-agent-w1",
@@ -2714,7 +2774,7 @@
    "hub_status",
    "decision_detail"
   ],
-  "size": 1601,
+  "size": 1602,
   "got": "[{\"scope\": \"Hub W2\", \"from\": \"hub_status\", \"named\": [\"hub-w2\", \"courier-y\"], \"answers\": true, \"tool\": \"hub_status\", \"outcome\": \"answered_path\", \"data\": {\"hub\": \"Hub W2\", \"run_by\": \"courier-y\", \"capacity_per_day\": 14, \"parcels_there_now\": 25, \"customers_waiting\": 21, \"late_now\": 12, \"on_time_this_week\": \"77%\", \"busiest_day_parcels\": 22, \"decisions\": [{\"decision\": \"Run the Winter Sale (25% off home)"
  },
  {
@@ -2736,8 +2796,8 @@
   "tools": [
    "decision_detail"
   ],
-  "size": 941,
-  "got": "[{\"scope\": \"decision \\\"Run the Winter Sale (25% off home) in the west\\\"\", \"from\": \"decision_detail\", \"named\": [\"winter25\", \"dec-winter-sale\"], \"answers\": true, \"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Run the Winter Sale (25% off home) in the west\", \"made\": \"15 Oct, 12:00\", \"owner\": \"u-marketing\", \"chose\": \"Campaign\", \"hubs\": [\"hub-w1\", \"hub-w2\", \"hub-w4\"], \"ass"
+  "size": 942,
+  "got": "[{\"scope\": \"decision \\\"Run the Winter Sale (25% off home) in the west\\\"\", \"from\": \"decision_detail\", \"named\": [\"winter25\", \"dec-winter-sale\"], \"answers\": true, \"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Run the Winter Sale (25% off home) in the west\", \"made\": \"15 Oct, 12:00\", \"owner\": \"Chloe Dubois\", \"chose\": \"Campaign\", \"hubs\": [\"hub-w1\", \"hub-w2\", \"hub-w4\"], \"as"
  },
  {
   "who": "u-cmo",
@@ -2793,7 +2853,7 @@
    "decision_impact",
    "prelaunch_check"
   ],
-  "size": 4479,
+  "size": 4484,
   "got": "[{\"scope\": \"cluster_incidents\", \"from\": \"cluster_incidents\", \"named\": [], \"answers\": true, \"tool\": \"cluster_incidents\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"clusters\": [{\"tickets\": 22, \"issue\": \"late_delivery\", \"root_hub\": \"hub-w2\", \"late_parcels_at_root\": 22, \"shared\": [{\"kind\": \"Hub\", \"id\": \"hub-w1\", \"share\": 1.0}, {\"kind\": \"Courier\", \"id\": \"courier-y\", \"share\": 1.0}, {\"kind\": \"Hub\","
  },
  {
@@ -2815,7 +2875,7 @@
   "tools": [
    "decision_detail"
   ],
-  "size": 880,
-  "got": "[{\"scope\": \"decision \\\"Switch west region deliveries to Courier Y to cut cost\\\"\", \"from\": \"decision_detail\", \"named\": [\"courier-y\", \"dec-courier-y\"], \"answers\": true, \"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Switch west region deliveries to Courier Y to cut cost\", \"made\": \"18 Aug, 12:00\", \"owner\": \"u-logistics\", \"chose\": \"Courier\", \"hubs\": [\"hub-w2\"], \"assumptio"
+  "size": 881,
+  "got": "[{\"scope\": \"decision \\\"Switch west region deliveries to Courier Y to cut cost\\\"\", \"from\": \"decision_detail\", \"named\": [\"courier-y\", \"dec-courier-y\"], \"answers\": true, \"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Switch west region deliveries to Courier Y to cut cost\", \"made\": \"18 Aug, 12:00\", \"owner\": \"Lucas Martin\", \"chose\": \"Courier\", \"hubs\": [\"hub-w2\"], \"assumpti"
  }
 ]

@@ -129,7 +129,8 @@ def sources(tenant: str, user_id: str, results: list[dict], question: str = "", 
 
 QUESTION_STOP = {"what", "does", "much", "many", "have", "has", "who", "how", "the", "our", "for", "with", "about",
                  "tell", "show", "this", "that", "week", "per", "is", "are", "was", "were", "did", "do", "we", "you",
-                 "can", "should", "must", "will", "into", "from", "there", "their", "when", "which", "any", "all"}
+                 "can", "should", "must", "will", "into", "from", "there", "their", "when", "which", "any", "all",
+                 "myself", "me", "my", "i", "need", "want", "give", "get"}
 
 
 def _content(text: str) -> set[str]:

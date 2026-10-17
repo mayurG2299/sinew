@@ -31,11 +31,17 @@ GENERIC = {"courier", "cost", "costs", "deliveries", "delivery", "customers", "h
            "west", "east", "region", "run", "off", "for", "with", "move", "home", "kitchen"}
 
 INTENTS = [  # (intent, pattern) in the order they are reported
+    ("personal_bulk", r"(list|all|every|export|download)\b.*\b(customers?|emails?|phone numbers?|addresses)\b"),
+    ("attention", r"what happened|what'?s new|anything new|worry|needs? (my )?attention|should i know|update me|"
+                  r"problems? this week|issues? this week|what'?s going on"),
+    ("rank", r"\b(worst|best|most|least|top|biggest|slowest|fastest)\b|which (hub|courier|product|campaign)"),
+    ("contact", r"\b(phone|email|e-mail|address|contact|call)\b"),
     ("why", r"\bwhy\b|what('s| is) behind|root cause|what caused|reason for"),
     ("what_to_do", r"what should (we|i) do|what (do|can) (we|i) do|what to do|recommend|next step|how (do|can) we fix|should we"),
     ("pulse", r"how is the company|how are we doing|state of the company|company doing|overview|summary|how('s| is) (it|business) going"),
     ("cost", r"\bcost|spend|budget|price|revenue|margin|money"),
     ("policy", r"polic|rule|how fast|who (can|has to|must|should) approve|allowed|contract|agreement|terms|guideline|"
+               r"can i (refund|approve|give|offer)|am i allowed|my limit|limit for|refund limit|"
                r"standard|leave|process for|plan for|meeting notes|what did we (agree|decide)"),
     ("count", r"how many|how much|what('s| is) the (rate|number)|on-?time|percent|%"),
 ]
@@ -66,6 +72,8 @@ class Plan:
     window: dict
     entities: list[Entity] = field(default_factory=list)
     parts: list[Part] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)  # names in the question that match nothing in the graph
+    refund_limit: float = 0
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -104,10 +112,12 @@ def _index(tenant: str) -> list[tuple[str, str, str, list[str]]]:
     return out
 
 
-def _link(tenant: str, text: str) -> list[Entity]:
-    t = " " + re.sub(r"[^a-z0-9#\-\s]", " ", text.lower()) + " "
+def _link(tenant: str, text: str) -> tuple[list[Entity], list[str]]:
+    """The graph nodes a text names, and the names it uses that match nothing ("Hub Z9", "order #99999")."""
+    t = " " + re.sub(r"[^a-z0-9#$.%\-\s]", " ", text.lower()) + " "
     found: list[Entity] = []
     seen = set()
+    missing: list[str] = []
 
     def add(kind, nid, label, said):
         if nid not in seen:
@@ -117,10 +127,18 @@ def _link(tenant: str, text: str) -> list[Entity]:
     for m in re.finditer(r"\bt-(\d{4,6})\b", t):  # a ticket (the portal passes the one being handled)
         if graph(tenant).ro_query("MATCH (x:Ticket {id: $t}) RETURN 1", {"t": f"t-{m.group(1)}"}).result_set:
             add("Ticket", f"t-{m.group(1)}", "this ticket", m.group(0))
-    for m in re.finditer(r"(?<!t-)#\s?(\d{3,6})|\border\s+(?:number\s+)?(\d{3,6})", t):
-        n = m.group(1) or m.group(2)
+    for m in re.finditer(r"(?<![\w$.-])#?\s?(\d{4,6})(?![\w.%])", t):  # #4520, 4520, "ordr 4520" (not $300, 4.5%)
+        n = m.group(1)
         if graph(tenant).ro_query("MATCH (o:Order {id: $o}) RETURN 1", {"o": f"o-{n}"}).result_set:
             add("Order", f"o-{n}", f"order #{n}", m.group(0).strip())
+        elif re.search(rf"(#|order\w*\s*)\s?{n}", t):
+            missing.append(f"order #{n}")
+    for m in re.finditer(r"(?<![a-z0-9])(?:hub\s?-?)?([a-z])\s?(\d)(?![a-z0-9])", t):  # Hub W2, hub-w2, "W2"
+        hid = f"hub-{m.group(1)}{m.group(2)}"
+        if any(k == "Hub" and nid == hid for k, nid, _, _ in _index(tenant)):
+            add("Hub", hid, f"Hub {m.group(1).upper()}{m.group(2)}", m.group(0).strip())
+        elif m.group(0).strip().startswith("hub"):
+            missing.append(f"Hub {m.group(1).upper()}{m.group(2)}")
     words = set(re.findall(r"[a-z0-9]{3,}", t))
     decisions = []
     for kind, nid, label, ways in _index(tenant):
@@ -133,6 +151,12 @@ def _link(tenant: str, text: str) -> list[Entity]:
             if re.search(rf"(?<![a-z0-9]){re.escape(w)}(?![a-z0-9])", t):
                 add(kind, nid, label, w)
                 break
+        else:
+            if kind == "Product":  # "blenders", "the kettle": the first word of a product title, if only one has it
+                first = ways[0].split()[0]
+                same = [x for x in _index(tenant) if x[0] == "Product" and x[3][0].split()[0] == first]
+                if len(first) >= 4 and len(same) == 1 and re.search(rf"(?<![a-z0-9]){re.escape(first)}s?(?![a-z0-9])", t):
+                    add(kind, nid, label, first)
     title_words = {did: set(re.findall(r"[a-z0-9]{3,}", title.lower())) - GENERIC for did, title in decisions}
     for did, title in decisions:  # a decision named by its title words ("the courier y switch", "the backup courier")
         tw = title_words[did]
@@ -140,7 +164,7 @@ def _link(tenant: str, text: str) -> list[Entity]:
         unique = {w for w in hit if len(w) >= 4 and sum(w in o for o in title_words.values()) == 1}
         if hit and (len(hit) >= 2 or unique or (len(tw) and len(hit) / len(tw) >= 0.6)):
             add("Decision", did, title, " ".join(sorted(hit)))
-    return found
+    return found, missing
 
 
 def _window(text: str, now: int) -> dict:
@@ -178,9 +202,12 @@ def understand(tenant: str, user_id: str, question: str) -> Plan:
     v = guard.Viewer.load(tenant, user_id)
     now = clock(tenant)
     plan = Plan(question, tenant, user_id, v.role if v else "", v.areas if v else [], _window(question, now))
-    plan.entities = _link(tenant, question)
+    plan.refund_limit = v.refund_limit if v else 0
+    if not question.strip():
+        return plan  # nothing asked
+    plan.entities, plan.missing = _link(tenant, question)
     for text in _split(question):
-        ents = _link(tenant, text) or ([] if len(_split(question)) > 1 else plan.entities)
+        ents = _link(tenant, text)[0] or ([] if len(_split(question)) > 1 else plan.entities)
         plan.parts.append(Part(text, _intents(text, ents), ents))
     # "...and what should we do?" or "...and what did it cost?" refers to what was named earlier in the question
     previous: list[Entity] = []
@@ -214,9 +241,25 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
             elif e.kind in ("Campaign", "Courier"):
                 chosen = graph(plan.tenant).ro_query("MATCH (d:Decision)-[:CHOSE]->({id: $x}) RETURN d.id", {"x": e.id}).result_set
                 calls += [("decision_detail", {"decision": d}) for d, in chosen]
+            elif e.kind == "Region":
+                hubs = graph(plan.tenant).ro_query("MATCH (h:Hub)-[:IN]->(:Region {id: $r}) RETURN h.id ORDER BY h.id",
+                                                   {"r": e.id}).result_set
+                calls += [("hub_status", {"hub": "Hub " + h.split("-")[1].upper()}) for h, in hubs[:4]]
             elif e.kind in ("Product", "Batch"):
                 calls.append(("product_status", {"item": e.id if e.kind == "Batch" else e.label,
                                                  "days": max(plan.window["days"], 30)}))
+        if "personal_bulk" in p.intents:
+            out.append([])  # never walked: Sinew holds no names, emails or phones to list
+            continue
+        if "contact" in p.intents:
+            calls += [("customer_trace", {"customer": "#" + e.id[2:] if e.kind == "Order" else e.id})
+                      for e in p.entities if e.kind in ("Order", "Ticket")]
+        if "attention" in p.intents:
+            calls += [("company_pulse", {"days": plan.window["days"]}), ("cluster_incidents", {}), ("prelaunch_check", {})]
+        if "rank" in p.intents:
+            t = p.text.lower()
+            calls.append(("product_ranking", {"days": max(plan.window["days"], 30)}) if re.search(r"product|item|batch", t)
+                         else ("company_pulse", {"days": plan.window["days"]}))
         if "why" in p.intents or ("what_to_do" in p.intents and not p.entities):
             calls += [("cluster_incidents", {}), ("prelaunch_check", {})]
         if "what_to_do" in p.intents:
@@ -227,7 +270,7 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
             calls.append(("search_docs", {"text": p.text}))
         if "cost" in p.intents and not any(e.kind == "Order" for e in p.entities) and not p.entities:
             calls.append(("company_pulse", {"days": plan.window["days"]}))
-        if not calls:
+        if not calls and not plan.missing:
             calls.append(("search_docs", {"text": p.text}))  # nothing named: maybe a document knows
         seen, unique = set(), []
         for c in calls:
@@ -293,7 +336,7 @@ async def traverse(plan: Plan, per_part: list[list[tuple[str, dict]]]) -> list[l
 
 # ------------------------------------------------------------------ 4. reconcile
 
-def _lean(tool: str, d):
+def _lean(tool: str, d, tenant: str = ""):
     """What an answer needs from a walk: counts, totals and the top few, never long id lists."""
     if not isinstance(d, dict):
         return d
@@ -311,7 +354,7 @@ def _lean(tool: str, d):
                 "decisions_relying_on_it": [x["title"] for x in d.get("dependent_decisions", [])]}
     if tool == "trace_decisions":
         return {"hub": d.get("hub"), "decisions": [
-            {"decision": x["decision"], "title": x["title"], "owner": x.get("owner"), "assumptions": [
+            {"decision": x["decision"], "title": x["title"], "owner": guard.staff_name(tenant, x.get("owner")) if tenant else x.get("owner"), "assumptions": [
                 {k: a.get(k) for k in ("statement", "metric", "op", "threshold", "status", "value", "linked", "basis")}
                 for a in x["assumptions"]]} for x in d.get("decisions", [])]}
     if tool == "customer_trace":
@@ -326,11 +369,11 @@ def _lean(tool: str, d):
     return d
 
 
-def _slim(result: dict) -> dict:
+def _slim(result: dict, tenant: str = "") -> dict:
     tool = result.get("tool")
     out = {k: v for k, v in result.items() if k not in ("paths", "_call", "ms") and v not in ("", [], None)}
     if "data" in out:
-        out["data"] = _lean(tool, out["data"])
+        out["data"] = _lean(tool, out["data"], tenant)
     return out
 
 
@@ -389,8 +432,11 @@ ANSWERED_BY = {  # which walks can answer an intent; None = any walk about the n
     "what_to_do": {"prelaunch_check", "trace_decisions", "cluster_incidents"},
     "pulse": {"company_pulse"}, "cost": {"search_docs", "company_pulse"}, "policy": {"search_docs", "decision_detail"},
     "count": None, "status": None, "unknown": None,
+    "attention": {"company_pulse", "cluster_incidents", "trace_decisions", "prelaunch_check"},
+    "rank": {"company_pulse", "product_ranking", "choke_points"},
+    "contact": {"customer_trace"}, "personal_bulk": set(),
 }
-SPECIFIC = {"why", "what_to_do", "pulse", "cost", "policy"}
+SPECIFIC = {"why", "what_to_do", "pulse", "cost", "policy", "attention", "rank", "contact", "personal_bulk"}
 MONEY = re.compile(r"\$\s?\d")
 
 
@@ -425,15 +471,20 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
             for h in r.get("hidden") or []:
                 if h not in hidden:
                     hidden.append(h)
-        if answering:
+        if "personal_bulk" in part.intents:
+            status, why = "no_access", ("Sinew doesn't hold customers' names, emails or phone numbers, so it can't list "
+                                        "them; contact details are fetched one customer at a time, for people allowed")
+        elif answering:
             status, why = "answered", ""
+        elif plan.missing and not answering:
+            status, why = "no_data", "there is no " + " or ".join(plan.missing)
         elif blocked:
             status, why = "no_access", next((r.get("reason") for r in blocked if r.get("reason")), "")
         else:
             status, why = "no_data", next((r.get("reason") for r in got if r.get("reason")), "")
         answered = answering + (context if answering or not blocked else [])
         facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities],
-                  "answers": r in answering, **_slim(r)} for r in answered]
+                  "answers": r in answering, **_slim(r, plan.tenant)} for r in answered]
         parts.append({"ask": part.text, "intents": part.intents, "named": [e.label for e in part.entities],
                       "status": status, "why_missing": why, "facts": facts})
         if "what_to_do" in part.intents or "why" in part.intents:
@@ -448,7 +499,8 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
         if r not in seen:
             seen.add(r)
             unique_recs.append(r)
-    return {"question": plan.question, "asked_by": plan.role, "window": plan.window["label"], "parts": parts,
+    you = {"role": plan.role, "refund_limit": plan.refund_limit} if re.search(r"refund|limit|approve|can i", plan.question.lower()) else None
+    return {"question": plan.question, "asked_by": plan.role, "you": you, "window": plan.window["label"], "parts": parts,
             "what_to_do": unique_recs[:3] if any("what_to_do" in p.intents for p in plan.parts) else [],
             "hidden": hidden, "notes": notes}
 
@@ -498,7 +550,7 @@ def _say_fact(f: dict) -> list[str]:
             lines.append(f"Overdue: a {open_c[0]['kind']} that was due {open_c[0]['due']}.")
         return lines
     if tool == "decision_detail":
-        lines = [f"\"{d['decision']}\" (made {d['made']})."]
+        lines = [f"\"{d['decision']}\" (made {d['made']}{', owned by ' + d['owner'] if d.get('owner') else ''})."]
         for a in d.get("assumptions", []):
             lines.append(f"It assumed {a['assumed'][0].lower() + a['assumed'][1:]}: needs {a['needs']}, now {a['now']}"
                          + (" (holds)." if a["holds"] else " (no longer holds)."))
@@ -516,6 +568,10 @@ def _say_fact(f: dict) -> list[str]:
         if d.get("operations") and d["operations"].get("on_time_rate") is not None:
             lines.append(f"On time: {round(d['operations']['on_time_rate'] * 100)}% of deliveries; "
                          f"{d['operations']['parcels_late_now']} parcels late now.")
+            weak = d["operations"].get("weakest_hub")
+            if weak:
+                lines.append(f"Weakest hub: {weak['hub'].replace('hub-', 'Hub ').upper().replace('HUB', 'Hub')} at "
+                             f"{round(weak['on_time_rate'] * 100)}% on time.")
         if d.get("marketing"):
             lines.append(f"Orders: {d['marketing']['orders_this_week']}{before(d['marketing']['orders_last_week'])}.")
         if d.get("finance"):
@@ -523,12 +579,17 @@ def _say_fact(f: dict) -> list[str]:
         return lines
     if tool == "search_docs":
         return [f"{x['title']}, \"{x['heading']}\": {x['text']}" for x in (f.get("data") or [])[:2]]
+    if tool == "product_ranking":
+        return [f"Most complaints per 100 orders, last {d['days']} days: " + "; ".join(
+            f"{x['product']} {x['per_100']} ({x['complaints']} of {x['orders']} orders)" for x in d.get("products", [])[:3]) + "."]
     if tool == "customer_trace":
         kinds = [i["kind"] for i in d.get("timeline", [])]
+        contact = d.get("personal") or {}
+        lines_c = [f"Contact: {', '.join(str(contact[k]) for k in ('name', 'phone', 'email') if contact.get(k))}."] if contact else []
         tickets = [i for i in d.get("timeline", []) if i["kind"] == "ticket"]
         current = next((i for i in tickets if i["id"] in f.get("named", [])), tickets[-1] if tickets else None)
         n = lambda k, word: f"{kinds.count(k)} {word}{'' if kinds.count(k) == 1 else 's'}"
-        lines = [f"This customer has {n('order', 'order')}, {n('ticket', 'ticket')} and {n('refund', 'refund')}."]
+        lines = lines_c + [f"This customer has {n('order', 'order')}, {n('ticket', 'ticket')} and {n('refund', 'refund')}."]
         if current:
             lines.append(f"Latest ticket ({(current.get('issue') or '').replace('_', ' ')}, {current.get('status')}): "
                          f"\"{current.get('summary')}\"")
@@ -589,11 +650,33 @@ def write(sheet: dict) -> str:
     """A plain, correct answer built from the fact sheet alone (used when the AI is unavailable or its wording
     fails the check)."""
     lines = []
+    if not sheet["parts"]:
+        return "Ask me something about your company: an order, a hub, a decision, a policy, or how things are going."
+    if sheet.get("you") and sheet["you"].get("refund_limit") is not None and any("policy" in p["intents"] for p in sheet["parts"]):
+        lim = sheet["you"]["refund_limit"]
+        asked = re.search(r"\$\s?(\d+(?:\.\d+)?)", sheet["question"])
+        if asked and lim:
+            amount = float(asked.group(1))
+            lines.append(f"Yes: your refund limit is {_money(lim)}, so you can refund {_money(amount)} yourself." if amount <= lim
+                         else f"No: your refund limit is {_money(lim)}, so {_money(amount)} needs approval from someone with a "
+                              "higher limit (Sinew sends it to them when you issue it).")
+        else:
+            lines.append(f"Your own refund limit is {_money(lim)}." if lim else "Your role can't issue refunds itself.")
     for p in sheet["parts"]:
-        if p["status"] == "no_access":
+        if p["status"] == "no_access" and "personal_bulk" in p["intents"]:
+            lines.append(p["why_missing"][0].upper() + p["why_missing"][1:] + ".")
+        elif p["status"] == "no_access":
             lines.append("That's outside your access.")
+        elif p["status"] == "no_data" and sheet.get("you") and "policy" in p["intents"]:
+            continue  # the person's own limit (above) already answers it
         elif p["status"] == "no_data":
-            lines.append(f"Sinew has no information about that{': ' + p['why_missing'] if p['why_missing'] else ''}.")
+            known = p["why_missing"] if p["why_missing"].startswith("there is no") else ""
+            lines.append(f"Sinew has no information about that{': ' + known if known else ''}.")
+        elif "rank" in p["intents"] and any(f["from"] == "company_pulse" for f in p["facts"]):
+            weak = next((f["data"]["operations"].get("weakest_hub") for f in p["facts"]
+                         if f["from"] == "company_pulse" and (f.get("data") or {}).get("operations")), None)
+            lines.append(f"The weakest hub {sheet['window']} is {weak['hub'].replace('hub-', 'Hub ').upper().replace('HUB', 'Hub')}, "
+                         f"at {round(weak['on_time_rate'] * 100)}% on time." if weak else "Sinew has no information about that.")
         else:
             for f in p["facts"]:
                 lines += _say_fact(f)

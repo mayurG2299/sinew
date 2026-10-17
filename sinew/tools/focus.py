@@ -139,7 +139,7 @@ def decision_detail(tenant: str, user_id: str, decision: str) -> Answer:
     now = clock(tenant)
     show = lambda m, v: None if v is None else (f"{round(v * 100)}%" if m == "courier_on_time_rate" else f"{v:.2f}x capacity")
     data = {
-        "decision": title, "made": _when(made), "owner": owner, "chose": kind, "hubs": hubs,
+        "decision": title, "made": _when(made), "owner": guard.staff_name(tenant, owner), "chose": kind, "hubs": hubs,
         "assumptions": [{"assumed": s, "needs": f"{'at least' if op == '>=' else 'at most'} {show(m, t)}",
                          "now": show(m, val), "holds": st != "broken", "measured_on": f"{int(n)} scans" if n else None,
                          "overlaps_with": o, "overlap": basis} for s, m, op, t, st, val, n, o, basis in assumptions],
@@ -229,3 +229,15 @@ def product_status(tenant: str, user_id: str, item: str, days: int = 30) -> Answ
         if sup:
             data["supplier"], data["product"] = sup[0]
     return Answer("product_status", "answered_path", data=data, ms=_ms(start), paths=[[nid, "orders", "tickets"]])
+
+
+def product_ranking(tenant: str, user_id: str, days: int = 30, top: int = 5) -> Answer:
+    """Products ranked by complaints per 100 orders (with at least 5 orders), walked Product<-LineItem<-Order<-Ticket."""
+    start = time.perf_counter()
+    rows = graph(tenant).ro_query(
+        "MATCH (p:Product)<-[:OF]-(:LineItem)<-[:HAS]-(o:Order) WHERE o.placed_at >= $s "
+        "OPTIONAL MATCH (t:Ticket)-[:ABOUT]->(o) WITH p, count(DISTINCT o) AS orders, count(DISTINCT t) AS complaints "
+        "WHERE orders >= 5 RETURN p.title, orders, complaints, toFloat(complaints) / orders AS rate ORDER BY rate DESC LIMIT $n",
+        {"s": clock(tenant) - days * DAY, "n": top}).result_set
+    return Answer("product_ranking", "answered_path", ms=_ms(start), data={"days": days, "products": [
+        {"product": t, "orders": o, "complaints": c, "per_100": f"{r * 100:.1f} per 100 orders"} for t, o, c, r in rows]})

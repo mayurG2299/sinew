@@ -67,6 +67,7 @@ TOOL_AREA = {
     "find_approver": "support", "issue_refund": "support", "record_promise": "support", "confirm_promise": "support",
     "promises": "support", "inbox": "support", "order_detail": "support",
     "decision_detail": "operations", "hub_status": "operations", "product_status": "operations",
+    "product_ranking": "operations",
     "cluster_incidents": "operations", "trace_decisions": "operations", "decision_impact": "operations",
     "prelaunch_check": "operations", "reroute": "operations", "choke_points": "operations",
     "evaluate_assumptions": "operations", "file_incident": "operations", "notify_owner": "operations",
@@ -204,3 +205,11 @@ def customer_names(v: Viewer, customer_ids: list[str], tool: str) -> dict[str, s
         "CREATE (a:Access {id: $id + '-' + cid, at: $at, tool: $tool, purpose: 'support'})-[:BY]->(u), (a)-[:OF]->(c)",
         {"u": v.user_id, "cs": list(names), "id": f"acc-{uuid.uuid4().hex[:12]}", "at": int(time.time()), "tool": tool})
     return names
+
+
+def staff_name(tenant: str, user_id: str | None) -> str | None:
+    """A colleague's display name from the company roster (staff, not customers: shown to colleagues)."""
+    if not user_id:
+        return None
+    roster = json.loads((SOURCE_RECORDS / f"{tenant}_personal.json").read_text()).get("User", {})
+    return roster.get(user_id, {}).get("display_name", user_id)

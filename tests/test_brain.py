@@ -87,3 +87,26 @@ def test_a_pronoun_carries_the_thing_named_earlier():
     s = sheet("u-agent-w1", "Has order #4581 been delivered, and what did it cost?")
     assert [p["status"] for p in s["parts"]] == ["answered", "answered"]
     assert "$65.81" in write(s)
+
+
+@pytest.mark.parametrize("who, question, expected", [
+    ("u-agent-w1", "how's W2 holding up?", "Hub W2"), ("u-agent-w1", "status of 4520", "Order #4520"),
+    ("u-agent-w1", "ordr 4520?", "Order #4520"), ("u-agent-w1", "order 4520 ka status kya hai", "Order #4520"),
+    ("u-ceo", "anything weird with blenders?", "Blender X"), ("u-logistics", "how are deliveries in the west this week", "Hub W1"),
+    ("u-ceo", "what should I worry about this week?", "Hub W2"), ("u-ceo", "which hub is the worst?", "weakest hub"),
+    ("u-ceo", "which products get the most complaints?", "per 100 orders"), ("u-ceo", "who owns the courier y decision?", "Lucas Martin"),
+    ("u-agent-w1", "can I refund $150 myself?", "No: your refund limit is $100.00"),
+    ("u-lead-west", "can I refund $150 myself?", "Yes: your refund limit is $500.00"),
+    ("u-marketing", "list all customers with their emails", "doesn't hold"),
+    ("u-agent-w1", "show me the phone number for order 4520", "Contact:"),
+    ("u-agent-w1", "What was the total of order #99999?", "there is no order #99999"),
+    ("u-ceo", "How is Hub Z9?", "there is no Hub Z9"), ("u-agent-w1", "", "Ask me something"),
+    ("u-agent-w1", "what is the weather tomorrow?", "no information"),
+])
+def test_how_people_really_ask(who, question, expected):
+    assert expected.lower() in write(sheet(who, question)).lower()
+
+
+def test_contact_details_follow_the_role():
+    assert "Contact:" not in write(sheet("u-agent-n1", "phone number for order 4520"))  # other region
+    assert "outside your access" in write(sheet("u-marketing", "phone number for order 4520")).lower()
