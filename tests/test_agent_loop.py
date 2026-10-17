@@ -87,3 +87,18 @@ def test_check_accepts_percentages_and_rounding():
     results = [{"tool": "trace_decisions", "outcome": "answered_path", "data": {"value": 0.7117, "threshold": 0.9}}]
     assert check.check("On time is 71% against 90%.", results)[0]
     assert not check.check("On time is 64%.", results)[0]
+
+
+def test_plain_names_are_checked_like_ids():
+    results = [{"tool": "customer_trace", "outcome": "answered_path",
+                "data": {"order": "o-4520", "hub": "hub-w2", "courier": "courier-y", "late_hours": 30}}]
+    assert check.check("Order #4520 is 30 h late at Hub W2 with Courier Y.", results)[0]
+    assert not check.check("Order #4999 is late.", results)[0]
+    assert not check.check("It is stuck at Hub W9.", results)[0]
+    assert not check.check("Courier Z has it.", results)[0]
+
+
+def test_ratios_may_be_written_as_percentages():
+    results = [{"tool": "prelaunch_check", "outcome": "answered_path", "data": {"value": 1.5714}}]
+    assert check.check("Hub load is 157% of capacity.", results)[0]
+    assert not check.check("Hub load is 175% of capacity.", results)[0]

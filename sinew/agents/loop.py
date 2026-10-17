@@ -128,6 +128,8 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
     ok, why = check.check(run.answer, run.results, task) if run.answer else (False, "the model gave no answer")
     if not ok:
         run.check_failed, run.answer, run.answer_source = why, check.fallback(run.results), "rows"
+    else:
+        run.answer = check.plain(run.answer)
     run.ms = round((time.perf_counter() - start) * 1000, 1)
     if run.answer_source == "model":
         _save_replay(tenant, user_id, run)

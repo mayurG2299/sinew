@@ -12,7 +12,10 @@ import re
 
 ID = re.compile(r"\b(?:o|t|cu|pf|hub|dec|as|sh|rf|pr|inc|u|fd|note|courier|b|sup|wh|q|team)-[a-z0-9][a-z0-9-]*\b"
                 r"|\b(?:fest|winter)\d+\b", re.I)
-NUMBER = re.compile(r"(?<![\w.-])(\d+(?:\.\d+)?)(%?)")
+NUMBER = re.compile(r"(?<![\w.#-])(\d+(?:\.\d+)?)(%?)")  # "#4412" is an order, checked as a name below
+# Names as people write them, checked as the ids they stand for: #4412 -> o-4412, Hub W2 -> hub-w2, Courier Y -> courier-y.
+PLAIN = [(re.compile(r"#(\d+)\b"), "o-{}"), (re.compile(r"\bHub ([A-Z]\d+)\b"), "hub-{}"),
+         (re.compile(r"\bCourier ([A-Z])\b"), "courier-{}")]
 
 
 def _numbers_in(blob: str) -> set[float]:
@@ -24,18 +27,22 @@ def check(answer: str, tool_results: list[dict], question: str = "") -> tuple[bo
     for name in {m.group(0).lower().rstrip("-.") for m in ID.finditer(answer)}:
         if name not in blob:
             return False, f"names {name!r}, which no tool returned"
+    for pattern, template in PLAIN:
+        for m in pattern.finditer(answer):
+            if template.format(m.group(1)).lower() not in blob:
+                return False, f"names {m.group(0)!r}, which no tool returned"
     known = _numbers_in(blob) | _numbers_in(question)
     for raw, pct in NUMBER.findall(answer):
         n = float(raw)
         if n in known:
             continue
-        if pct and any(abs(n / 100 - k) < 0.006 for k in known if k <= 1):
+        if pct and any(abs(n / 100 - k) < 0.006 for k in known):  # 0.7658 -> 77%, a 1.5714 load -> 157%
             continue
         if any(abs(n - round(k)) < 1e-9 or abs(n - round(k, 1)) < 1e-9 or abs(n - round(k, 2)) < 1e-9 for k in known):
             continue  # a rounded tool value
         return False, f"states the number {raw}{pct}, which no tool returned"
     if any(r.get("tool") in ("trace_decisions", "decision_impact", "prelaunch_check") for r in tool_results):
-        claim = re.search(r"\b(because|caused|causing|due to|overload(?:ed|ing)? by|will (?:fail|break|cause))\b",
+        claim = re.search(r"\b(because|caused|causing|due to|root cause|driven by|led to|leads to|resulted in|result of|overload(?:ed|ing)? by|will (?:fail|break|cause))\b",
                           answer, re.I)
         if claim:
             return False, f"says {claim.group(0)!r}: decision links are overlaps in the data, not causes"
@@ -46,42 +53,66 @@ def check(answer: str, tool_results: list[dict], question: str = "") -> tuple[bo
     return True, ""
 
 
+def _place(x: str | None) -> str:
+    """hub-w2 -> Hub W2, courier-y -> Courier Y, fest40 -> FEST40, o-4412 -> #4412."""
+    if not x:
+        return "?"
+    if x.startswith("o-"):
+        return "#" + x[2:]
+    head, _, rest = x.partition("-")
+    return f"{head.capitalize()} {rest.upper()}" if rest else x.upper()
+
+
+def _plain(text: str) -> str:
+    """Ids inside engine sentences: "campaign fest40 ... hub-w2" -> "the FEST40 campaign ... Hub W2"."""
+    text = re.sub(r"\bcampaign ([a-z0-9]+)\b", lambda m: f"the {m.group(1).upper()} campaign", text)
+    text = re.sub(r"\bo-(\d+)\b", r"#\1", text)
+    return re.sub(r"\b(?:hub|courier)-[a-z0-9]+\b", lambda m: _place(m.group(0)), text)
+
+
+plain = _plain  # used by the loop on answers that passed the check: same facts, people's names for them
+
+
+def _pct(v) -> str:
+    return f"{round(v * 100)}%" if isinstance(v, (int, float)) and v <= 1 else str(v)
+
+
 def fallback(tool_results: list[dict]) -> str:
-    """A plain sentence per tool, built only from the rows."""
+    """Plain sentences built only from the rows, for when the model's own answer fails the check."""
     out = []
     for r in tool_results:
         tool, outcome, d = r.get("tool"), r.get("outcome"), r.get("data") or {}
         if outcome in ("not_in_graph", "unknown_entity", "not_permitted", "needs_approval"):
-            out.append(f"{tool}: {r.get('reason')}")
+            out.append(f"{r.get('reason', '').capitalize()}.")
         elif tool == "customer_trace":
             kinds = [i["kind"] for i in d.get("timeline", [])]
-            out.append(f"Customer {d.get('customer')} ({d.get('region')}): {kinds.count('order')} orders, "
-                       f"{kinds.count('ticket')} tickets, {kinds.count('refund')} refunds.")
+            out.append(f"This customer has {kinds.count('order')} orders, {kinds.count('ticket')} tickets and "
+                       f"{kinds.count('refund')} refunds.")
         elif tool == "open_loops":
-            out.append(f"Open: {len(d.get('open_tickets', []))} tickets, {len(d.get('open_promises', []))} promises; "
-                       f"broken promises: {len(d.get('broken_promises', []))}; late parcels: "
-                       f"{len(d.get('late_in_transit', []))}.")
+            out.append(f"Still open: {len(d.get('open_tickets', []))} tickets, {len(d.get('open_promises', []))} "
+                       f"promises, {len(d.get('broken_promises', []))} broken promises and "
+                       f"{len(d.get('late_in_transit', []))} late parcels.")
         elif tool == "related_issues" and d.get("shared"):
             s = d["shared"][0]
-            out.append(f"{s['other_tickets']} other tickets in {d.get('days')} days went through {s['id']}.")
+            out.append(f"{s['other_tickets']} other tickets in the last {d.get('days')} days went through "
+                       f"{_place(s['id'])}.")
         elif tool == "cluster_incidents" and d.get("clusters"):
             c = d["clusters"][0]
-            out.append(f"{c['tickets']} {c['issue']} tickets cluster at {c['root_hub']}.")
+            out.append(f"{c['tickets']} {c['issue'].replace('_', ' ')} complaints went through {_place(c['root_hub'])}.")
         elif tool == "trace_decisions":
             for dec in d.get("decisions", []):
                 for a in dec["assumptions"]:
                     if a.get("status") == "broken":
-                        link = f", linked to {a['linked']} ({a['basis']})" if a.get("linked") else ""
-                        out.append(f"{dec['decision']} rests on {a['assumption']}: {a['value']} vs {a['op']} "
-                                   f"{a['threshold']}, broken{link}.")
+                        link = f" It overlaps with another decision: {_plain(a['basis'])}." if a.get("linked") else ""
+                        out.append(f"\"{dec['title']}\" assumed \"{a['statement']}\"; it is now {_pct(a['value'])}, "
+                                   f"needed {a['op']} {_pct(a['threshold'])}.{link}")
         elif tool == "decision_impact":
-            out.append(f"{d.get('decision')}: keystone rank {d.get('keystone_rank')}, "
-                       f"{len(d.get('dependent_decisions', []))} dependent decisions, "
-                       f"{d.get('parcels_in_transit')} parcels in transit, "
-                       f"{len(d.get('customers_at_risk', []))} customers at risk.")
+            out.append(f"{len(d.get('customers_at_risk', []))} customers are still waiting on "
+                       f"{d.get('parcels_in_transit')} parcels, and {len(d.get('dependent_decisions', []))} other "
+                       f"decisions rely on this one.")
         elif tool == "prelaunch_check":
             for w in d.get("warnings", []):
-                reroute = f"; reroute via {w['reroute']['hub']}" if w.get("reroute") else ""
-                out.append(f"{w['campaign']} starts in {w['starts_in_days']} days through {w['hub']}, "
-                           f"which has broken assumptions{reroute}.")
+                reroute = f" Option: route through {_place(w['reroute']['hub'])}." if w.get("reroute") else ""
+                out.append(f"{w.get('name', _place(w['campaign']))} starts in {w['starts_in_days']:g} days through "
+                           f"{_place(w['hub'])}, which is already struggling.{reroute}")
     return " ".join(out) or "No tool returned anything to report."
