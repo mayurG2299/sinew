@@ -70,7 +70,8 @@ def search_docs(tenant: str, user_id: str, text: str | None = None, about: list[
                   paths=[[d["passage"], d["doc"]] for d in data])
 
 
-def sources(tenant: str, user_id: str, results: list[dict], question: str = "", limit: int = 3) -> list[dict]:
+def sources(tenant: str, user_id: str, results: list[dict], question: str = "", limit: int = 3,
+            answer: str = "") -> list[dict]:
     """The document passages behind an answer: those about the hubs, couriers, decisions and campaigns the
     answer's tool results touched, plus those matching its topic words. Only what this person may read."""
     v = guard.Viewer.load(tenant, user_id)
@@ -95,8 +96,22 @@ def sources(tenant: str, user_id: str, results: list[dict], question: str = "", 
     used = [d for r in results if r.get("tool") == "search_docs" for d in (r.get("data") or [])]
     if any(r.get("tool") == "search_docs" for r in results):
         shown = []  # the AI searched the documents: its own hits are the sources, nothing loosely related
-    out = {d["passage"]: d for d in used[:limit]}
+    candidates = {d["passage"]: d for d in used}
     for h in shown:
-        if len(out) < limit:
-            out.setdefault(h["passage"], h)
-    return [{k: h[k] for k in ("passage", "doc", "title", "kind", "heading", "text")} for h in out.values()]
+        candidates.setdefault(h["passage"], h)
+    if answer:  # keep the passages the answer actually draws on, most-used first
+        said = _words(answer)
+        scored = sorted(((len(_words(c["text"] + " " + c["heading"]) & said), i, c) for i, c in enumerate(candidates.values())),
+                        key=lambda x: (-x[0], x[1]))
+        picked = [c for n, _, c in scored if n >= 3]
+    else:
+        picked = list(candidates.values())
+    return [{k: h[k] for k in ("passage", "doc", "title", "kind", "heading", "text")} for h in picked[:limit]]
+
+
+STOP = {"that", "this", "with", "from", "have", "will", "must", "they", "their", "there", "what", "when", "which",
+        "your", "into", "than", "then", "them", "were", "been", "also", "only", "each", "more", "about", "after"}
+
+
+def _words(text: str) -> set[str]:
+    return {w for w in re.findall(r"[a-z0-9%$]{4,}", text.lower()) if w not in STOP}

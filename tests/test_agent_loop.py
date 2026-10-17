@@ -102,3 +102,8 @@ def test_ratios_may_be_written_as_percentages():
     results = [{"tool": "prelaunch_check", "outcome": "answered_path", "data": {"value": 1.5714}}]
     assert check.check("Hub load is 157% of capacity.", results)[0]
     assert not check.check("Hub load is 175% of capacity.", results)[0]
+
+
+def test_plain_names_written_in_documents_count():
+    results = [{"tool": "search_docs", "outcome": "answered_path", "data": [{"text": "Courier Y runs Hub W2"}]}]
+    assert check.check("Courier Y runs Hub W2.", results)[0]

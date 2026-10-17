@@ -121,7 +121,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
         replay = _load_replay(tenant, user_id, agent, task)
         if replay:
             replay.ms = round((time.perf_counter() - start) * 1000, 1)
-            replay.sources = docs.sources(tenant, user_id, replay.results, task)
+            replay.sources = docs.sources(tenant, user_id, replay.results, task, answer=replay.answer)
             return replay
         run.answer = check.fallback(run.results) if run.results else \
             f"The AI is unavailable right now ({e}). The graph tools still work."
@@ -136,7 +136,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
     run.ms = round((time.perf_counter() - start) * 1000, 1)
     if run.answer_source == "model":
         _save_replay(tenant, user_id, run)
-    run.sources = docs.sources(tenant, user_id, run.results, task)
+    run.sources = docs.sources(tenant, user_id, run.results, task, answer=run.answer)
     return run
 
 

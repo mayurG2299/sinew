@@ -29,7 +29,7 @@ def check(answer: str, tool_results: list[dict], question: str = "") -> tuple[bo
             return False, f"names {name!r}, which no tool returned"
     for pattern, template in PLAIN:
         for m in pattern.finditer(answer):
-            if template.format(m.group(1)).lower() not in blob:
+            if template.format(m.group(1)).lower() not in blob and m.group(0).lower() not in blob:  # code or words
                 return False, f"names {m.group(0)!r}, which no tool returned"
     known = _numbers_in(blob) | _numbers_in(question)
     for raw, pct in NUMBER.findall(answer):
