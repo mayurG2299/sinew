@@ -182,10 +182,15 @@ def understand(tenant: str, user_id: str, question: str) -> Plan:
     for text in _split(question):
         ents = _link(tenant, text) or ([] if len(_split(question)) > 1 else plan.entities)
         plan.parts.append(Part(text, _intents(text, ents), ents))
-    # "...and what should we do?" refers to the things named earlier in the question
+    # "...and what should we do?" or "...and what did it cost?" refers to what was named earlier in the question
+    previous: list[Entity] = []
     for p in plan.parts:
-        if not p.entities and p.intents in (["what_to_do"], ["unknown"]) and plan.entities:
-            p.entities = plan.entities
+        refers_back = re.search(r"\b(it|its|it's|that|this|they|them|their|those)\b", p.text.lower())
+        if not p.entities and previous and (refers_back or p.intents in (["what_to_do"], ["unknown"])):
+            p.entities = previous
+            if "status" not in p.intents and not {"why", "pulse"} & set(p.intents):
+                p.intents = ["status"] + p.intents
+        previous = p.entities or previous
     return plan
 
 
@@ -218,9 +223,9 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
             calls.append(("prelaunch_check", {}))
         if "pulse" in p.intents or ("count" in p.intents and not p.entities):
             calls.append(("company_pulse", {"days": plan.window["days"]}))
-        if ("cost" in p.intents and not any(c[0] == "order_detail" for c in calls)) or "policy" in p.intents:
+        if ("cost" in p.intents and not any(e.kind == "Order" for e in p.entities)) or "policy" in p.intents:
             calls.append(("search_docs", {"text": p.text}))
-        if "cost" in p.intents and not p.entities:
+        if "cost" in p.intents and not any(e.kind == "Order" for e in p.entities) and not p.entities:
             calls.append(("company_pulse", {"days": plan.window["days"]}))
         if not calls:
             calls.append(("search_docs", {"text": p.text}))  # nothing named: maybe a document knows
@@ -288,8 +293,81 @@ async def traverse(plan: Plan, per_part: list[list[tuple[str, dict]]]) -> list[l
 
 # ------------------------------------------------------------------ 4. reconcile
 
+def _lean(tool: str, d):
+    """What an answer needs from a walk: counts, totals and the top few, never long id lists."""
+    if not isinstance(d, dict):
+        return d
+    if tool == "cluster_incidents":
+        return {"days": d.get("days"), "clusters": [{k: c[k] for k in ("tickets", "issue", "root_hub", "late_parcels_at_root")}
+                                                    | {"shared": c.get("shared", [])[:4]} for c in d.get("clusters", [])[:2]]}
+    if tool == "decision_impact":
+        waiting = d.get("customers_at_risk", [])
+        return {"decision": d.get("decision"), "parcels_in_transit": d.get("parcels_in_transit"),
+                "customers_waiting": len(waiting), "their_order_value": round(sum(c["order_value"] for c in waiting), 2),
+                "gold_customers_waiting": sum(c["tier"] == "gold" for c in waiting),
+                "past_delivery_date": sum(bool(c.get("past_promise")) for c in waiting),
+                "biggest_waiting": [{k: c[k] for k in ("tier", "order_value", "late_hours")} for c in waiting[:3]],
+                "commitments_at_risk": len(d.get("promises_at_risk", [])),
+                "decisions_relying_on_it": [x["title"] for x in d.get("dependent_decisions", [])]}
+    if tool == "trace_decisions":
+        return {"hub": d.get("hub"), "decisions": [
+            {"decision": x["decision"], "title": x["title"], "owner": x.get("owner"), "assumptions": [
+                {k: a.get(k) for k in ("statement", "metric", "op", "threshold", "status", "value", "linked", "basis")}
+                for a in x["assumptions"]]} for x in d.get("decisions", [])]}
+    if tool == "customer_trace":
+        t = d.get("timeline", [])
+        last_scan = {}
+        for i in t:
+            if i["kind"] == "scan":
+                last_scan[i["id"]] = i
+        keep = [i for i in t if i["kind"] != "scan"] + list(last_scan.values())  # latest scan per parcel only
+        return {k: v for k, v in d.items() if k not in ("timeline", "profiles")} | {
+            "timeline": sorted(keep, key=lambda i: i.get("at") or 0)}
+    return d
+
+
 def _slim(result: dict) -> dict:
-    return {k: v for k, v in result.items() if k not in ("paths", "_call", "ms") and v not in ("", [], None)}
+    tool = result.get("tool")
+    out = {k: v for k, v in result.items() if k not in ("paths", "_call", "ms") and v not in ("", [], None)}
+    if "data" in out:
+        out["data"] = _lean(tool, out["data"])
+    return out
+
+
+LIMIT = 14000  # characters of fact sheet sent to the model
+
+
+def for_model(sheet: dict) -> str:
+    """The fact sheet as sent to the model. Never cut mid-way: if it is too big, context facts are dropped first,
+    then the longest lists are shortened, and the sheet says what was left out. Answers, gaps and next steps stay."""
+    text = json.dumps(sheet, default=str)
+    if len(text) <= LIMIT:
+        return text
+    s = json.loads(text)
+    left_out = []
+    for p in s["parts"]:  # 1. drop facts from walks that only gave context
+        keep = [f for f in p["facts"] if f.get("answers", True)]
+        if len(keep) < len(p["facts"]):
+            left_out.append(f"{len(p['facts']) - len(keep)} context results for \"{p['ask']}\"")
+            p["facts"] = keep
+    text = json.dumps(s, default=str)
+    while len(text) > LIMIT:  # 2. shorten the longest list, keeping its first items
+        longest = None
+        def walk(o):
+            nonlocal longest
+            if isinstance(o, list) and len(o) > 2 and (longest is None or len(json.dumps(o)) > len(json.dumps(longest))):
+                longest = o
+            for v in (o.values() if isinstance(o, dict) else o if isinstance(o, list) else []):
+                walk(v)
+        walk(s["parts"])
+        if longest is None:
+            break
+        n = len(longest)
+        del longest[max(2, n // 2):]
+        left_out.append(f"a list shortened from {n} to {len(longest)} items")
+        text = json.dumps(s, default=str)
+    s["left_out"] = left_out
+    return json.dumps(s, default=str)
 
 
 def _scope(result: dict, plan: Plan) -> str:
@@ -322,6 +400,8 @@ def _answers(part: Part, r: dict) -> bool:
         return False
     primary = [i for i in part.intents if i in SPECIFIC] or part.intents
     for intent in primary:
+        if intent == "cost" and r.get("tool") == "order_detail":
+            return True  # what a named order cost is its total
         tools = ANSWERED_BY.get(intent)
         if tools is not None and r.get("tool") not in tools:
             continue
@@ -352,8 +432,8 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
         else:
             status, why = "no_data", next((r.get("reason") for r in got if r.get("reason")), "")
         answered = answering + (context if answering or not blocked else [])
-        facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities], **_slim(r)}
-                 for r in answered]
+        facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities],
+                  "answers": r in answering, **_slim(r)} for r in answered]
         parts.append({"ask": part.text, "intents": part.intents, "named": [e.label for e in part.entities],
                       "status": status, "why_missing": why, "facts": facts})
         if "what_to_do" in part.intents or "why" in part.intents:

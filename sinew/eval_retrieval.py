@@ -4,7 +4,8 @@ independent Cypher.
 
     SINEW_LOCAL=1 uv run python -m sinew.eval_retrieval [seed] [rounds]
 
-It tests what the AI would be given. If the right facts aren't in what the graph returns, no wording can fix it.
+It grades the message the AI is actually sent (the fact sheet after reconcile and sizing), not the raw walks:
+if the true facts aren't in what reaches the model, no wording can fix it.
 """
 
 import asyncio
@@ -27,16 +28,18 @@ def q(tenant, cypher, **p):
 
 
 async def retrieve(tenant: str, user: str, question: str) -> list[dict]:
-    """Exactly what the app does before the AI: the analysis layer's walks, as this person."""
-    from sinew.brain import analyse
-    _, per_part, _ = await analyse(tenant, user, question)
-    seen, out = set(), []
-    for got in per_part:
-        for r in got:
-            key = json.dumps(r.get("_call") or r, sort_keys=True, default=str)
-            if key not in seen:
-                seen.add(key)
-                out.append(r)
+    """What the AI actually receives: the fact sheet exactly as sent (brain.for_model), read back as results.
+    A part with no access comes back as a refusal; nothing else reaches the model."""
+    from sinew.brain import analyse, for_model
+    _, _, sheet = await analyse(tenant, user, question)
+    sent = json.loads(for_model(sheet))
+    out = []
+    for p in sent["parts"]:
+        out += [{**f, "tool": f.get("from"), "outcome": f.get("outcome", "answered_path")} for f in p["facts"]]
+        if p["status"] == "no_access":
+            out.append({"tool": "reconcile", "outcome": "not_permitted", "reason": p["why_missing"]})
+    if sent.get("hidden"):
+        out.append({"tool": "reconcile", "outcome": "answered_path", "hidden": sent["hidden"]})
     return out
 
 
@@ -79,6 +82,10 @@ def cases(seed: int, rounds: int, T: str = "northwind") -> list[dict]:
              "ok": lambda res, x=hubs: (d := data(res)) is not None and sorted({s["hub"] for s in d["delivery"]["scans"]}) == x},
             {"who": owner, "q": f"How many orders has the customer who ordered {n} placed in total?", "expect": str(n_orders),
              "ok": lambda res, x=n_orders: (d := data(res)) is not None and d["customer_orders_in_total"] == x},
+            {"who": owner, "q": f"Has order {n} been delivered, and what did it cost?",
+             "expect": f"delivered={delivered} and total {total}",
+             "ok": lambda res, x=delivered, t=total: (d := data(res)) is not None and d["delivery"]["delivered"] == x
+             and d["total"] == t and not any(r.get("outcome") == "not_permitted" for r in res)},
             {"who": other, "q": f"What is happening with order {n}?", "expect": "refused (other region)",
              "ok": lambda res, t=total: refused(res, t)},
             {"who": "u-marketing", "q": f"What was the total of order {n}?", "expect": "refused (no support area)",

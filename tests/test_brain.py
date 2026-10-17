@@ -67,3 +67,23 @@ def test_the_written_answer_follows_from_the_facts():
     assert write(sheet("u-marketing", "What does Courier Y cost per parcel?")) == "That's outside your access."
     contractor = write(sheet("u-contractor-1", "Ticket t-90520: help me handle this customer."))
     assert "[NAME]" not in contractor and "Payment details are for staff only" in contractor
+
+
+def test_what_the_model_receives_is_whole_and_keeps_the_answers():
+    import json
+    from sinew.brain import LIMIT, for_model
+    s = sheet("u-ceo", "Why are complaints up this week, and what should we do?")
+    sent = json.loads(for_model(s))  # valid JSON: never cut mid-way
+    assert len(for_model(s)) <= LIMIT and sent["what_to_do"] == s["what_to_do"]
+    big = json.loads(json.dumps(s))
+    big["parts"].append({"ask": "padding", "intents": ["status"], "named": [], "status": "answered", "why_missing": "",
+                         "facts": [{"answers": False, "data": ["x" * 200] * 200}]})
+    shrunk = json.loads(for_model(big))
+    assert len(json.dumps(shrunk)) <= LIMIT + 2000 and shrunk["left_out"] and shrunk["what_to_do"] == s["what_to_do"]
+    assert all(p["status"] for p in shrunk["parts"])
+
+
+def test_a_pronoun_carries_the_thing_named_earlier():
+    s = sheet("u-agent-w1", "Has order #4581 been delivered, and what did it cost?")
+    assert [p["status"] for p in s["parts"]] == ["answered", "answered"]
+    assert "$65.81" in write(s)
