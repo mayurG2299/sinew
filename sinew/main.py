@@ -77,6 +77,12 @@ def people():
             (("northwind", "Northwind Goods"), ("larkspur", "Larkspur Home")) if t in config.TENANTS]
 
 
+@app.get("/api/home")
+def home_view(as_user: str, tenant: str = "northwind"):
+    from sinew.home import home
+    return home(_tenant(tenant), as_user)
+
+
 @app.get("/api/briefing")
 def briefing_view(as_user: str, tenant: str = "northwind"):
     from sinew.briefing import briefing

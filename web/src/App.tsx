@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { api, setTenant, type Company, type Staff } from "./api";
 import { Chat, type Thread } from "./pages/Chat";
+import { Home } from "./pages/Home";
+import type { Notice } from "./api";
 import { Privacy } from "./pages/Privacy";
 import { StaffContext } from "./staff";
 
@@ -26,19 +28,25 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(saved);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [current, setCurrent] = useState<string | null>(null);
-  const [view, setView] = useState<"chat" | "privacy">("chat");
+  const [view, setView] = useState<"home" | "chat" | "privacy">("home");
+  const [start, setStart] = useState<Notice | null>(null);
   const [menu, setMenu] = useState(false);
   const [nav, setNav] = useState(false);
   const [note, setNote] = useState("");
   const [key, setKey] = useState(0);
 
   useEffect(() => { api.people().then(setCompanies); }, []);
+  useEffect(() => {  // ⌘K / Ctrl+K opens a new chat from anywhere
+    const on = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setCurrent(null); setStart(null); setView("chat"); } };
+    window.addEventListener("keydown", on);
+    return () => window.removeEventListener("keydown", on);
+  }, []);
   if (session) setTenant(session.tenant);
 
   const company = companies.find((c) => c.tenant === session?.tenant);
   const me = company?.people.find((p) => p.id === session?.user);
   if (!session || !company || !me)
-    return <Login companies={companies} onSignIn={(s) => { save(s); setSession(s); setThreads([]); setCurrent(null); setView("chat"); }} />;
+    return <Login companies={companies} onSignIn={(s) => { save(s); setSession(s); setThreads([]); setCurrent(null); setView("home"); }} />;
 
   function signOut() { save(null); setSession(null); setMenu(false); setThreads([]); setCurrent(null); }
   async function demo(kind: "reset" | "scan") {
@@ -56,8 +64,10 @@ export default function App() {
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-700 text-sm font-bold text-white">S</span>
         <span className="text-[17px] font-semibold tracking-tight text-stone-900">Sinew</span>
       </div>
-      <button onClick={() => { setCurrent(null); setView("chat"); setNav(false); }}
-        className="mt-4 rounded-lg border border-stone-300 bg-white px-3 py-2 text-left text-sm font-medium text-stone-800 hover:bg-stone-50">+ New chat</button>
+      <button onClick={() => { setView("home"); setNav(false); }}
+        className={`mt-4 rounded-lg px-2 py-1.5 text-left text-sm ${view === "home" ? "bg-white font-medium text-stone-900 shadow-sm" : "text-stone-700 hover:bg-white/70"}`}>Home</button>
+      <button onClick={() => { setCurrent(null); setStart(null); setView("chat"); setNav(false); }}
+        className={`rounded-lg px-2 py-1.5 text-left text-sm ${view === "chat" && !current ? "bg-white font-medium text-stone-900 shadow-sm" : "text-stone-700 hover:bg-white/70"}`}>+ New chat</button>
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
         {threads.length > 0 && <p className="px-2 pb-1 text-xs text-stone-500">Today</p>}
         <ul className="space-y-0.5">
@@ -113,7 +123,9 @@ export default function App() {
           <button onClick={() => setNav(true)} className="m-2 self-start rounded-md px-2 py-1 text-sm text-stone-700 md:hidden">☰ Sinew</button>
           <div className="min-h-0 flex-1" key={`${session.tenant}-${session.user}-${key}`}>
             {view === "privacy" ? <Privacy asUser={me.id} />
-              : <Chat me={me} threads={threads} setThreads={setThreads} current={current} setCurrent={setCurrent} />}
+              : view === "home" ? <Home me={me} open={(n) => { setCurrent(null); setStart(n); setView("chat"); }} onAsk={() => { setCurrent(null); setStart(null); setView("chat"); }} />
+              : <Chat key={start?.id ?? current ?? "new"} me={me} threads={threads} setThreads={setThreads} current={current} setCurrent={setCurrent}
+                  start={start} onStarted={() => setStart(null)} />}
           </div>
         </div>
       </div>

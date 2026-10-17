@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { api, money, orderNo, place, type Notice, type Run, type Staff } from "../api";
-import { Clean } from "../components/ui";
 import { CustomerView } from "./Inbox";
 import { Impact, Prelaunch } from "./Impact";
 import { Promises } from "./Promises";
@@ -12,7 +11,6 @@ type Msg =
 export type Thread = { id: string; title: string; messages: Msg[] };
 
 const SUPPORT = new Set(["agent", "team_lead", "support_head", "contractor"]);
-const greeting = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; };
 
 /** Which assistant takes a typed question: one about a customer, order or ticket goes to support (if the person
  * works in support); anything else is an investigation across the company. */
@@ -20,13 +18,15 @@ function route(text: string, role: string): "support" | "pattern" {
   return SUPPORT.has(role) && /#\d+|\b[ot]-\d+|ticket|order|refund|customer|parcel|delivery/i.test(text) ? "support" : "pattern";
 }
 
-export function Chat({ me, threads, setThreads, current, setCurrent }: {
+export function Chat({ me, threads, setThreads, current, setCurrent, start, onStarted }: {
   me: Staff; threads: Thread[]; setThreads: (f: (t: Thread[]) => Thread[]) => void;
-  current: string | null; setCurrent: (id: string | null) => void;
+  current: string | null; setCurrent: (id: string | null) => void; start?: Notice | null; onStarted?: () => void;
 }) {
-  const [notices, setNotices] = useState<Notice[] | null>(null);
   const thread = threads.find((t) => t.id === current);
-  useEffect(() => { api.briefing(me.id).then((b) => setNotices(b.notices)).catch(() => setNotices([])); }, [me.id]);
+  const started = useRef(false);
+  useEffect(() => {  // opened from Home: ask that question straight away
+    if (start && !started.current) { started.current = true; ask(start.ask, start); onStarted?.(); }
+  }, [start]);
 
   function update(id: string, i: number, patch: Partial<Msg>) {
     setThreads((ts) => ts.map((t) => t.id !== id ? t : { ...t, messages: t.messages.map((m, j) => (j === i ? { ...m, ...patch } as Msg : m)) }));
@@ -56,25 +56,9 @@ export function Chat({ me, threads, setThreads, current, setCurrent }: {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-4 py-8">
           {!thread ? (
-            <div className="pt-[8vh]">
-              <h1 className="text-2xl font-semibold text-stone-900">{greeting()}, {me.name.split(" ")[0]}</h1>
-              <h2 className="mt-8 text-sm font-medium text-stone-500">Noticed for you</h2>
-              {notices === null ? <p className="mt-3 text-sm text-stone-500">Checking what's new…</p>
-                : notices.length === 0 ? <p className="mt-3 text-sm text-stone-600">Nothing needs you right now. Ask anything below.</p>
-                : <ul className="mt-2 divide-y divide-stone-100 rounded-xl border border-stone-200">
-                    {notices.map((n) => (
-                      <li key={n.id}>
-                        <button onClick={() => ask(n.ask, n)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-stone-50">
-                          <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.tone === "urgent" ? "bg-rose-500" : "bg-amber-500"}`} />
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-[15px] font-medium text-stone-900">{n.title}</span>
-                            <span className="mt-0.5 block truncate text-sm text-stone-500"><Clean text={n.detail} /></span>
-                          </span>
-                          <span className="text-stone-400">›</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>}
+            <div className="pt-[20vh] text-center">
+              <h1 className="text-2xl font-semibold text-stone-900">What do you want to know?</h1>
+              <p className="mt-2 text-sm text-stone-500">Sinew answers from your company's data, and only what your role may see.</p>
             </div>
           ) : (
             <div className="space-y-6">

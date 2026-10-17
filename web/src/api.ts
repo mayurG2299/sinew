@@ -42,6 +42,7 @@ export type Company = { tenant: string; company: string; people: Staff[] };
 
 export const api = {
   people: () => call<Company[]>(`/api/people`),
+  home: (as_user: string) => call<any>(`/api/home?${q({ as_user })}`),
   briefing: (as_user: string) => call<{ notices: Notice[] }>(`/api/briefing?${q({ as_user })}`),
   staff: () => call<Staff[]>(`/api/staff?${q({})}`),
   inbox: (as_user: string) => call<{ tickets: any[]; now: number; scope: string; can_see_customers: boolean }>(`/api/inbox?${q({ as_user })}`),
