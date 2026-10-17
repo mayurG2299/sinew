@@ -20,8 +20,9 @@ ARRIVALS = ["in_transit", "delayed"]  # a parcel arriving at a hub; delivery sca
 def courier_on_time_rate(g: Graph, a: dict, start: int, end: int):
     """Share of scans at the hub, for the courier's shipments, that were not late."""
     total, on_time = g.ro_query(
-        "MATCH (sc:Scan)-[:AT]->(:Hub {id: $hub}), (sc)-[:FOR]->(:Shipment)-[:VIA]->(:Courier {id: $courier}) "
-        "WHERE sc.at >= $start AND sc.at < $end AND sc.status IN $arrivals "
+        # Start from the time window (indexed), not from the hub: a hub collects scans for months.
+        "MATCH (sc:Scan) WHERE sc.at >= $start AND sc.at < $end AND sc.status IN $arrivals "
+        "MATCH (sc)-[:AT]->(:Hub {id: $hub}), (sc)-[:FOR]->(:Shipment)-[:VIA]->(:Courier {id: $courier}) "
         "RETURN count(sc), sum(CASE WHEN coalesce(sc.late_hours, 0) = 0 THEN 1 ELSE 0 END)",
         {"hub": a["scope_hub"], "courier": a["scope_courier"], "start": start, "end": end, "arrivals": ARRIVALS},
     ).result_set[0]

@@ -1,0 +1,210 @@
+[
+ {
+  "query": "permission: team covers customer's region",
+  "median_ms": 0.122,
+  "max_rows_in_a_step": 1,
+  "plan": [
+   "Results | Records produced: 1, Execution time: 0.000125 ms",
+   "    Limit | Records produced: 1, Execution time: 0.000084 ms",
+   "        Project | Records produced: 1, Execution time: 0.000374 ms",
+   "            Expand Into | (c)->(c) | Records produced: 1, Execution time: 0.011917 ms",
+   "                Conditional Traverse | (t)->(r:Region) | Records produced: 1, Execution time: 0.015708 ms",
+   "                    Conditional Traverse | (u)->(t:Team) | Records produced: 1, Execution time: 0.031584 ms",
+   "                        Project | Records produced: 1, Execution time: 0.000166 ms",
+   "                            Cartesian Product | Records produced: 1, Execution time: 0.000126 ms",
+   "                                Node By Index Scan | (u:User) | Records produced: 1, Execution time: 0.002583 ms",
+   "                                Node By Index Scan | (c:Customer) | Records produced: 1, Execution time: 0.001333 ms"
+  ]
+ },
+ {
+  "query": "resolve customer from a ticket",
+  "median_ms": 0.067,
+  "max_rows_in_a_step": 1,
+  "plan": [
+   "Results | Records produced: 1, Execution time: 0.000165 ms",
+   "    Project | Records produced: 1, Execution time: 0.000584 ms",
+   "        Conditional Traverse | (@anon_0)->(c:Customer) | Records produced: 1, Execution time: 0.046834 ms",
+   "            Node By Index Scan | (@anon_0:Ticket) | Records produced: 1, Execution time: 0.003208 ms"
+  ]
+ },
+ {
+  "query": "trace: orders with items and batches",
+  "median_ms": 0.226,
+  "max_rows_in_a_step": 6,
+  "plan": [
+   "Results | Records produced: 5, Execution time: 0.000291 ms",
+   "    Aggregate | Records produced: 5, Execution time: 0.011333 ms",
+   "        Optional Conditional Traverse | (l)->(b:Batch) | Records produced: 6, Execution time: 0.024084 ms",
+   "            Optional Conditional Traverse | (l)->(pr:Product) | Records produced: 6, Execution time: 0.022542 ms",
+   "                Optional Conditional Traverse | (o)->(l:LineItem) | Records produced: 6, Execution time: 0.023876 ms",
+   "                    Optional Conditional Traverse | (o)->(k:Coupon) | Records produced: 5, Execution time: 0.023999 ms",
+   "                        Conditional Traverse | (p)->(o:Order) | Records produced: 5, Execution time: 0.019292 ms",
+   "                            Conditional Traverse | (p)->(p) | Records produced: 1, Execution time: 0.022457 ms",
+   "                                Node By Index Scan | (c:Customer) | Records produced: 1, Execution time: 0.002626 ms"
+  ]
+ },
+ {
+  "query": "trace: parcels and courier scans",
+  "median_ms": 0.182,
+  "max_rows_in_a_step": 13,
+  "plan": [
+   "Results | Records produced: 5, Execution time: 0.000207 ms",
+   "    Aggregate | Records produced: 5, Execution time: 0.012752 ms",
+   "        Sort | Records produced: 13, Execution time: 0.001622 ms",
+   "            Project | Records produced: 13, Execution time: 0.001252 ms",
+   "                Optional Conditional Traverse | (sc)->(h:Hub) | Records produced: 13, Execution time: 0.022293 ms",
+   "                    Optional Conditional Traverse | (sc)->(sc) | Records produced: 13, Execution time: 0.022790 ms",
+   "                        Optional Conditional Traverse | (s)->(k:Courier) | Records produced: 5, Execution time: 0.021292 ms",
+   "                            Conditional Traverse | (o)->(s:Shipment) | Records produced: 5, Execution time: 0.017583 ms",
+   "                                Conditional Traverse | (@anon_0)->(o:Order) | Records produced: 5, Execution time: 0.042623 ms",
+   "                                    Node By Index Scan | (c:Customer) | Records produced: 1, Execution time: 0.002335 ms"
+  ]
+ },
+ {
+  "query": "trace: tickets",
+  "median_ms": 0.145,
+  "max_rows_in_a_step": 4,
+  "plan": [
+   "Results | Records produced: 4, Execution time: 0.000291 ms",
+   "    Project | Records produced: 4, Execution time: 0.002875 ms",
+   "        Optional Conditional Traverse | (t)->(q:Queue) | Records produced: 4, Execution time: 0.025541 ms",
+   "            Optional Conditional Traverse | (t)->(u:User) | Records produced: 4, Execution time: 0.026251 ms",
+   "                Optional Conditional Traverse | (t)->(o:Order) | Records produced: 4, Execution time: 0.031916 ms",
+   "                    Conditional Traverse | (t)->(t) | Records produced: 4, Execution time: 0.021332 ms",
+   "                        Conditional Traverse | (p)->(p) | Records produced: 1, Execution time: 0.026876 ms",
+   "                            Node By Index Scan | (c:Customer) | Records produced: 1, Execution time: 0.003625 ms"
+  ]
+ },
+ {
+  "query": "related issues via the same hub/courier/batch",
+  "median_ms": 0.162,
+  "max_rows_in_a_step": 328,
+  "plan": [
+   "Results | Records produced: 3, Execution time: 0.000291 ms",
+   "    Sort | Records produced: 3, Execution time: 0.000333 ms",
+   "        Aggregate | Records produced: 3, Execution time: 0.056544 ms",
+   "            Filter | Records produced: 162, Execution time: 0.022334 ms",
+   "                Conditional Traverse | (other)->(other) | Records produced: 328, Execution time: 0.041955 ms",
+   "                    Conditional Traverse | (t)->(x) | Records produced: 4, Execution time: 0.015334 ms",
+   "                        Node By Index Scan | (t:Ticket) | Records produced: 1, Execution time: 0.002541 ms"
+  ]
+ },
+ {
+  "query": "decisions behind a hub, with evidence",
+  "median_ms": 0.197,
+  "max_rows_in_a_step": 2,
+  "plan": [
+   "Results | Records produced: 2, Execution time: 0.000209 ms",
+   "    Aggregate | Records produced: 2, Execution time: 0.007000 ms",
+   "        Optional Conditional Traverse | (other)-[b:BREAKS]->(other) | Records produced: 2, Execution time: 0.022417 ms",
+   "            Aggregate | Records produced: 2, Execution time: 0.005041 ms",
+   "                Sort | Records produced: 2, Execution time: 0.000458 ms",
+   "                    Project | Records produced: 2, Execution time: 0.000460 ms",
+   "                        Optional Conditional Traverse | (e)->(e) | Records produced: 2, Execution time: 0.021707 ms",
+   "                            Optional Conditional Traverse | (d)->(a:Assumption) | Records produced: 2, Execution time: 0.021791 ms",
+   "                                Optional Conditional Traverse | (d)->(u:User) | Records produced: 2, Execution time: 0.024960 ms",
+   "                                    Conditional Traverse | (d)->(d) | Records produced: 2, Execution time: 0.022167 ms",
+   "                                        Node By Index Scan | (h:Hub) | Records produced: 1, Execution time: 0.002124 ms"
+  ]
+ },
+ {
+  "query": "impact: customers waiting on parcels at the hub",
+  "median_ms": 0.362,
+  "max_rows_in_a_step": 12,
+  "plan": [
+   "Results | Records produced: 8, Execution time: 0.000666 ms",
+   "    Sort | Records produced: 8, Execution time: 0.000543 ms",
+   "        Aggregate | Records produced: 8, Execution time: 0.014291 ms",
+   "            Apply | Records produced: 9, Execution time: 0.003624 ms",
+   "                Conditional Traverse | (c)->(c) | Records produced: 9, Execution time: 0.031958 ms",
+   "                    Conditional Traverse | (o)->(o) | Records produced: 9, Execution time: 0.024416 ms",
+   "                        Filter | Records produced: 9, Execution time: 0.001334 ms",
+   "                            Node By Index Scan | (s:Shipment) | Records produced: 9, Execution time: 0.002666 ms",
+   "                Optional | Records produced: 9, Execution time: 0.000669 ms",
+   "                    Filter | Records produced: 4, Execution time: 0.002002 ms",
+   "                        Conditional Traverse | (t)->(t) | Records produced: 12, Execution time: 0.224247 ms",
+   "                            Argument | Records produced: 9, Execution time: 0.000584 ms"
+  ]
+ },
+ {
+  "query": "keystone decisions (PageRank)",
+  "median_ms": 0.087,
+  "max_rows_in_a_step": 5,
+  "plan": [
+   "Results | Records produced: 5, Execution time: 0.000499 ms",
+   "    Sort | Records produced: 5, Execution time: 0.000251 ms",
+   "        Project | Records produced: 5, Execution time: 0.000665 ms",
+   "            ProcedureCall | Records produced: 5, Execution time: 0.074626 ms"
+  ]
+ },
+ {
+  "query": "approver up the reporting line (SPpaths)",
+  "median_ms": 0.032,
+  "max_rows_in_a_step": 12,
+  "plan": [
+   "Results | Records produced: 1, Execution time: 0.000042 ms",
+   "    Limit | Records produced: 1, Execution time: 0.000249 ms",
+   "        Sort | Records produced: 1, Execution time: 0.000209 ms",
+   "            Project | Records produced: 2, Execution time: 0.000374 ms",
+   "                ProcedureCall | Records produced: 2, Execution time: 0.003043 ms",
+   "                    Cartesian Product | Records produced: 2, Execution time: 0.000499 ms",
+   "                        Node By Index Scan | (a:User) | Records produced: 2, Execution time: 0.002833 ms",
+   "                        Filter | Records produced: 2, Execution time: 0.001790 ms",
+   "                            Node By Label Scan | (b:User) | Records produced: 12, Execution time: 0.000544 ms"
+  ]
+ },
+ {
+  "query": "choke points (betweenness)",
+  "median_ms": 0.26,
+  "max_rows_in_a_step": 8,
+  "plan": [
+   "Results | Records produced: 3, Execution time: 0.000166 ms",
+   "    Limit | Records produced: 3, Execution time: 0.000376 ms",
+   "        Sort | Records produced: 3, Execution time: 0.000334 ms",
+   "            Project | Records produced: 8, Execution time: 0.001124 ms",
+   "                ProcedureCall | Records produced: 8, Execution time: 0.135292 ms"
+  ]
+ },
+ {
+  "query": "assumption check: courier on-time at a hub",
+  "median_ms": 0.728,
+  "max_rows_in_a_step": 594,
+  "plan": [
+   "Results | Records produced: 1, Execution time: 0.000167 ms",
+   "    Aggregate | Records produced: 1, Execution time: 0.015336 ms",
+   "        Conditional Traverse | (sc)->(@anon_3:Courier) | Records produced: 110, Execution time: 0.230286 ms",
+   "            Filter | Records produced: 110, Execution time: 0.022038 ms",
+   "                Conditional Traverse | (@anon_0)->(@anon_0) | Records produced: 393, Execution time: 0.387638 ms",
+   "                    Filter | Records produced: 393, Execution time: 0.054115 ms",
+   "                        Node By Index Scan | (sc:Scan) | Records produced: 594, Execution time: 0.044629 ms"
+  ]
+ },
+ {
+  "query": "inbox: newest tickets this person may see",
+  "median_ms": 0.43,
+  "max_rows_in_a_step": 107,
+  "plan": [
+   "Results | Records produced: 40, Execution time: 0.002490 ms",
+   "    Limit | Records produced: 40, Execution time: 0.001418 ms",
+   "        Sort | Records produced: 40, Execution time: 0.008381 ms",
+   "            Project | Records produced: 107, Execution time: 0.023665 ms",
+   "                Optional Conditional Traverse | (t)->(q:Queue) | Records produced: 107, Execution time: 0.131540 ms",
+   "                    Conditional Traverse | (t)->(t) | Records produced: 107, Execution time: 0.157210 ms",
+   "                        Conditional Traverse | (c)->(c) | Records produced: 76, Execution time: 0.056793 ms",
+   "                            Node By Index Scan | (@anon_0:User) | Records produced: 1, Execution time: 0.002374 ms"
+  ]
+ },
+ {
+  "query": "full-text ticket search",
+  "median_ms": 0.06,
+  "max_rows_in_a_step": 11,
+  "plan": [
+   "Results | Records produced: 11, Execution time: 0.000622 ms",
+   "    Limit | Records produced: 11, Execution time: 0.000667 ms",
+   "        Sort | Records produced: 11, Execution time: 0.000671 ms",
+   "            Project | Records produced: 11, Execution time: 0.001663 ms",
+   "                Conditional Traverse | (node)->(c:Customer) | Records produced: 11, Execution time: 0.036291 ms",
+   "                    ProcedureCall | Records produced: 11, Execution time: 0.005251 ms"
+  ]
+ }
+]

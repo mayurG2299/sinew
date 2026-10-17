@@ -14,7 +14,7 @@ ID_LABELS = [
     "Finding", "AgentRun", "Access", "Tombstone",
 ]
 # Extra lookups that queries filter on.
-RANGE = [("Identifier", "hash"), ("Order", "placed_at"), ("Scan", "at"), ("Ticket", "at"),
+RANGE = [("Identifier", "hash"), ("Order", "placed_at"), ("Scan", "at"), ("Ticket", "at"), ("Shipment", "last_hub"), ("Shipment", "status"),
          ("Promise", "due_at"), ("Campaign", "starts")]
 FULLTEXT = [("Ticket", "summary_clean")]
 

@@ -76,19 +76,9 @@ def inbox(as_user: str, tenant: str = "northwind", limit: int = 40):
     v = guard.Viewer.load(tenant, as_user)
     if v is None:
         raise HTTPException(404, "unknown user")
-    rows = g.ro_query(
-        "MATCH (t:Ticket)-[:FROM]->(:Profile)-[:OF]->(c:Customer) OPTIONAL MATCH (t)-[:IN]->(q:Queue) "
-        "RETURN t.id, t.at, t.issue_type, t.status, t.summary_clean, c.id, c.region, q.id ORDER BY t.at DESC LIMIT 400"
-    ).result_set
-    out = []
-    for tid, at, issue, status, summary, cust, region, queue in rows:
-        if v.role == "contractor" and queue not in v.queues:
-            continue  # contractors work their own queue only
-        if guard.customer_access(v, cust)[0]:
-            out.append({"ticket": tid, "at": at, "issue": issue, "status": status, "summary": summary,
-                        "customer": cust, "region": region, "queue": queue})
-        if len(out) >= limit:
-            break
+    out = [{"ticket": tid, "at": at, "issue": issue, "status": status, "summary": summary, "customer": cust,
+            "region": region, "queue": queue}
+           for tid, at, issue, status, summary, cust, region, queue in guard.visible_tickets(v, limit)]
     return {"tickets": out, "now": trace.clock(tenant), "can_see_customers": v.role in guard.SUPPORT_ROLES}
 
 

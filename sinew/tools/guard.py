@@ -74,9 +74,11 @@ def customer_access(v: Viewer, customer_id: str) -> tuple[bool, str, list[str]]:
             t, q, tk = rows[0]
             return True, f"ticket {tk} is in your queue {q}", [v.user_id, t, q, tk, customer_id]
         return False, "contractors see only customers with a ticket in their own queue", []
+    # Both ends are found by index first, then the path between them is only checked (Expand Into),
+    # instead of walking out to every customer in the region.
     rows = g.ro_query(
-        "MATCH (u:User {id: $u})-[:MEMBER_OF]->(t:Team)-[:COVERS]->(r:Region)<-[:IN]-(c:Customer {id: $c}) "
-        "RETURN t.id, r.id LIMIT 1",
+        "MATCH (u:User {id: $u}), (c:Customer {id: $c}) WITH u, c "
+        "MATCH (u)-[:MEMBER_OF]->(t:Team)-[:COVERS]->(r:Region)<-[:IN]-(c) RETURN t.id, r.id LIMIT 1",
         {"u": v.user_id, "c": customer_id},
     ).result_set
     if rows:
@@ -115,3 +117,21 @@ def fetch_personal(v: Viewer, customer_id: str) -> tuple[dict, list[dict]]:
             if f in allowed and f not in shown and store.get(p_id, {}).get(f):
                 shown[f] = store[p_id][f]
     return shown, hidden
+
+
+def visible_tickets(v: Viewer, limit: int) -> list[list]:
+    """The newest tickets this person may see, in one query that follows the same paths as customer_access."""
+    g = graph(v.tenant)
+    ret = ("RETURN t.id, t.at, t.issue_type, t.status, t.summary_clean, c.id, c.region, q.id "
+           "ORDER BY t.at DESC LIMIT $n")
+    if v.role == "support_head":
+        q = ("MATCH (t:Ticket)-[:FROM]->(:Profile)-[:OF]->(c:Customer) OPTIONAL MATCH (t)-[:IN]->(q:Queue) " + ret)
+    elif v.role == "contractor":
+        q = ("MATCH (:User {id: $u})-[:MEMBER_OF]->(:Team)-[:WORKS]->(q:Queue)<-[:IN]-(t:Ticket) "
+             "MATCH (t)-[:FROM]->(:Profile)-[:OF]->(c:Customer) " + ret)
+    elif v.role in SUPPORT_ROLES:
+        q = ("MATCH (:User {id: $u})-[:MEMBER_OF]->(:Team)-[:COVERS]->(:Region)<-[:IN]-(c:Customer) "
+             "MATCH (c)<-[:OF]-(:Profile)<-[:FROM]-(t:Ticket) OPTIONAL MATCH (t)-[:IN]->(q:Queue) " + ret)
+    else:
+        return []
+    return g.ro_query(q, {"u": v.user_id, "n": limit}).result_set
