@@ -67,6 +67,10 @@ def _plain(text: str) -> str:
     """Ids inside engine sentences: "campaign fest40 ... hub-w2" -> "the FEST40 campaign ... Hub W2"."""
     text = re.sub(r"\bcampaign ([a-z0-9]+)\b", lambda m: f"the {m.group(1).upper()} campaign", text)
     text = re.sub(r"\bo-(\d+)\b", r"#\1", text)
+    text = re.sub(r"\s*\(?\b(?:pr|cu|pf|sh|rf|rt|as|pay)-[a-z0-9-]+\)?", "", text)  # internal codes
+    text = re.sub(r"\s*\(?\b(?:under |in )?(?:ticket )?t-\d+\)?", "", text)  # ticket codes: "this ticket" is enough
+    text = re.sub(r"\bpromised\b", "agreed", text)
+    text = re.sub(r"\bpromise(s?)\b", r"commitment\1", text)
     return re.sub(r"\b(?:hub|courier)-[a-z0-9]+\b", lambda m: _place(m.group(0)), text)
 
 
@@ -84,14 +88,17 @@ def fallback(tool_results: list[dict]) -> str:
         tool, outcome, d = r.get("tool"), r.get("outcome"), r.get("data") or {}
         if outcome in ("not_in_graph", "unknown_entity", "not_permitted", "needs_approval"):
             out.append(f"{r.get('reason', '').capitalize()}.")
+        elif tool == "search_docs":
+            for doc in d[:2]:
+                out.append(f"{doc['title']}, \"{doc['heading']}\": {doc['text']}")
         elif tool == "customer_trace":
             kinds = [i["kind"] for i in d.get("timeline", [])]
             out.append(f"This customer has {kinds.count('order')} orders, {kinds.count('ticket')} tickets and "
                        f"{kinds.count('refund')} refunds.")
         elif tool == "open_loops":
-            out.append(f"Still open: {len(d.get('open_tickets', []))} tickets, {len(d.get('open_promises', []))} "
-                       f"promises, {len(d.get('broken_promises', []))} broken promises and "
-                       f"{len(d.get('late_in_transit', []))} late parcels.")
+            parts = [(len(d.get("open_tickets", [])), "open ticket"), (len(d.get("broken_promises", [])), "overdue commitment"),
+                     (len(d.get("open_promises", [])), "commitment still due"), (len(d.get("late_in_transit", [])), "late parcel")]
+            out.append("Still open: " + ", ".join(f"{n} {w}{'s' if n != 1 else ''}" for n, w in parts if n) + ".")
         elif tool == "related_issues" and d.get("shared"):
             s = d["shared"][0]
             out.append(f"{s['other_tickets']} other tickets in the last {d.get('days')} days went through "
@@ -115,4 +122,7 @@ def fallback(tool_results: list[dict]) -> str:
                 reroute = f" Option: route through {_place(w['reroute']['hub'])}." if w.get("reroute") else ""
                 out.append(f"{w.get('name', _place(w['campaign']))} starts in {w['starts_in_days']:g} days through "
                            f"{_place(w['hub'])}, which is already struggling.{reroute}")
-    return " ".join(out) or "No tool returned anything to report."
+    found = [o for o in dict.fromkeys(out) if o and not o.endswith(": .")]
+    if not found or all(r.get("outcome") in ("not_in_graph", "unknown_entity") for r in tool_results):
+        return "Sinew couldn't find anything about that in the company's data or documents."
+    return "Here is what Sinew found:\n" + "\n".join(f"- {o}" for o in found[:4])

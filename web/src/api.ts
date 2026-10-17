@@ -15,6 +15,7 @@ export type Run = {
   answer_source: "model" | "rows" | "replay"; check_failed: string; model: string;
   steps: { tool: string; args: any; outcome: string; ms: number; tool_ms?: number }[];
   pending_actions: { name: string; args: any }[]; ms: number; model_ms: number[];
+  sources?: { passage: string; doc: string; title: string; kind: string; heading: string; text: string }[];
 };
 
 export const TENANTS = [

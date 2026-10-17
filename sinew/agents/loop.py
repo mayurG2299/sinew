@@ -22,6 +22,7 @@ from sinew.agents import check, prompts
 from sinew.agents.llm import Gemini, LLMUnavailable
 from sinew.engine import snapshot
 from sinew.mcp_server import build_server
+from sinew.tools import docs
 
 REPLAYS = Path(__file__).resolve().parents[2] / "seed" / "replays"
 MAX_STEPS = 8
@@ -42,6 +43,7 @@ class Run:
     results: list[dict] = field(default_factory=list)
     ms: float = 0.0
     model_ms: list[float] = field(default_factory=list)  # time spent waiting for the model, per turn
+    sources: list[dict] = field(default_factory=list)  # document passages behind the answer, from the graph
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -119,6 +121,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
         replay = _load_replay(tenant, user_id, agent, task)
         if replay:
             replay.ms = round((time.perf_counter() - start) * 1000, 1)
+            replay.sources = docs.sources(tenant, user_id, replay.results, task)
             return replay
         run.answer = check.fallback(run.results) if run.results else \
             f"The AI is unavailable right now ({e}). The graph tools still work."
@@ -133,6 +136,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
     run.ms = round((time.perf_counter() - start) * 1000, 1)
     if run.answer_source == "model":
         _save_replay(tenant, user_id, run)
+    run.sources = docs.sources(tenant, user_id, run.results, task)
     return run
 
 

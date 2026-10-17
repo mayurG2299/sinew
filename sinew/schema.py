@@ -8,7 +8,7 @@ ID_LABELS = [
     "Customer", "Profile", "Identifier", "PersonalRef",
     "Order", "LineItem", "Product", "Batch", "Supplier", "Warehouse", "Payment", "Refund", "Return",
     "Shipment", "Courier", "Hub", "Scan",
-    "Ticket", "IssueType", "Promise", "Incident", "Doc",
+    "Ticket", "IssueType", "Promise", "Incident", "Doc", "Passage",
     "Campaign", "Coupon",
     "Decision", "Assumption", "Evidence",
     "Finding", "AgentRun", "Access", "Tombstone",
@@ -16,7 +16,7 @@ ID_LABELS = [
 # Extra lookups that queries filter on.
 RANGE = [("Identifier", "hash"), ("Order", "placed_at"), ("Scan", "at"), ("Ticket", "at"), ("Shipment", "last_hub"), ("Shipment", "status"),
          ("Promise", "due_at"), ("Campaign", "starts")]
-FULLTEXT = [("Ticket", "summary_clean")]
+FULLTEXT = [("Ticket", "summary_clean"), ("Passage", "text_clean")]
 
 
 def _existing_indexes(g) -> set[tuple[str, str]]:

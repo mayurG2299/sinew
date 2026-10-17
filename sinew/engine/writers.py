@@ -261,6 +261,23 @@ def campaign_upserted(c: Ctx, p: dict):
         link(c, "Coupon", code, "OF", "Campaign", p["campaign_id"])
 
 
+# ---------------------------------------------------------------- documents
+
+MENTION_LABEL = (("hub-", "Hub"), ("courier-", "Courier"), ("dec-", "Decision"), ("b-", "Batch"))
+
+
+def doc_passage(c: Ctx, p: dict):
+    """One passage of a company document, linked to the things it is about (only things that exist)."""
+    upsert(c, "Doc", p["doc_id"], {"title": p["title"], "kind": p["kind"], "audience": p.get("audience", []),
+                                    "written_at": c.occurred_at})
+    upsert(c, "Passage", p["passage_id"], {"heading": p["heading"], "order": p["order"], "text_clean": p["text"]})
+    link(c, "Passage", p["passage_id"], "PART_OF", "Doc", p["doc_id"])
+    for m in p.get("mentions", []):
+        label = next((l for prefix, l in MENTION_LABEL if m.startswith(prefix)), "Campaign")
+        c.g.query(f"MATCH (p:Passage {{id: $p}}), (x:{label} {{id: $m}}) MERGE (p)-[:MENTIONS]->(x)",
+                  {"p": p["passage_id"], "m": m})
+
+
 # ---------------------------------------------------------------- decisions
 
 CHOOSABLE = {"Courier", "Hub", "Supplier", "Warehouse", "Campaign"}
@@ -335,7 +352,7 @@ WRITERS = {
     "payment.captured": payment_captured, "refund.issued": refund_issued, "return.created": return_created,
     "shipment.created": shipment_created, "scan.recorded": scan_recorded,
     "ticket.created": ticket_created, "ticket.updated": ticket_updated,
-    "campaign.upserted": campaign_upserted, "decision.recorded": decision_recorded,
+    "campaign.upserted": campaign_upserted, "decision.recorded": decision_recorded, "doc.passage": doc_passage,
     "promise.proposed": promise_proposed, "promise.confirmed": promise_confirmed,
     "promise.rejected": promise_rejected,
 }

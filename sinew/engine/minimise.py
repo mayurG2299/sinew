@@ -81,6 +81,7 @@ def _names_analyzer():
     return _analyzer
 
 
+_OWN_WORDS = {"sinew"}  # our own name appears in company documents; it is not a person
 _CALENDAR = {w.lower() for w in (*calendar.month_name, *calendar.month_abbr, *calendar.day_name, *calendar.day_abbr) if w}
 
 
@@ -97,7 +98,7 @@ def redact(text: str, allow: frozenset[str] = frozenset()) -> str:
     # Codes like "B7" or "W2" are business ids, not people; nor are month and day names ("due on 15 Oct").
     def business(span: str) -> bool:
         s = span.lower().strip(" .,!?;:'\"")
-        return any(ch.isdigit() for ch in s) or s in _CALENDAR or any(s in a for a in allow)
+        return any(ch.isdigit() for ch in s) or s in _CALENDAR or s in _OWN_WORDS or any(s in a for a in allow)
 
     spans = sorted((r for r in found if not business(text[r.start:r.end])), key=lambda r: r.start, reverse=True)
     for r in spans:

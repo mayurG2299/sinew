@@ -1,145 +1,149 @@
 import { useEffect, useRef, useState } from "react";
+import { AssistantRuntimeProvider, useExternalStoreRuntime, type AppendMessage, type ThreadMessageLike } from "@assistant-ui/react";
+import { Thread as ThreadView } from "@/components/assistant-ui/thread";
 import { api, money, orderNo, place, type Notice, type Run, type Staff } from "../api";
 import { CustomerView } from "./Inbox";
 import { Impact, Prelaunch } from "./Impact";
 import { Promises } from "./Promises";
 import { useName } from "../staff";
 
-type Msg =
-  | { from: "me"; text: string }
-  | { from: "sinew"; agent: string | null; task: string | null; view: Notice["view"] | null; run?: Run; error?: string };
+type Msg = { id: string; role: "user" | "assistant"; text?: string; run?: Run; view?: Notice["view"] | null;
+  pending?: boolean; error?: boolean };
 export type Thread = { id: string; title: string; messages: Msg[] };
 
+/** A typed question about a named order or ticket goes to the support assistant (for support staff);
+ * every other question goes to the general assistant, which picks the skills that fit. */
 const SUPPORT = new Set(["agent", "team_lead", "support_head", "contractor"]);
-
-/** Which assistant takes a typed question: one about a customer, order or ticket goes to support (if the person
- * works in support); anything else is an investigation across the company. */
-function route(text: string, role: string): "support" | "pattern" {
-  return SUPPORT.has(role) && /#\d+|\b[ot]-\d+|ticket|order|refund|customer|parcel|delivery/i.test(text) ? "support" : "pattern";
-}
+const route = (text: string, role: string) => (SUPPORT.has(role) && /#\d+|\b[ot]-\d+/i.test(text) ? "support" : "ask");
 
 export function Chat({ me, threads, setThreads, current, setCurrent, start, onStarted }: {
   me: Staff; threads: Thread[]; setThreads: (f: (t: Thread[]) => Thread[]) => void;
   current: string | null; setCurrent: (id: string | null) => void; start?: Notice | null; onStarted?: () => void;
 }) {
   const thread = threads.find((t) => t.id === current);
+  const idRef = useRef<string | null>(current);
   const started = useRef(false);
+
+  function put(id: string, msg: Msg, title: string) {
+    setThreads((ts) => ts.some((t) => t.id === id)
+      ? ts.map((t) => (t.id === id ? { ...t, messages: [...t.messages.filter((m) => m.id !== msg.id), msg] } : t))
+      : [{ id, title, messages: [msg] }, ...ts]);
+  }
+
+  function ask(text: string, notice?: Notice) {
+    const id = idRef.current ?? `c${Date.now()}`;
+    idRef.current = id;
+    const title = notice?.ask ?? text;
+    put(id, { id: `u${Date.now()}`, role: "user", text }, title);
+    setCurrent(id);
+    const replyId = `a${Date.now()}`;
+    const agent = notice ? notice.agent : route(text, me.role);
+    const task = notice ? notice.task : text;
+    if (!agent || !task) {  // a notice that is answered by its view alone
+      put(id, { id: replyId, role: "assistant", view: notice?.view }, title);
+      return;
+    }
+    put(id, { id: replyId, role: "assistant", pending: true, view: notice?.view }, title);
+    api.agent(agent, task, me.id)
+      .then((run) => put(id, { id: replyId, role: "assistant", run, view: notice?.view }, title))
+      .catch(() => put(id, { id: replyId, role: "assistant", error: true }, title));
+  }
+
   useEffect(() => {  // opened from Home: ask that question straight away
     if (start && !started.current) { started.current = true; ask(start.ask, start); onStarted?.(); }
   }, [start]);
 
-  function update(id: string, i: number, patch: Partial<Msg>) {
-    setThreads((ts) => ts.map((t) => t.id !== id ? t : { ...t, messages: t.messages.map((m, j) => (j === i ? { ...m, ...patch } as Msg : m)) }));
-  }
-
-  function ask(text: string, notice?: Notice) {
-    const agent = notice ? notice.agent : route(text, me.role);
-    const task = notice ? notice.task : text;
-    const reply: Msg = { from: "sinew", agent, task, view: notice?.view ?? null };
-    let id = current;
-    let index = 1;
-    if (!thread) {
-      id = `c${Date.now()}`;
-      setThreads((ts) => [{ id: id!, title: notice?.title ?? text, messages: [{ from: "me", text }, reply] }, ...ts]);
-      setCurrent(id);
-    } else {
-      index = thread.messages.length + 1;
-      setThreads((ts) => ts.map((t) => t.id !== id ? t : { ...t, messages: [...t.messages, { from: "me", text }, reply] }));
-    }
-    if (agent && task)
-      api.agent(agent, task, me.id).then((run) => update(id!, index, { run }))
-        .catch((e) => update(id!, index, { error: String(e) }));
-  }
+  const messages = thread?.messages ?? [];
+  const runtime = useExternalStoreRuntime<Msg>({
+    messages,
+    isRunning: messages.some((m) => m.pending),
+    convertMessage: (m): ThreadMessageLike => m.role === "user"
+      ? { id: m.id, role: "user", content: [{ type: "text", text: m.text ?? "" }] }
+      : m.pending ? { id: m.id, role: "assistant", content: [], status: { type: "running" } }
+      : { id: m.id, role: "assistant", content: [
+          ...(m.run ? [{ type: "text" as const, text: m.run.answer }] : []),
+          ...(m.error ? [{ type: "text" as const, text: "Sinew couldn't answer that just now. Please try again." }] : []),
+          { type: "data-sinew" as const, data: { run: m.run ?? null, view: m.view ?? null } },
+        ] },
+    onNew: async (message: AppendMessage) => {
+      const part = message.content.find((p) => p.type === "text");
+      if (part && part.type === "text" && part.text.trim()) ask(part.text.trim());
+    },
+  });
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-3xl px-4 py-8">
-          {!thread ? (
-            <div className="pt-[20vh] text-center">
-              <h1 className="text-2xl font-semibold text-stone-900">What do you want to know?</h1>
-              <p className="mt-2 text-sm text-stone-500">Sinew answers from your company's data, and only what your role may see.</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {thread.messages.map((m, i) => m.from === "me"
-                ? <div key={i} className="flex justify-end"><p className="max-w-[80%] rounded-2xl bg-stone-100 px-4 py-2.5 text-[15px] text-stone-900">{m.text}</p></div>
-                : <Reply key={i} m={m} me={me} />)}
-            </div>
-          )}
-        </div>
-      </div>
-      <Composer onSend={(t) => ask(t)} placeholder={SUPPORT.has(me.role) ? "Ask about a customer, an order or a problem…" : "Ask why something is happening, or what's at risk…"} />
-    </div>
-  );
-}
-
-function Composer({ onSend, placeholder }: { onSend: (text: string) => void; placeholder: string }) {
-  const [text, setText] = useState("");
-  return (
-    <form className="mx-auto w-full max-w-3xl px-4 pb-5" onSubmit={(e) => { e.preventDefault(); if (text.trim()) { onSend(text.trim()); setText(""); } }}>
-      <div className="flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2 shadow-sm focus-within:border-teal-600">
-        <input value={text} onChange={(e) => setText(e.target.value)} placeholder={placeholder} aria-label="Ask Sinew"
-          className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] outline-none" />
-        <button disabled={!text.trim()} className="rounded-xl bg-teal-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40">Ask</button>
-      </div>
-    </form>
+    <AssistantRuntimeProvider runtime={runtime}>
+      <ThreadView
+        placeholder={SUPPORT.has(me.role) ? "Ask about a customer, an order, a policy…" : "Ask why something is happening, or about a policy…"}
+        welcome={<>
+          <p className="text-2xl font-medium tracking-tight">What do you want to know?</p>
+          <p className="text-muted-foreground mt-1 text-sm">Sinew answers from your company's data and documents, only what your role may see.</p>
+        </>}
+        renderData={(name, data) => (name === "sinew" ? <Extras run={data.run} view={data.view} me={me} /> : null)}
+      />
+    </AssistantRuntimeProvider>
   );
 }
 
 const STEP: Record<string, string> = {
   customer_trace: "Read the customer's history", open_loops: "Checked what is still open", related_issues: "Looked for others affected",
-  search_tickets: "Searched tickets", find_approver: "Found who can approve", recall: "Checked earlier findings",
-  cluster_incidents: "Grouped this week's complaints", trace_decisions: "Found the decisions behind it",
+  search_tickets: "Searched tickets", search_docs: "Searched company documents", find_approver: "Found who can approve",
+  recall: "Checked earlier findings", cluster_incidents: "Grouped this week's complaints", trace_decisions: "Found the decisions behind it",
   decision_impact: "Measured what is at risk", prelaunch_check: "Checked upcoming launches", reroute: "Looked for another route",
   choke_points: "Found the busiest hubs", evaluate_assumptions: "Re-measured the assumptions", write_finding: "Saved a note for next time",
-  issue_refund: "Prepared a refund", record_promise: "Prepared a promise", file_incident: "Prepared an incident", notify_owner: "Prepared a message",
+  issue_refund: "Prepared a refund", record_promise: "Prepared a follow-up", file_incident: "Prepared an incident", notify_owner: "Prepared a message",
 };
 const ACTION: Record<string, (a: any) => string> = {
   issue_refund: (a) => `Refund ${money(Number(a.amount))} for order ${orderNo(a.order_id)}`,
-  confirm_promise: () => "Confirm the promise",
-  record_promise: (a) => `Promise a ${a.kind ?? ""} for order ${orderNo(a.order_id)}`,
+  confirm_promise: () => "Confirm",
+  record_promise: (a) => `Commit to the ${a.kind ?? "follow-up"} for order ${orderNo(a.order_id)}`,
   file_incident: (a) => `Open an incident for ${place(a.root_hub)} (${a.ticket_ids?.length ?? 0} complaints)`,
   notify_owner: () => "Tell the decision owner",
 };
+const KIND: Record<string, string> = { policy: "Policy", contract: "Contract", meeting_notes: "Meeting notes", plan: "Plan", guide: "Guide" };
 
-function Reply({ m, me }: { m: Extract<Msg, { from: "sinew" }>; me: Staff }) {
+/** Under each answer: the actions (wait for a click), the documents it came from, and the rest behind a click. */
+function Extras({ run, view, me }: { run: Run | null; view: Notice["view"] | null; me: Staff }) {
   const [open, setOpen] = useState<"" | "picture" | "how">("");
+  const [source, setSource] = useState<number | null>(null);
   const [done, setDone] = useState<Record<number, any>>({});
-  const [secs, setSecs] = useState(0);
-  const timer = useRef<number | undefined>(undefined);
-  const waiting = !!m.agent && !m.run && !m.error;
-  useEffect(() => {
-    if (!waiting) return;
-    timer.current = window.setInterval(() => setSecs((s) => s + 1), 1000);
-    return () => window.clearInterval(timer.current);
-  }, [waiting]);
-
-  // A notice with no question for the AI: the answer is the view itself.
-  if (!m.agent) return <div className="rounded-xl border border-stone-200 p-4"><View v={m.view} me={me} /></div>;
-  if (m.error) return <p className="text-sm text-rose-700">Sinew couldn't answer that just now. Try again.</p>;
-  if (!m.run) return <p className="text-sm text-stone-500">Looking through the company's data… {secs > 3 && `${secs} s`}</p>;
-
-  const run = m.run;
+  if (!run) return view ? <div className="mt-2 rounded-xl border p-2"><View v={view} me={me} /></div> : null;
+  const sources = run.sources ?? [];
   return (
-    <div>
-      <p className="whitespace-pre-line text-[15px] leading-relaxed text-stone-900">{run.answer}</p>
+    <div className="mt-3 space-y-3 text-sm">
       {run.pending_actions.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {run.pending_actions.map((p, i) => done[i]
-            ? <span key={i} className={`rounded-lg px-3 py-1.5 text-sm ${done[i].outcome === "answered_path" ? "bg-teal-50 text-teal-900" : "bg-amber-50 text-amber-900"}`}>
-                {done[i].outcome === "answered_path" ? "Done" : done[i].outcome === "needs_approval" ? `Sent for approval${done[i].data?.approver ? "" : ""}` : `Not done: ${done[i].reason}`}</span>
+            ? <span key={i} className={`rounded-lg px-3 py-1.5 ${done[i].outcome === "answered_path" ? "bg-teal-50 text-teal-900" : "bg-amber-50 text-amber-900"}`}>
+                {done[i].outcome === "answered_path" ? "Done" : done[i].outcome === "needs_approval" ? "Sent for approval" : `Not done: ${done[i].reason}`}</span>
             : <button key={i} onClick={() => api.confirm(p.name, p.args, me.id).then((r) => setDone((d) => ({ ...d, [i]: r })))}
-                className="rounded-lg border border-teal-700 px-3 py-1.5 text-sm font-medium text-teal-800 hover:bg-teal-50">{(ACTION[p.name] ?? (() => p.name))(p.args)}</button>)}
+                className="rounded-lg border border-teal-700 px-3 py-1.5 font-medium text-teal-800 hover:bg-teal-50">{(ACTION[p.name] ?? (() => p.name))(p.args)}</button>)}
         </div>
       )}
-      <div className="mt-3 flex flex-wrap gap-4 text-sm">
-        {m.view && <button onClick={() => setOpen(open === "picture" ? "" : "picture")} className="text-teal-800 hover:underline">{open === "picture" ? "Hide" : "See"} the full picture</button>}
-        <button onClick={() => setOpen(open === "how" ? "" : "how")} className="text-stone-500 hover:text-stone-800">How Sinew knows</button>
+      {sources.length > 0 && (
+        <div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-muted-foreground">Sources</span>
+            {sources.map((s: any, i: number) => (
+              <button key={s.passage} onClick={() => setSource(source === i ? null : i)}
+                className={`rounded-full border px-2.5 py-0.5 text-xs ${source === i ? "border-teal-700 bg-teal-50 text-teal-900" : "hover:bg-stone-50"}`}>
+                {s.title} · {s.heading}</button>))}
+          </div>
+          {source !== null && sources[source] && (
+            <blockquote className="mt-2 border-l-2 border-teal-600 pl-3 text-stone-700">
+              <p className="text-xs text-stone-500">{KIND[sources[source].kind] ?? "Document"} · {sources[source].title} · {sources[source].heading}</p>
+              <p className="mt-1">{sources[source].text}</p>
+            </blockquote>
+          )}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-4">
+        {view?.kind && <button onClick={() => setOpen(open === "picture" ? "" : "picture")} className="text-teal-800 hover:underline">{open === "picture" ? "Hide" : "See"} the full picture</button>}
+        <button onClick={() => setOpen(open === "how" ? "" : "how")} className="text-muted-foreground hover:text-foreground">How Sinew knows</button>
       </div>
-      {open === "picture" && <div className="mt-3 rounded-xl border border-stone-200 p-1"><View v={m.view} me={me} /></div>}
+      {open === "picture" && <div className="rounded-xl border p-2"><View v={view} me={me} /></div>}
       {open === "how" && (
-        <div className="mt-3 rounded-xl bg-stone-50 p-4 text-sm text-stone-700">
+        <div className="rounded-xl bg-stone-50 p-4 text-stone-700">
           <ol className="list-decimal space-y-0.5 pl-5">
             {run.steps.map((s, i) => <li key={i}>{STEP[s.tool] ?? s.tool}{s.tool_ms != null && <span className="text-stone-400"> · {s.tool_ms} ms</span>}</li>)}
           </ol>

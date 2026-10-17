@@ -146,7 +146,7 @@ class AgentRequest(BaseModel):
 @app.post("/api/agent")
 async def agent(req: AgentRequest):
     _tenant(req.tenant)
-    if req.agent not in ("support", "pattern"):
+    if req.agent not in ("support", "pattern", "ask"):
         raise HTTPException(404, "unknown agent")
     if guard.Viewer.load(req.tenant, req.as_user) is None:
         raise HTTPException(404, "unknown user")

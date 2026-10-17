@@ -12,7 +12,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-from sinew.tools import actions, impact, trace
+from sinew.tools import actions, docs, impact, trace
 
 READ = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
 WRITE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False)
@@ -47,6 +47,13 @@ def build_server(tenant: str, user_id: str, run_id: str | None = None, read_only
     def search_tickets(text: Annotated[str, Field(min_length=2, max_length=100)]) -> dict:
         """Full-text search of cleaned ticket summaries you are allowed to see."""
         return trace.search_tickets(tenant, user_id, text).as_dict()
+
+    @mcp.tool(annotations=READ)
+    def search_docs(text: Annotated[str, Field(min_length=2, max_length=200)] = "",
+                    about: list[Id] | None = None) -> dict:
+        """Company documents (policies, contracts, meeting notes, plans) you may read: passages matching the words,
+        or about the given hubs, couriers, decisions or campaigns. Refer to a document by its title."""
+        return docs.search_docs(tenant, user_id, text or None, about or []).as_dict()
 
     @mcp.tool(annotations=READ)
     def cluster_incidents(days: Annotated[int, Field(ge=1, le=30)] = 7) -> dict:

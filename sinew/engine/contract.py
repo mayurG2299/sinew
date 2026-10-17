@@ -86,6 +86,11 @@ CONTRACT: dict[str, dict[str, tuple[str, bool]]] = {
         "due_at": (P2, True), "made_by": (B, True), "amount": (B, False),
     },
     "promise.confirmed": {"promise_id": (B, True), "confirmed_by": (B, True)},
+    # --- company documents the company allows Sinew to read, one event per passage ---
+    "doc.passage": {
+        "doc_id": (B, True), "title": (B, True), "kind": (B, True), "passage_id": (B, True), "heading": (B, True),
+        "order": (B, True), "text": (P3, True), "mentions": (B, False), "audience": (B, False),
+    },
     "promise.rejected": {"promise_id": (B, True), "rejected_by": (B, True)},
 }
 

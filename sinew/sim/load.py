@@ -31,6 +31,10 @@ def load(tenant: str, fresh: bool = True) -> dict:
         totals["stale"] += r["stale"]
         totals["quarantined"] += len(r["quarantined"])
         print(f"  {min(i + 500, len(events))}/{len(events)} events  {time.time() - started:.0f}s", flush=True)
+    from sinew.sim import docs
+    r = sdk.send(docs.events(tenant))  # the documents the company allows Sinew to read
+    totals["accepted"] += r["accepted"]
+    totals["quarantined"] += len(r["quarantined"])
     g = graph(tenant)
     g.query("MERGE (m:Meta {id: 'clock'}) SET m.now = $now", {"now": NOW})  # the demo's "today"
     checks = assumptions.evaluate(tenant, now=NOW)
