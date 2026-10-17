@@ -68,3 +68,12 @@ export function Stat({ value, label, note }: { value: ReactNode; label: string; 
     </div>
   );
 }
+
+const REDACTED: Record<string, string> = { NAME: "name", PHONE: "phone", EMAIL: "email", CARD: "card", HANDLE: "handle", WITHHELD: "text withheld" };
+
+/** Ticket text with removed personal details shown as small grey tags instead of [NAME]-style codes. */
+export function Clean({ text }: { text: string }) {
+  return <>{text.split(/\[(NAME|PHONE|EMAIL|CARD|HANDLE|WITHHELD)\]/).map((part, i) =>
+    i % 2 ? <span key={i} title="Removed before it reached Sinew; fetched live only for roles that may see it"
+      className="mx-0.5 rounded bg-stone-100 px-1 text-[11px] text-stone-500">{REDACTED[part]} removed</span> : part)}</>;
+}

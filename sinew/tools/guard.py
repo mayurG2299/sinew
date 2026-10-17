@@ -135,3 +135,31 @@ def visible_tickets(v: Viewer, limit: int) -> list[list]:
     else:
         return []
     return g.ro_query(q, {"u": v.user_id, "n": limit}).result_set
+
+
+def inbox_context(v: Viewer, customer_ids: list[str], now: int) -> dict[str, dict]:
+    """Per customer in the inbox: the display name (fetched live, only if the role may see names) and what is
+    urgent for them (broken promises, promises due within a day, parcels running late). Two queries for the list.
+    Each customer shown by name leaves an Access record, like opening the trace does."""
+    g = graph(v.tenant)
+    out = {c: {"name": None, "broken_promises": 0, "due_soon": None, "late_parcels": 0} for c in customer_ids}
+    for c, broken, due, late in g.ro_query(
+        "UNWIND $cs AS cid MATCH (c:Customer {id: cid})<-[:OF]-(:Profile)-[:PLACED]->(o:Order) "
+        "OPTIONAL MATCH (o)<-[:CONCERNS]-(pb:Promise {status: 'broken'}) "
+        "OPTIONAL MATCH (o)<-[:CONCERNS]-(po:Promise {status: 'open'}) "
+        "OPTIONAL MATCH (o)-[:SHIPPED_AS]->(s:Shipment) WHERE s.status IN ['in_transit', 'delayed'] AND s.late_hours > 0 "
+        "RETURN cid, count(DISTINCT pb), min(po.due_at), count(DISTINCT s)", {"cs": customer_ids}).result_set:
+        out[c].update(broken_promises=broken, late_parcels=late,
+                      due_soon=due if due is not None and due - now <= 86_400 else None)
+    if "name" in PERSONAL_FIELDS.get(v.role, set()) and customer_ids:
+        store = json.loads((SOURCE_RECORDS / f"{v.tenant}_personal.json").read_text()).get("Profile", {})
+        for c, records in g.ro_query(
+            "UNWIND $cs AS cid MATCH (:Customer {id: cid})<-[:OF]-(:Profile)-[:STORED_AT]->(r:PersonalRef) "
+            "RETURN cid, collect(r.record)", {"cs": customer_ids}).result_set:
+            out[c]["name"] = next((store[r]["name"] for r in records if store.get(r, {}).get("name")), None)
+        g.query(
+            "MATCH (u:User {id: $u}) UNWIND $cs AS cid MATCH (c:Customer {id: cid}) "
+            "CREATE (a:Access {id: $id + '-' + cid, at: $at, tool: 'inbox', purpose: 'support'})-[:BY]->(u), (a)-[:OF]->(c)",
+            {"u": v.user_id, "cs": [c for c in customer_ids if out[c]["name"]], "id": f"acc-{uuid.uuid4().hex[:12]}",
+             "at": int(time.time())})
+    return out

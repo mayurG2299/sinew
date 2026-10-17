@@ -15,8 +15,9 @@ const ACTION_LABEL: Record<string, (a: any) => string> = {
   notify_owner: (a) => `Notify the owner of ${a.decision_id}: “${a.message}”`,
 };
 
-export function AgentPanel({ agent, task, asUser, label, onDone }:
-  { agent: "support" | "pattern"; task: string; asUser: string; label: string; onDone?: () => void }) {
+export function AgentPanel({ agent, task, asUser, label, onDone,
+  note = "Every fact the AI states is checked against the company's data before you see it." }:
+  { agent: "support" | "pattern"; task: string; asUser: string; label: string; onDone?: () => void; note?: string }) {
   const [run, setRun] = useState<Run | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -42,8 +43,7 @@ export function AgentPanel({ agent, task, asUser, label, onDone }:
           {busy ? "Working…" : label}
         </button>
         <span className="text-xs text-stone-500">
-          {busy ? "The AI picks graph tools step by step; the free model can take 20–60 s." :
-            "The AI chooses which graph tools to call. Every fact it states is checked against what the tools returned."}
+          {busy ? "Working… the free AI model can take up to a minute." : note}
         </span>
       </div>
       {error && <p className="mt-3 text-sm text-rose-700">{error}</p>}

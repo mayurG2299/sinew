@@ -127,7 +127,7 @@ def warehouse_upserted(c: Ctx, p: dict):
 def profile_upserted(c: Ctx, p: dict):
     upsert(c, "Profile", p["profile_id"], {
         "channel": p["channel"], "region": p["region"], "tier": p.get("tier", "standard"),
-        "since": p.get("since", 0),
+        **({"since": p["since"]} if p.get("since") else {}),  # a helpdesk profile may not know it; never 0
     })
     link(c, "Profile", p["profile_id"], "IN", "Region", p["region"])
     for kind, digest in c.identifiers:

@@ -79,7 +79,13 @@ def inbox(as_user: str, tenant: str = "northwind", limit: int = 40):
     out = [{"ticket": tid, "at": at, "issue": issue, "status": status, "summary": summary, "customer": cust,
             "region": region, "queue": queue}
            for tid, at, issue, status, summary, cust, region, queue in guard.visible_tickets(v, limit)]
-    return {"tickets": out, "now": trace.clock(tenant), "can_see_customers": v.role in guard.SUPPORT_ROLES}
+    now = trace.clock(tenant)
+    context = guard.inbox_context(v, sorted({t["customer"] for t in out}), now)
+    for t in out:
+        t.update(context[t["customer"]])
+    scope = {"support_head": "all regions", "contractor": "your queue " + ", ".join(v.queues)}.get(
+        v.role, "your team's regions: " + ", ".join(v.regions))
+    return {"tickets": out, "now": now, "scope": scope, "can_see_customers": v.role in guard.SUPPORT_ROLES}
 
 
 @app.get("/api/trace")

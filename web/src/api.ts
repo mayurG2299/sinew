@@ -36,7 +36,7 @@ const post = (path: string, body: object) =>
 
 export const api = {
   staff: () => call<Staff[]>(`/api/staff?${q({})}`),
-  inbox: (as_user: string) => call<{ tickets: any[]; now: number; can_see_customers: boolean }>(`/api/inbox?${q({ as_user })}`),
+  inbox: (as_user: string) => call<{ tickets: any[]; now: number; scope: string; can_see_customers: boolean }>(`/api/inbox?${q({ as_user })}`),
   trace: (ref: string, as_user: string) => call<any>(`/api/trace?${q({ ref, as_user })}`),
   impact: () => call<any>(`/api/impact?${q({})}`),
   promises: (as_user: string) => call<any>(`/api/promises?${q({ as_user })}`),
@@ -67,3 +67,19 @@ export function day(at: number): string {
 
 export const money = (n: number | null | undefined) => (n == null ? "—" : `$${n.toFixed(2)}`);
 export const pct = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n * 100)}%`);
+
+/** Plain words for the ids people never type: hub-w2 → Hub W2, courier-y → Courier Y, fest40 → FEST40. */
+export function place(id: string | null | undefined): string {
+  if (!id) return "—";
+  const parts = id.split("-");
+  if (parts.length === 1) return id.toUpperCase();
+  return parts.map((p, i) => (/\d/.test(p) || p.length <= 2 ? p.toUpperCase() : i === 0 ? p[0].toUpperCase() + p.slice(1) : p)).join(" ");
+}
+
+/** Order numbers the way a store shows them: o-4559 → #4559. */
+export const orderNo = (id: string | null | undefined) => (id ? `#${id.replace(/^o-/, "")}` : "—");
+
+export const ISSUE: Record<string, string> = {
+  late_delivery: "Late delivery", damaged: "Damaged", refund_status: "Refund status", wrong_item: "Wrong item",
+  product_issue: "Product issue", other: "Other",
+};
