@@ -13,7 +13,7 @@ const show = (metric: string, v: number | null) => (v == null ? "no data yet" : 
 const OP: Record<string, string> = { ">=": "at least", "<=": "at most", ">": "over", "<": "under" };
 const date = (at: number) => day(at).split(",")[0];
 
-export function Impact({ asUser }: { asUser: string }) {
+export function Impact({ asUser, embedded = false }: { asUser: string; embedded?: boolean }) {
   const name = useName();
   const [v, setV] = useState<any>(null);
   const load = () => api.impact().then(setV);
@@ -52,15 +52,15 @@ export function Impact({ asUser }: { asUser: string }) {
     );
 
   return (
-    <div className="h-full overflow-y-auto bg-stone-50 p-4 lg:p-6">
+    <div className={embedded ? "" : "h-full overflow-y-auto bg-stone-50 p-4 lg:p-6"}>
       <div className="w-full max-w-[1200px] space-y-4">
-        <div>
+        <div className={embedded ? "hidden" : ""}>
           <h1 className="text-xl font-semibold text-stone-900">Decision impact</h1>
           <p className="text-sm text-stone-600">Why complaints went up this week, which company decision is behind it, and what to do before it gets worse.</p>
         </div>
 
         {/* The answer first: one paragraph, the numbers that matter, and the actions. */}
-        <div className="rounded-xl border border-rose-200 bg-white p-5">
+        <div className={embedded ? "hidden" : "rounded-xl border border-rose-200 bg-white p-5"}>
           <h2 className="text-lg font-semibold text-stone-900">
             {cluster.tickets} {issue} complaints this week all went through {root}
             {broken && <>, where a decision's assumption no longer holds</>}
@@ -169,11 +169,11 @@ export function Impact({ asUser }: { asUser: string }) {
             : <p className="text-sm text-stone-600">Nothing planned uses a struggling hub. ({v.prelaunch.reason})</p>}
         </Section>
 
-        <Section title="Ask the AI to investigate" hint="it walks the same chain and drafts the actions for you">
+        {!embedded && <Section title="Ask the AI to investigate" hint="it walks the same chain and drafts the actions for you">
           <AgentPanel agent="pattern" asUser={asUser} label="Investigate this week's complaints"
             task="Why are complaints up this week, and what should we do?" onDone={load}
             note="Every fact the AI states is checked against the company's data. Nothing is sent until you confirm." />
-        </Section>
+        </Section>}
 
         <Section title="How Sinew knows this" hint="methods, timings and the graph" open={false}>
           <div className="space-y-2 text-sm text-stone-700">
@@ -237,7 +237,7 @@ function Step({ n, title, tone, children }: { n: number; title: string; tone?: "
 }
 
 /** The warning, with assumptions that measure the same thing said once. */
-function Prelaunch({ w, asUser, owner, name }: { w: any; asUser: string; owner?: string; name: (id?: string | null) => string }) {
+export function Prelaunch({ w, asUser, owner, name }: { w: any; asUser: string; owner?: string; name: (id?: string | null) => string }) {
   const groups: Record<string, { value: number; statements: string[] }> = {};
   for (const a of w.broken_assumptions) (groups[a.metric] ??= { value: a.value, statements: [] }).statements.push(a.statement);
   const hub = place(w.hub);

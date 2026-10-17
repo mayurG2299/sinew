@@ -34,7 +34,15 @@ const q = (o: Record<string, string>) => new URLSearchParams({ tenant: TENANT, .
 const post = (path: string, body: object) =>
   call<any>(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tenant: TENANT, ...body }) });
 
+export type Notice = {
+  id: string; tone: "urgent" | "warn"; title: string; detail: string; ask: string;
+  agent: "support" | "pattern" | null; task: string | null; view: { kind: string; ticket?: string };
+};
+export type Company = { tenant: string; company: string; people: Staff[] };
+
 export const api = {
+  people: () => call<Company[]>(`/api/people`),
+  briefing: (as_user: string) => call<{ notices: Notice[] }>(`/api/briefing?${q({ as_user })}`),
   staff: () => call<Staff[]>(`/api/staff?${q({})}`),
   inbox: (as_user: string) => call<{ tickets: any[]; now: number; scope: string; can_see_customers: boolean }>(`/api/inbox?${q({ as_user })}`),
   trace: (ref: string, as_user: string) => call<any>(`/api/trace?${q({ ref, as_user })}`),

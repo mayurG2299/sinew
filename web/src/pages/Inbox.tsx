@@ -94,7 +94,7 @@ export function Inbox({ asUser }: { asUser: string }) {
 const sinceMonth = (at: number) => new Date(at * 1000).toLocaleString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
-function CustomerView({ ticket, asUser }: { ticket: string; asUser: string }) {
+export function CustomerView({ ticket, asUser, embedded = false }: { ticket: string; asUser: string; embedded?: boolean }) {
   const name = useName();
   const [v, setV] = useState<any>(null);
   const load = () => api.trace(ticket, asUser).then(setV);
@@ -135,7 +135,7 @@ function CustomerView({ ticket, asUser }: { ticket: string; asUser: string }) {
 
       <Section title="What needs doing" hint="most urgent first">
         <ToDo loops={loops} now={now} ticket={ticket} />
-        <div className="mt-4 border-t border-stone-100 pt-4">
+        <div className={embedded ? "hidden" : "mt-4 border-t border-stone-100 pt-4"}>
           <AgentPanel agent="support" asUser={asUser} label="Draft a reply and next step"
             task={`Ticket ${ticket}: help me handle this customer.`} onDone={load}
             note="AI drafts the reply and suggests actions. Refunds and promises only happen after you confirm." />

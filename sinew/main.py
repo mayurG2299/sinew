@@ -70,6 +70,19 @@ def staff(tenant: str = "northwind"):
             for u, role, limit, team, regions in rows]
 
 
+@app.get("/api/people")
+def people():
+    """Everyone who can sign in to the demo, by company. A person belongs to exactly one company."""
+    return [{"tenant": t, "company": name, "people": staff(t)} for t, name in
+            (("northwind", "Northwind Goods"), ("larkspur", "Larkspur Home")) if t in config.TENANTS]
+
+
+@app.get("/api/briefing")
+def briefing_view(as_user: str, tenant: str = "northwind"):
+    from sinew.briefing import briefing
+    return briefing(_tenant(tenant), as_user)
+
+
 @app.get("/api/inbox")
 def inbox(as_user: str, tenant: str = "northwind", limit: int = 40):
     g = graph(_tenant(tenant))

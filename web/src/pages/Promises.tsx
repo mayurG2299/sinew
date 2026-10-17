@@ -24,7 +24,7 @@ function Row({ p, asUser, onConfirm }: { p: any; asUser: string; onConfirm: (id:
   );
 }
 
-export function Promises({ asUser }: { asUser: string }) {
+export function Promises({ asUser, embedded = false }: { asUser: string; embedded?: boolean }) {
   const [v, setV] = useState<any>(null);
   const load = () => api.promises(asUser).then(setV);
   useEffect(() => { setV(null); load(); }, [asUser]);
@@ -48,9 +48,9 @@ export function Promises({ asUser }: { asUser: string }) {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-stone-50 p-4 lg:p-6">
+    <div className={embedded ? "" : "h-full overflow-y-auto bg-stone-50 p-4 lg:p-6"}>
       <div className="w-full max-w-[1100px] space-y-4">
-        <div>
+        <div className={embedded ? "hidden" : ""}>
           <h1 className="text-xl font-semibold text-stone-900">Promises</h1>
           <p className="text-sm text-stone-600">
             {v.scope === "mine" ? "What you promised customers." : "What your team promised customers."} A promise is marked kept by itself when the refund or delivery actually happens.
