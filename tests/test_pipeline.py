@@ -9,7 +9,7 @@ from sinew.db import client
 from sinew.engine import pipeline, signing
 from sinew.main import app
 
-T = "store2"
+T = "sandbox"
 NAME, EMAIL, PHONE, ADDRESS = "Priya Sharma", "Priya.S@example.com", "+91 98200 12345", "12 Hill Road, Mumbai"
 
 

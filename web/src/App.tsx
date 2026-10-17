@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, type Staff } from "./api";
+import { api, setTenant, TENANTS, type Staff } from "./api";
 import { Impact } from "./pages/Impact";
 import { Inbox } from "./pages/Inbox";
 import { Privacy } from "./pages/Privacy";
@@ -25,6 +25,10 @@ function fromHash(): Page {
 }
 
 export default function App() {
+  const [tenant, setTenantState] = useState(() => {
+    const q = new URLSearchParams(window.location.search).get("company");  // ?company=larkspur opens that company
+    return TENANTS.some((t) => t.id === q) ? q! : "northwind";
+  });
   const [staff, setStaff] = useState<Staff[]>([]);
   const [asUser, setAsUser] = useState("u-agent-w1");
   const [page, setPage] = useState<Page>(fromHash());
@@ -33,7 +37,15 @@ export default function App() {
   const [note, setNote] = useState("");
   const [key, setKey] = useState(0);
 
-  useEffect(() => { api.staff().then(setStaff); }, []);
+  useEffect(() => {
+    setTenant(tenant);
+    api.staff().then((list) => {
+      setStaff(list);
+      // keep the person if they belong to this company, else start as its first support agent
+      if (!list.some((s) => s.id === asUser)) setAsUser((list.find((s) => s.role === "agent") ?? list[0]).id);
+      setKey((k) => k + 1);
+    });
+  }, [tenant]);
   useEffect(() => {
     const on = () => { setPage(fromHash()); setHash(window.location.hash); };
     window.addEventListener("hashchange", on);
@@ -53,7 +65,15 @@ export default function App() {
     <nav className="flex h-full flex-col gap-5 overflow-y-auto bg-white p-4">
       <div>
         <p className="text-lg font-semibold tracking-tight text-stone-900">Sinew</p>
-        <p className="text-xs text-stone-500">company brain · Northwind Goods (demo data)</p>
+        <p className="text-xs text-stone-500">company brain · made-up demo data</p>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-stone-500">Company</label>
+        <select value={tenant} onChange={(e) => setTenantState(e.target.value)}
+          className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1.5 text-sm">
+          {TENANTS.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+        <p className="mt-1 text-[11px] leading-snug text-stone-500">Its own graph; data arrives as {TENANTS.find((t) => t.id === tenant)?.note}. Same engine, same tools.</p>
       </div>
       <div>
         <label className="text-xs font-medium text-stone-500">Signed in as</label>
@@ -99,7 +119,7 @@ export default function App() {
         <button onClick={() => setMenuOpen(true)} className="m-2 self-start rounded-md border border-stone-300 bg-white px-3 py-1 text-sm lg:hidden">
           ☰ {PAGES.find((p) => p.id === page)?.label} · {me?.name}
         </button>
-        <div className="min-h-0 flex-1" key={`${hash.startsWith("#inbox/") ? hash : page}-${asUser}-${key}`}>
+        <div className="min-h-0 flex-1" key={`${tenant}-${hash.startsWith("#inbox/") ? hash : page}-${asUser}-${key}`}>
           {page === "inbox" && <Inbox asUser={asUser} />}
           {page === "impact" && <Impact asUser={asUser} />}
           {page === "promises" && <Promises asUser={asUser} />}

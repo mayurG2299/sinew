@@ -5,7 +5,7 @@ import pytest
 from sinew.db import client
 from sinew.tools import impact, trace
 
-T = "store2"
+T = "sandbox"
 
 
 @pytest.fixture(scope="module", autouse=True)

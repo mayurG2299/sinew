@@ -110,8 +110,11 @@ def impact_view(tenant: str = "northwind", days: int = 7):
     clusters = impact.cluster_incidents(tenant, days).as_dict()
     root = clusters["data"]["clusters"][0]["root_hub"] if clusters["outcome"] == "answered_path" else None
     decisions = impact.trace_decisions(tenant, root).as_dict() if root else None
-    broken = next((d["decision"] for d in (decisions or {}).get("data", {}).get("decisions", [])
-                   if any(a["status"] == "broken" and a.get("linked") for a in d["assumptions"])), None)
+    # The decision whose assumption broke; a link to another decision is shown only when the data has one.
+    candidates = [d for d in (decisions or {}).get("data", {}).get("decisions", [])
+                  if any(a["status"] == "broken" for a in d["assumptions"])]
+    candidates.sort(key=lambda d: not any(a.get("linked") for a in d["assumptions"]))
+    broken = candidates[0]["decision"] if candidates else None
     return {"now": trace.clock(tenant), "clusters": clusters, "decisions": decisions,
             "impact": impact.decision_impact(tenant, broken).as_dict() if broken else None,
             "prelaunch": impact.prelaunch_check(tenant).as_dict(),
@@ -205,10 +208,18 @@ def demo_reset(tenant: str = "northwind"):
 
 
 @app.post("/api/demo/live-scan")
-def demo_live_scan(tenant: str = "northwind", shipment: str = "sh-o-4500", hub: str = "hub-w2",
-                   status: str = "delayed", late_hours: int = 48):
-    """Send one new courier scan through the SDK, as the courier's webhook would, to show freshness."""
+def demo_live_scan(tenant: str = "northwind", shipment: str | None = None, status: str = "delayed",
+                   late_hours: int = 48):
+    """Send one new courier scan through the SDK, as the courier's webhook would, to show freshness.
+    Uses a real parcel of this company that is still in transit (the most recent one), never a made-up id."""
     _tenant(tenant)
+    g = graph(tenant)
+    rows = g.ro_query(
+        "MATCH (s:Shipment) WHERE s.status IN ['in_transit', 'delayed'] AND ($s IS NULL OR s.id = $s) "
+        "RETURN s.id, s.last_hub ORDER BY s.last_scan_at DESC LIMIT 1", {"s": shipment}).result_set
+    if not rows:
+        raise HTTPException(404, "no parcel in transit with that id")
+    shipment, hub = rows[0]
     now = trace.clock(tenant) + 60
     graph(tenant).query("MATCH (m:Meta {id: 'clock'}) SET m.now = $n", {"n": now})
     event = {"event_id": f"live-{now}", "type": "scan.recorded", "source": "courier", "occurred_at": now,

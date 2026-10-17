@@ -1,0 +1,185 @@
+{
+ "teams": [
+  {
+   "team_id": "team-care-east",
+   "name": "Care East",
+   "covers_regions": [
+    "east"
+   ],
+   "queues": [
+    "q-east"
+   ]
+  },
+  {
+   "team_id": "team-care-central",
+   "name": "Care Central",
+   "covers_regions": [
+    "central"
+   ],
+   "queues": [
+    "q-central"
+   ]
+  },
+  {
+   "team_id": "team-ops",
+   "name": "Operations",
+   "covers_regions": [
+    "east",
+    "central"
+   ],
+   "queues": []
+  }
+ ],
+ "staff": [
+  {
+   "user_id": "u-care-lead",
+   "team_id": "team-care-east",
+   "role": "team_lead",
+   "refund_limit": 400,
+   "reports_to": "u-ops-head",
+   "display_name": "Imogen Hale"
+  },
+  {
+   "user_id": "u-care-e1",
+   "team_id": "team-care-east",
+   "role": "agent",
+   "refund_limit": 80,
+   "reports_to": "u-care-lead",
+   "display_name": "Felix Moreau"
+  },
+  {
+   "user_id": "u-care-c1",
+   "team_id": "team-care-central",
+   "role": "agent",
+   "refund_limit": 80,
+   "reports_to": "u-ops-head",
+   "display_name": "Asha Rao"
+  },
+  {
+   "user_id": "u-ops-head",
+   "team_id": "team-ops",
+   "role": "support_head",
+   "refund_limit": 1500,
+   "display_name": "Mateo Silva"
+  },
+  {
+   "user_id": "u-ops-logistics",
+   "team_id": "team-ops",
+   "role": "logistics_manager",
+   "refund_limit": 0,
+   "reports_to": "u-ops-head",
+   "display_name": "Hannah Berg"
+  }
+ ],
+ "couriers": [
+  "courier-p",
+  "courier-q"
+ ],
+ "hubs": [
+  {
+   "hub_id": "hub-e1",
+   "region": "east",
+   "courier_id": "courier-p",
+   "capacity": 12
+  },
+  {
+   "hub_id": "hub-e2",
+   "region": "east",
+   "courier_id": "courier-q",
+   "capacity": 10
+  },
+  {
+   "hub_id": "hub-c1",
+   "region": "central",
+   "courier_id": "courier-p",
+   "capacity": 12
+  }
+ ],
+ "routes": [
+  [
+   "hub-e1",
+   "hub-e2",
+   8
+  ],
+  [
+   "hub-e2",
+   "hub-e1",
+   8
+  ],
+  [
+   "hub-e1",
+   "hub-c1",
+   20
+  ],
+  [
+   "hub-c1",
+   "hub-e1",
+   20
+  ]
+ ],
+ "catalogue": [
+  {
+   "sku": "lamp-arc",
+   "title": "Arc Floor Lamp",
+   "category": "lighting"
+  },
+  {
+   "sku": "lamp-desk",
+   "title": "Desk Lamp Mini",
+   "category": "lighting"
+  },
+  {
+   "sku": "rug-wool",
+   "title": "Wool Rug 160",
+   "category": "textiles"
+  },
+  {
+   "sku": "throw-linen",
+   "title": "Linen Throw",
+   "category": "textiles"
+  },
+  {
+   "sku": "vase-stone",
+   "title": "Stone Vase",
+   "category": "decor"
+  },
+  {
+   "sku": "mirror-round",
+   "title": "Round Mirror",
+   "category": "decor"
+  },
+  {
+   "sku": "chair-oak",
+   "title": "Oak Side Chair",
+   "category": "furniture"
+  },
+  {
+   "sku": "shelf-wall",
+   "title": "Wall Shelf",
+   "category": "furniture"
+  }
+ ],
+ "decisions": [
+  {
+   "decision_id": "dec-courier-q",
+   "title": "Move east deliveries to Courier Q",
+   "made_at": "2026-09-07T12:00:00Z",
+   "owner": "u-ops-logistics",
+   "chose_kind": "Courier",
+   "chose_id": "courier-q",
+   "region": "east",
+   "assumptions": [
+    {
+     "assumption_id": "as-courier-q-ontime",
+     "statement": "Courier Q delivers 92% on time through Hub E2",
+     "metric": "courier_on_time_rate",
+     "op": ">=",
+     "threshold": 0.92,
+     "window_days": 7,
+     "scope_hub": "hub-e2",
+     "scope_courier": "courier-q"
+    }
+   ]
+  }
+ ]
+}

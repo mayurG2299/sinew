@@ -4,7 +4,7 @@ from sinew import schema
 from sinew.db import client
 from sinew.engine import pipeline, snapshot
 
-T = "store2"
+T = "sandbox"
 
 
 @pytest.fixture(autouse=True)

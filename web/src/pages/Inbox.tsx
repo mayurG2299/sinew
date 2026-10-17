@@ -172,7 +172,7 @@ function TimelineItem({ i }: { i: any }) {
   let body;
   switch (i.kind) {
     case "order":
-      body = <>Order <b className="font-mono">{i.id}</b> placed · {money(i.total)}{i.coupon && <> · coupon <Chip tone="amber">{i.coupon}</Chip></>} · {i.lines.map((l: any) => `${l.title} (batch ${l.batch})`).join(", ")}</>;
+      body = <>Order <b className="font-mono">{i.id}</b> placed · {money(i.total)}{i.coupon && <> · coupon <Chip tone="amber">{i.coupon}</Chip></>} · {i.lines.map((l: any) => l.batch ? `${l.title} (batch ${l.batch})` : l.title).join(", ")}</>;
       break;
     case "payment":
       body = <>Paid {money(i.amount)} by {i.method} for {i.order}</>;

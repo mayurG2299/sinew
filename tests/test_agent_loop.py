@@ -41,7 +41,7 @@ class Scripted:
 
 
 def run(llm, agent="support", user="u-agent-w1", task="Ticket t-90500: parcel late"):
-    return asyncio.run(loop.run_agent("store2", user, agent, task, llm=llm))
+    return asyncio.run(loop.run_agent("sandbox", user, agent, task, llm=llm))
 
 
 def test_tools_run_and_a_checked_answer_is_kept():

@@ -17,7 +17,12 @@ export type Run = {
   pending_actions: { name: string; args: any }[]; ms: number; model_ms: number[];
 };
 
-const TENANT = "northwind";
+export const TENANTS = [
+  { id: "northwind", name: "Northwind Goods", note: "own database shape" },
+  { id: "larkspur", name: "Larkspur Home", note: "Shopify-like + helpdesk + courier feed" },
+];
+let TENANT = "northwind";
+export const setTenant = (t: string) => { TENANT = t; };
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(path, init);

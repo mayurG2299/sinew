@@ -6,12 +6,12 @@ from fastapi.testclient import TestClient
 from sinew import config
 from sinew.main import app
 
-T = "store2"
+T = "sandbox"
 
 
 @pytest.fixture(scope="module")
 def api(northwind_copy, monkeypatch_module):
-    monkeypatch_module.setattr(config, "TENANTS", ("northwind", "store2"))
+    monkeypatch_module.setattr(config, "TENANTS", (*config.TENANTS,))
     return TestClient(app)
 
 
@@ -105,6 +105,7 @@ def test_live_scan_and_reset(api, tmp_path):
     before = get(api, "/api/trace", ref="t-90500", as_user="u-agent-w1")
     r = post(api, "/api/demo/live-scan", None, shipment="sh-o-4500")
     assert r["accepted"] == 1 and {"signal": "late_scan", "shipment": "sh-o-4500", "hub": "hub-w2"} in r["signals"]
+    assert api.post("/api/demo/live-scan", params={"tenant": T, "shipment": "sh-nope"}).status_code == 404
     after = get(api, "/api/trace", ref="t-90500", as_user="u-agent-w1")
     assert after["now"] > before["now"]
     assert sum(1 for i in after["trace"]["data"]["timeline"] if i["kind"] == "scan") == \

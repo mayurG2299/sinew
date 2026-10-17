@@ -8,7 +8,7 @@ from sinew.db import client
 from sinew.mcp_server import build_server
 from sinew.tools import actions, trace
 
-T = "store2"
+T = "sandbox"
 
 
 @pytest.fixture(scope="module", autouse=True)

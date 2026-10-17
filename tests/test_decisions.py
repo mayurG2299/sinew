@@ -4,7 +4,7 @@ from sinew import schema
 from sinew.db import client
 from sinew.engine import assumptions, pipeline, promises
 
-T = "store2"
+T = "sandbox"
 DAY = 86_400
 
 

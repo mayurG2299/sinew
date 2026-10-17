@@ -118,6 +118,7 @@ def decision_impact(tenant: str, decision_id: str) -> Answer:
         "CALL algo.pageRank('Decision', 'BUILDS_ON') YIELD node, score RETURN node.id, score ORDER BY score DESC"
     ).result_set
     rank = {d: i + 1 for i, (d, _) in enumerate(keystone)}
+    total_decisions = g.ro_query("MATCH (d:Decision) RETURN count(d)").result_set[0][0]
     hubs = [r[0] for r in g.ro_query("MATCH (:Decision {id: $d})-[:AFFECTS]->(h:Hub) RETURN h.id",
                                      {"d": decision_id}).result_set]
     at_risk = g.ro_query(
@@ -132,7 +133,8 @@ def decision_impact(tenant: str, decision_id: str) -> Answer:
         "OPTIONAL MATCH (p)-[:MADE_IN]->(t:Ticket) "
         "RETURN p.id, p.kind, p.due_at, o.id, t.id ORDER BY p.due_at", {"hubs": hubs}).result_set
     data = {
-        "decision": decision_id, "keystone_rank": rank.get(decision_id), "decisions_ranked": len(rank),
+        # PageRank returns nothing when no decision builds on another: then there is no keystone ranking.
+        "decision": decision_id, "keystone_rank": rank.get(decision_id), "decisions_ranked": total_decisions,
         "dependent_decisions": [{"decision": d, "title": t, "hops": n} for d, t, n in dependents],
         "hubs": hubs,
         "parcels_in_transit": sum(len(r[3]) for r in at_risk),

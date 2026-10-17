@@ -21,15 +21,18 @@ export function Impact({ asUser }: { asUser: string }) {
 
   const cluster = v.clusters.data?.clusters?.[0];
   const decisions = v.decisions?.data?.decisions ?? [];
-  const broken = decisions.find((d: any) => d.assumptions.some((a: any) => a.status === "broken" && a.linked));
-  const assumption = broken?.assumptions.find((a: any) => a.status === "broken" && a.linked);
+  const hasBroken = (d: any) => d.assumptions.some((a: any) => a.status === "broken");
+  const broken = decisions.find((d: any) => d.assumptions.some((a: any) => a.status === "broken" && a.linked))
+    ?? decisions.find(hasBroken);
+  const assumption = broken?.assumptions.find((a: any) => a.status === "broken" && a.linked)
+    ?? broken?.assumptions.find((a: any) => a.status === "broken");
   const linked = decisions.find((d: any) => d.decision === assumption?.linked);
   const imp = v.impact?.data;
   const warning = v.prelaunch.data?.warnings?.[0];
   const graphPaths = [
     ...(cluster ? cluster.ticket_ids.slice(0, 8).map((t: string) => [t, cluster.root_hub]) : []),
     ...(broken ? [[cluster?.root_hub, broken.decision, assumption.assumption]] : []),
-    ...(linked ? [[linked.decision, assumption.assumption], [linked.decision, cluster?.root_hub]] : []),
+    ...(linked && assumption ? [[linked.decision, assumption.assumption], [linked.decision, cluster?.root_hub]] : []),
     ...(imp ? imp.dependent_decisions.map((d: any) => [d.decision, broken.decision]) : []),
     ...(warning ? [[warning.campaign, warning.decision, warning.hub]] : []),
   ];
@@ -67,7 +70,7 @@ export function Impact({ asUser }: { asUser: string }) {
             </> : <p>{v.decisions?.reason ?? "No recorded decision affects this hub."}</p>}
           </Step>
 
-          <Step n={4} title="Linked decision" outcome={linked ? "answered_path" : "not_in_graph"}>
+          <Step n={4} title="Linked decision" outcome={linked ? "answered_path" : broken ? "not_in_graph" : "not_in_graph"}>
             {linked ? <>
               <p className="font-medium">{linked.title}</p>
               <p className="text-xs text-stone-500"><span className="font-mono">{linked.decision}</span> · owner {name(linked.owner)} · made {day(linked.made_at).split(",")[0]}</p>
@@ -83,7 +86,8 @@ export function Impact({ asUser }: { asUser: string }) {
               <Stat value={imp.parcels_in_transit} label="parcels in transit" note={`through ${imp.hubs.join(", ")}`} />
               <Stat value={imp.customers_at_risk.length} label="customers waiting" note="ranked by order value below" />
               <Stat value={imp.promises_at_risk.length} label="promises at risk" note="open, on those parcels" />
-              <Stat value={`#${imp.keystone_rank}`} label="keystone rank" note={`PageRank over ${imp.decisions_ranked} decisions`} />
+              <Stat value={imp.keystone_rank ? `#${imp.keystone_rank}` : "—"} label="keystone rank"
+                note={imp.keystone_rank ? `PageRank over ${imp.decisions_ranked} decisions` : "no decision builds on another yet"} />
               <Stat value={imp.dependent_decisions.length} label="decisions built on it" />
             </div>
             <div className="mt-5 grid gap-6 lg:grid-cols-2">
@@ -98,10 +102,12 @@ export function Impact({ asUser }: { asUser: string }) {
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Promises at risk, soonest first</h3>
+                {imp.promises_at_risk.length === 0 && <p className="mt-1 text-sm text-stone-500">None open on these parcels.</p>}
                 <ul className="mt-1 space-y-1 text-sm">{imp.promises_at_risk.slice(0, 8).map((p: any) => (
                   <li key={p.promise}><span className="font-mono">{p.promise}</span> · {p.kind} on {p.order} {p.ticket && <> (ticket <TicketLink id={p.ticket} />)</>} ·{" "}
                     <Chip tone={p.hours_left < 0 ? "rose" : "amber"}>{p.hours_left < 0 ? `${fmtSpan(-p.hours_left)} overdue` : `${fmtSpan(p.hours_left)} left`}</Chip></li>))}</ul>
                 <h3 className="mt-4 text-sm font-semibold">Decisions built on it</h3>
+                {imp.dependent_decisions.length === 0 && <p className="text-sm text-stone-500">None.</p>}
                 <ul className="text-sm">{imp.dependent_decisions.map((d: any) => <li key={d.decision}>{d.title} <span className="font-mono text-xs text-stone-500">{d.decision}</span></li>)}</ul>
               </div>
             </div>
@@ -120,7 +126,7 @@ export function Impact({ asUser }: { asUser: string }) {
 
         <Section title="Investigate with AI" hint="the agent walks the same chain and prepares actions for you">
           <AgentPanel agent="pattern" asUser={asUser} label="Investigate this week's complaints"
-            task="Why are west-region complaints up this week, and what should we do?" onDone={load} />
+            task="Why are complaints up this week, and what should we do?" onDone={load} />
         </Section>
 
         <Section title="The chain as a graph" open={false}>

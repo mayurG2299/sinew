@@ -6,7 +6,7 @@ from sinew.db import client
 
 @pytest.fixture
 def tenant():
-    name = "store2"  # a real tenant name; wiped before and after
+    name = "sandbox"  # a real tenant name; wiped before and after
     if name in client().list_graphs():
         client().select_graph(name).delete()
     yield name

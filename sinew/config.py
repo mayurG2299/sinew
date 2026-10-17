@@ -17,4 +17,4 @@ FALKORDB_USERNAME = (env("FALKORDB_USERNAME") or None) if _cloud else None
 FALKORDB_PASSWORD = (env("FALKORDB_PASSWORD") or None) if _cloud else None
 GEMINI_API_KEY = env("GEMINI_API_KEY")
 
-TENANTS = ("northwind", "store2")
+TENANTS = ("northwind", "larkspur")
