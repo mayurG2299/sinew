@@ -154,3 +154,9 @@ def test_only_the_maker_or_a_lead_can_confirm_a_commitment():
     assert row, "needs a commitment made by u-agent-w2"
     assert actions.confirm_promise("sandbox", "u-agent-w1", row[0][0]).outcome == "not_permitted"
     assert actions.precheck("sandbox", "u-lead-west", "confirm_promise", {"promise_id": row[0][0]}) is None
+
+
+def test_a_long_history_keeps_the_newest_events_for_the_model():
+    timeline = [{"kind": "order", "id": f"o-{i}", "at": i, "pad": "x" * 400} for i in range(100)]
+    text = loop.for_model({"tool": "customer_trace", "data": {"timeline": timeline}, "paths": [["a", "b"]] * 500})
+    assert '"paths"' not in text and "o-99" in text and len(text) <= loop.RESULT_CHARS

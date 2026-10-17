@@ -26,7 +26,19 @@ from sinew.tools import actions, docs
 
 REPLAYS = Path(__file__).resolve().parents[2] / "seed" / "replays"
 MAX_STEPS = 8
-RESULT_CHARS = 6000  # what the model sees of one tool result; the UI gets all of it
+RESULT_CHARS = 16000  # what the model sees of one tool result; the UI gets all of it
+
+
+def for_model(result: dict) -> str:
+    """A tool result as the model sees it: without the graph paths (those are for drawing), and if it is still
+    too long, a timeline newest first, so a cut drops the oldest events, never the order being asked about."""
+    slim = {k: v for k, v in result.items() if k != "paths"}
+    text = json.dumps(slim, default=str)
+    timeline = (slim.get("data") or {}).get("timeline") if isinstance(slim.get("data"), dict) else None
+    if len(text) > RESULT_CHARS and timeline:
+        slim = {**slim, "data": {**slim["data"], "timeline": list(reversed(timeline)), "timeline_order": "newest first"}}
+        text = json.dumps(slim, default=str)
+    return text[:RESULT_CHARS]
 
 
 @dataclass
@@ -115,7 +127,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
                     run.steps.append({"tool": call["name"], "args": call["args"], "outcome": result.get("outcome"),
                                       "ms": round((time.perf_counter() - t0) * 1000, 1),
                                       "tool_ms": result.get("ms")})
-                    replies.append((call["name"], {"result": json.dumps(result, default=str)[:RESULT_CHARS]}))
+                    replies.append((call["name"], {"result": for_model(result)}))
                 llm.add_results(replies)
             # One repair turn: if the answer breaks a rule, say exactly which and let the model rewrite it from
             # the same tool results (no new tools). The rewrite is checked again like any answer.
