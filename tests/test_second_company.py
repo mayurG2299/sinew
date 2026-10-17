@@ -88,5 +88,5 @@ def test_impact_page_shows_a_decision_even_without_a_link(larkspur, monkeypatch)
     from sinew import config
     from sinew.main import app
     monkeypatch.setattr(config, "TENANTS", (*config.TENANTS,))
-    v = TestClient(app).get("/api/impact", params={"tenant": T}).json()
+    v = TestClient(app).get("/api/impact", params={"tenant": T, "as_user": "u-ops-logistics"}).json()
     assert v["impact"]["data"]["decision"] == "dec-courier-q"  # not dropped just because nothing is linked

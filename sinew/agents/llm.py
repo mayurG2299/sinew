@@ -65,6 +65,10 @@ class Gemini:
                     break
         raise LLMUnavailable(str(last_error)[:200])
 
+    def add_user(self, text: str):
+        """A follow-up message from Sinew itself (used once, to ask for a corrected answer)."""
+        self.history.append(types.Content(role="user", parts=[types.Part.from_text(text=text)]))
+
     def add_results(self, results: list[tuple[str, dict]]):
         self.history.append(types.Content(role="user", parts=[
             types.Part.from_function_response(name=name, response=result) for name, result in results]))

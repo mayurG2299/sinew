@@ -151,6 +151,7 @@ function Extras({ run, view, me }: { run: Run | null; view: Notice["view"] | nul
             {run.answer_source === "model" ? "Written by AI from these results, then every name and number was checked against them."
               : run.answer_source === "replay" ? "The AI is unavailable right now, so this is its last checked answer to the same question."
               : "The AI's wording didn't pass the check, so this answer is built straight from the results."}
+            {run.repaired && ` The first draft ${run.repaired}, so Sinew asked for a corrected answer and checked it again.`}
             {" "}{(run.ms / 1000).toFixed(1)} s.
           </p>
         </div>
@@ -171,8 +172,9 @@ function View({ v, me }: { v: Notice["view"] | null; me: Staff }) {
 function PrelaunchView({ me }: { me: Staff }) {
   const name = useName();
   const [v, setV] = useState<any>(null);
-  useEffect(() => { api.impact().then(setV); }, []);
+  useEffect(() => { api.impact(me.id).then(setV).catch(() => setV({ refused: true })); }, []);
   if (!v) return <p className="text-sm text-stone-500">Checking upcoming launches…</p>;
+  if (v.refused) return <p className="text-sm text-stone-600">Your role doesn't have access to operations information.</p>;
   const w = v.prelaunch.data?.warnings?.[0];
   if (!w) return <p className="text-sm text-stone-600">No planned launch uses a struggling hub.</p>;
   const owner = v.decisions?.data?.decisions?.find((d: any) => d.decision === w.decision)?.owner;

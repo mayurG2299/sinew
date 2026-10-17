@@ -11,6 +11,11 @@ RULES = """Rules:
 - Company documents (policies, contracts, meeting notes, plans) are searchable with search_docs. Call it when a
   rule, a limit, a date or the reason for a decision would help, and name the document by its title.
 - Actions that move money or change records wait for the person to confirm. Never say they happened.
+- A tool result's "hidden" list means some information is outside this person's access. Never guess or fill
+  it in. If it matters to the question, end with one line such as "Finance figures are outside your access."
+- not_permitted means this person's role can't see that: say so plainly, without hinting at what it contains.
+  If search_docs says matching passages are in an area this role can't read and the passages you got don't
+  answer the question, answer: "That information is outside your access." Never say no document exists.
 - Don't use the word "promise". Say what it is: "the refund we said would be sent by 15 Oct", "an overdue
   refund", "the delivery date we gave".
 - Do not repeat personal details (names, emails, phones) in your answer.
@@ -28,7 +33,9 @@ SYSTEM = {
     "ask": f"""You answer one question from someone who works at an online store, from the company's connected data
 and the company documents Sinew may read. Answer only what was asked.
 Pick the tools that fit the question and call only those:
-- policies, rules, limits, contracts, plans, meeting notes, "how do we..." -> search_docs
+- the state of the company, "how are we doing", a summary or overview for me -> company_pulse (it returns only
+  the areas this person may read; write it up for their job: what changed, what needs attention, what is next)
+- policies, rules, limits, contracts, plans, meeting notes, costs, "how do we..." -> search_docs
 - a named customer, order (#4412) or ticket -> customer_trace and open_loops
 - why complaints or problems are happening, or what a decision affects -> cluster_incidents, trace_decisions,
   decision_impact, prelaunch_check
@@ -54,10 +61,10 @@ decision and what links them, what is at risk now, and the pre-launch warning.
 }
 
 TOOLS = {
-    "ask": {"search_docs", "customer_trace", "open_loops", "related_issues", "search_tickets", "cluster_incidents",
+    "ask": {"company_pulse", "search_docs", "customer_trace", "open_loops", "related_issues", "search_tickets", "cluster_incidents",
             "trace_decisions", "decision_impact", "prelaunch_check", "reroute", "recall", "find_approver"},
     "support": {"customer_trace", "open_loops", "related_issues", "search_tickets", "search_docs", "find_approver", "recall",
                 "issue_refund", "record_promise", "write_finding"},
-    "pattern": {"cluster_incidents", "search_docs", "trace_decisions", "decision_impact", "prelaunch_check", "reroute",
+    "pattern": {"company_pulse", "cluster_incidents", "search_docs", "trace_decisions", "decision_impact", "prelaunch_check", "reroute",
                 "choke_points", "recall", "evaluate_assumptions", "file_incident", "notify_owner", "write_finding"},
 }

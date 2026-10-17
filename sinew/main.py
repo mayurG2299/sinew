@@ -83,6 +83,12 @@ def home_view(as_user: str, tenant: str = "northwind"):
     return home(_tenant(tenant), as_user)
 
 
+@app.get("/api/pulse")
+def pulse_view(as_user: str, tenant: str = "northwind", days: int = 7):
+    from sinew.tools.pulse import company_pulse
+    return company_pulse(_tenant(tenant), as_user, days).as_dict()
+
+
 @app.get("/api/briefing")
 def briefing_view(as_user: str, tenant: str = "northwind"):
     from sinew.briefing import briefing
@@ -91,6 +97,8 @@ def briefing_view(as_user: str, tenant: str = "northwind"):
 
 @app.get("/api/inbox")
 def inbox(as_user: str, tenant: str = "northwind", limit: int = 40):
+    if (refusal := guard.gate(_tenant(tenant), as_user, "inbox")):
+        raise HTTPException(403, refusal["reason"])
     g = graph(_tenant(tenant))
     v = guard.Viewer.load(tenant, as_user)
     if v is None:
@@ -110,6 +118,8 @@ def inbox(as_user: str, tenant: str = "northwind", limit: int = 40):
 @app.get("/api/trace")
 def customer_view(ref: str, as_user: str, tenant: str = "northwind"):
     _tenant(tenant)
+    if (refusal := guard.gate(tenant, as_user, "customer_trace")):
+        return {"trace": refusal, "open_loops": None, "related": None, "now": trace.clock(tenant), "freshness": []}
     t = trace.customer_trace(tenant, as_user, ref).as_dict()
     loops = trace.open_loops(tenant, as_user, ref).as_dict() if t["outcome"] == "answered_path" else None
     related = trace.related_issues(tenant, as_user, ref).as_dict() if ref.startswith("t-") and loops else None
@@ -119,9 +129,11 @@ def customer_view(ref: str, as_user: str, tenant: str = "northwind"):
 
 
 @app.get("/api/impact")
-def impact_view(tenant: str = "northwind", days: int = 7):
-    """The Decision impact chain, computed by the graph tools alone (no AI needed)."""
+def impact_view(as_user: str, tenant: str = "northwind", days: int = 7):
+    """The Decision impact chain, computed by the graph tools alone (no AI needed). Operations area only."""
     _tenant(tenant)
+    if (refusal := guard.gate(tenant, as_user, "impact")):
+        raise HTTPException(403, refusal["reason"])
     clusters = impact.cluster_incidents(tenant, days).as_dict()
     root = clusters["data"]["clusters"][0]["root_hub"] if clusters["outcome"] == "answered_path" else None
     decisions = impact.trace_decisions(tenant, root).as_dict() if root else None
@@ -198,6 +210,8 @@ def privacy_delete(req: DeleteRequest):
 
 @app.get("/api/promises")
 def promises_board(as_user: str, tenant: str = "northwind"):
+    if (refusal := guard.gate(_tenant(tenant), as_user, "promises")):
+        raise HTTPException(403, refusal["reason"])
     g = graph(_tenant(tenant))
     v = guard.Viewer.load(tenant, as_user)
     if v is None:

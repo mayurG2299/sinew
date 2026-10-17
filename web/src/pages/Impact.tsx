@@ -16,9 +16,10 @@ const date = (at: number) => day(at).split(",")[0];
 export function Impact({ asUser, embedded = false }: { asUser: string; embedded?: boolean }) {
   const name = useName();
   const [v, setV] = useState<any>(null);
-  const load = () => api.impact().then(setV);
+  const load = () => api.impact(asUser).then(setV).catch(() => setV({ refused: true }));
   useEffect(() => { load(); }, []);
   if (!v) return <p className="p-6 text-stone-500">Working out what's behind this week's complaints…</p>;
+  if (v.refused) return <p className="p-4 text-sm text-stone-600">Your role doesn't have access to operations information.</p>;
 
   const cluster = v.clusters.data?.clusters?.[0];
   const decisions = v.decisions?.data?.decisions ?? [];

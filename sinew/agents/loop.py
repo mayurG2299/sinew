@@ -44,6 +44,7 @@ class Run:
     ms: float = 0.0
     model_ms: list[float] = field(default_factory=list)  # time spent waiting for the model, per turn
     sources: list[dict] = field(default_factory=list)  # document passages behind the answer, from the graph
+    repaired: str = ""  # what the first answer got wrong, when one corrected rewrite passed the check
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -114,6 +115,20 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
                                       "tool_ms": result.get("ms")})
                     replies.append((call["name"], {"result": json.dumps(result, default=str)[:RESULT_CHARS]}))
                 llm.add_results(replies)
+            # One repair turn: if the answer breaks a rule, say exactly which and let the model rewrite it from
+            # the same tool results (no new tools). The rewrite is checked again like any answer.
+            if run.answer and run.results and hasattr(llm, "add_user"):
+                ok, why = check.check(run.answer, run.results, task)
+                if not ok:
+                    llm.add_user(f"Your answer failed Sinew's fact check: it {why}. Rewrite the answer using only "
+                                 "names and numbers that appear in the tool results, following every rule. "
+                                 "Do not call any tools.")
+                    try:
+                        fix = await llm.next()
+                        if fix.text and not fix.calls and check.check(fix.text.strip(), run.results, task)[0]:
+                            run.answer, run.repaired = fix.text.strip(), why
+                    except LLMUnavailable:
+                        pass  # keep the first answer; the check below falls back to the rows
     except LLMUnavailable as e:  # e.g. no API key: raised before the session opens
         unavailable = e
     if unavailable is not None:

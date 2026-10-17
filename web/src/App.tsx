@@ -8,7 +8,7 @@ import { StaffContext } from "./staff";
 
 export const ROLE: Record<string, string> = {
   agent: "Support agent", team_lead: "Team lead", support_head: "Head of support", contractor: "Contractor",
-  logistics_manager: "Logistics manager", marketing_manager: "Marketing manager", analyst: "Analyst", ceo: "CEO",
+  logistics_manager: "Logistics manager", marketing_manager: "Brand marketer", cmo: "Chief Marketing Officer", analyst: "Analyst", ceo: "CEO",
 };
 const initials = (name: string) => name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 

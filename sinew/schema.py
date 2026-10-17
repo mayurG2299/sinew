@@ -8,7 +8,7 @@ ID_LABELS = [
     "Customer", "Profile", "Identifier", "PersonalRef",
     "Order", "LineItem", "Product", "Batch", "Supplier", "Warehouse", "Payment", "Refund", "Return",
     "Shipment", "Courier", "Hub", "Scan",
-    "Ticket", "IssueType", "Promise", "Incident", "Doc", "Passage",
+    "Ticket", "IssueType", "Promise", "Incident", "Doc", "Passage", "Area", "CostLine",
     "Campaign", "Coupon",
     "Decision", "Assumption", "Evidence",
     "Finding", "AgentRun", "Access", "Tombstone",

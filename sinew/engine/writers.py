@@ -268,14 +268,37 @@ MENTION_LABEL = (("hub-", "Hub"), ("courier-", "Courier"), ("dec-", "Decision"),
 
 def doc_passage(c: Ctx, p: dict):
     """One passage of a company document, linked to the things it is about (only things that exist)."""
-    upsert(c, "Doc", p["doc_id"], {"title": p["title"], "kind": p["kind"], "audience": p.get("audience", []),
-                                    "written_at": c.occurred_at})
+    upsert(c, "Doc", p["doc_id"], {"title": p["title"], "kind": p["kind"], "written_at": c.occurred_at})
+    c.g.query("MATCH (d:Doc {id: $d})-[r:IN_AREA]->() DELETE r", {"d": p["doc_id"]})  # one area per document
+    link(c, "Doc", p["doc_id"], "IN_AREA", "Area", p["area"])
     upsert(c, "Passage", p["passage_id"], {"heading": p["heading"], "order": p["order"], "text_clean": p["text"]})
     link(c, "Passage", p["passage_id"], "PART_OF", "Doc", p["doc_id"])
     for m in p.get("mentions", []):
         label = next((l for prefix, l in MENTION_LABEL if m.startswith(prefix)), "Campaign")
         c.g.query(f"MATCH (p:Passage {{id: $p}}), (x:{label} {{id: $m}}) MERGE (p)-[:MENTIONS]->(x)",
                   {"p": p["passage_id"], "m": m})
+
+
+# ---------------------------------------------------------------- access and finance
+
+def access_policy(c: Ctx, p: dict):
+    """The areas a role may read. Replaces the role's previous areas, so taking an area away works too."""
+    c.g.query("MERGE (r:Role {id: $r}) WITH r OPTIONAL MATCH (r)-[x:CAN_READ]->() DELETE x", {"r": p["role"]})
+    for area in p["areas"]:
+        link(c, "Role", p["role"], "CAN_READ", "Area", area)
+
+
+COST_SUBJECT = (("courier-", "Courier"),)
+
+
+def cost_recorded(c: Ctx, p: dict):
+    """A cost line lives in the finance area: only roles that can read finance reach it."""
+    upsert(c, "CostLine", p["cost_id"], {"kind": p["kind"], "amount": p["amount"], "currency": p["currency"],
+                                         "per": p.get("per", ""), "period_start": p["period_start"],
+                                         "period_end": p["period_end"]})
+    link(c, "CostLine", p["cost_id"], "IN_AREA", "Area", "finance")
+    label = next((l for prefix, l in COST_SUBJECT if p["subject_id"].startswith(prefix)), "Campaign")
+    link(c, "CostLine", p["cost_id"], "FOR", label, p["subject_id"])
 
 
 # ---------------------------------------------------------------- decisions
@@ -353,6 +376,7 @@ WRITERS = {
     "shipment.created": shipment_created, "scan.recorded": scan_recorded,
     "ticket.created": ticket_created, "ticket.updated": ticket_updated,
     "campaign.upserted": campaign_upserted, "decision.recorded": decision_recorded, "doc.passage": doc_passage,
+    "access.policy": access_policy, "cost.recorded": cost_recorded,
     "promise.proposed": promise_proposed, "promise.confirmed": promise_confirmed,
     "promise.rejected": promise_rejected,
 }

@@ -107,3 +107,32 @@ def test_ratios_may_be_written_as_percentages():
 def test_plain_names_written_in_documents_count():
     results = [{"tool": "search_docs", "outcome": "answered_path", "data": [{"text": "Courier Y runs Hub W2"}]}]
     assert check.check("Courier Y runs Hub W2.", results)[0]
+
+
+def test_numbers_with_thousands_separators_are_one_number():
+    results = [{"tool": "company_pulse", "outcome": "answered_path", "data": {"revenue": 17949.49, "spend": 3500}}]
+    assert check.check("Revenue was $17,949.49 and spend was $3,500.", results)[0]
+    assert not check.check("Revenue was $18,949.49.", results)[0]
+
+
+class Repairable(Scripted):
+    """A model that can take Sinew's correction message."""
+
+    def add_user(self, text):
+        self.seen.append(("correction", text))
+
+
+def test_one_corrected_rewrite_is_checked_and_kept():
+    llm = Repairable([Turn(calls=[{"name": "trace_decisions", "args": {"hub_id": "hub-w2"}}]),
+                      Turn(text="Courier Y broke because of the sale."),
+                      Turn(text="The complaints went through Hub W2.")])
+    r = run(llm, agent="pattern", user="u-lead-west", task="why")
+    assert r.answer_source == "model" and r.answer == "The complaints went through Hub W2."
+    assert "not causes" in r.repaired and any(k == "correction" for k, _ in llm.seen)
+
+
+def test_a_rewrite_that_still_breaks_a_rule_falls_back_to_the_rows():
+    r = run(Repairable([Turn(calls=[{"name": "trace_decisions", "args": {"hub_id": "hub-w2"}}]),
+                        Turn(text="It broke because of the sale."), Turn(text="It broke due to the sale.")]),
+            agent="pattern", user="u-lead-west", task="why")
+    assert r.answer_source == "rows" and "not causes" in r.check_failed

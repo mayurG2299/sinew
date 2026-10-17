@@ -3,7 +3,7 @@ import { api, ago, type Notice, type Staff } from "../api";
 
 type Item = { id: string; label: string; since: number | null; note: string | null; ask: string;
   agent: Notice["agent"]; task: string | null; view: Notice["view"] | null };
-type HomeData = { now: number; counts: { open: number; attention: number; at_risk: number };
+type HomeData = { now: number; open_label: string; counts: { open: number; attention: number; at_risk: number };
   attention: Item[]; at_risk: Item[]; insights: { id: string; text: string; ask: string; agent: Notice["agent"]; task: string | null; view: Notice["view"] }[] };
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; };
@@ -41,7 +41,7 @@ export function Home({ me, open, onAsk }: { me: Staff; open: (n: Notice) => void
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-2">
-          <Count n={d.counts.open} label="open" />
+          <Count n={d.counts.open} label={d.open_label} />
           <Count n={d.counts.attention} label="need your attention" k="attention" />
           <Count n={d.counts.at_risk} label="at risk" k="at_risk" />
         </div>

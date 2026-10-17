@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from sinew.db import graph
 from sinew.engine import derive, identity
 from sinew.engine import assumptions
-from sinew.engine.contract import ASSUMPTION_FIELDS, CONTRACT, LINE_FIELDS, P0, P1, P3, PROMISE_KINDS
+from sinew.engine.contract import AREAS, ASSUMPTION_FIELDS, CONTRACT, COST_KINDS, LINE_FIELDS, P0, P1, P3, PROMISE_KINDS
 from sinew.engine.writers import CHOOSABLE
 from sinew.engine.minimise import keyed_hash, normalise, redact
 from sinew.engine.writers import WRITERS, Ctx
@@ -69,6 +69,17 @@ def _validate(ev: Event) -> dict:
             why = assumptions.check_shape(a)
             if why:  # decision 4: an assumption must be machine-checkable before it can be saved
                 raise Rejected(f"assumption {a['assumption_id']} is not checkable: {why}")
+    if ev.type == "doc.passage" and ev.payload["area"] not in AREAS:
+        raise Rejected(f"area must be one of {sorted(AREAS)}")  # a typo must not create an area nobody reads
+    if ev.type == "access.policy":
+        areas = ev.payload["areas"]
+        if not isinstance(areas, list) or set(areas) - AREAS:
+            raise Rejected(f"areas must be a list drawn from {sorted(AREAS)}")
+    if ev.type == "cost.recorded":
+        if ev.payload["kind"] not in COST_KINDS:
+            raise Rejected(f"cost kind must be one of {sorted(COST_KINDS)}")
+        if not isinstance(ev.payload["amount"], (int, float)) or ev.payload["amount"] < 0:
+            raise Rejected("cost amount must be a number of zero or more")
     if ev.type == "promise.proposed" and ev.payload["kind"] not in PROMISE_KINDS:
         raise Rejected(f"promise kind must be one of {sorted(PROMISE_KINDS)}")
     return spec

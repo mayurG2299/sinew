@@ -12,14 +12,14 @@ import re
 
 ID = re.compile(r"\b(?:o|t|cu|pf|hub|dec|as|sh|rf|pr|inc|u|fd|note|courier|b|sup|wh|q|team)-[a-z0-9][a-z0-9-]*\b"
                 r"|\b(?:fest|winter)\d+\b", re.I)
-NUMBER = re.compile(r"(?<![\w.#-])(\d+(?:\.\d+)?)(%?)")  # "#4412" is an order, checked as a name below
+NUMBER = re.compile(r"(?<![\w.#,-])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(%?)")  # 17,949.49 is one number  # "#4412" is an order, checked as a name below
 # Names as people write them, checked as the ids they stand for: #4412 -> o-4412, Hub W2 -> hub-w2, Courier Y -> courier-y.
 PLAIN = [(re.compile(r"#(\d+)\b"), "o-{}"), (re.compile(r"\bHub ([A-Z]\d+)\b"), "hub-{}"),
          (re.compile(r"\bCourier ([A-Z])\b"), "courier-{}")]
 
 
 def _numbers_in(blob: str) -> set[float]:
-    return {float(n) for n, _ in NUMBER.findall(blob)}
+    return {float(n.replace(",", "")) for n, _ in NUMBER.findall(blob)}
 
 
 def check(answer: str, tool_results: list[dict], question: str = "") -> tuple[bool, str]:
@@ -33,12 +33,15 @@ def check(answer: str, tool_results: list[dict], question: str = "") -> tuple[bo
                 return False, f"names {m.group(0)!r}, which no tool returned"
     known = _numbers_in(blob) | _numbers_in(question)
     for raw, pct in NUMBER.findall(answer):
-        n = float(raw)
+        n = float(raw.replace(",", ""))
         if n in known:
             continue
         if pct and any(abs(n / 100 - k) < 0.006 for k in known):  # 0.7658 -> 77%, a 1.5714 load -> 157%
             continue
-        if any(abs(n - round(k)) < 1e-9 or abs(n - round(k, 1)) < 1e-9 or abs(n - round(k, 2)) < 1e-9 for k in known):
+        if pct and any(abs(n - k) < 1.0 for k in known if k > 1):  # a computed change of 24.8 written as 24% or 25%
+            continue
+        if any(abs(n - round(k)) < 1e-9 or abs(n - round(k, 1)) < 1e-9 or abs(n - round(k, 2)) < 1e-9
+               or abs(n - int(k)) < 1e-9 for k in known):
             continue  # a rounded tool value
         return False, f"states the number {raw}{pct}, which no tool returned"
     if any(r.get("tool") in ("trace_decisions", "decision_impact", "prelaunch_check") for r in tool_results):
@@ -88,6 +91,21 @@ def fallback(tool_results: list[dict]) -> str:
         tool, outcome, d = r.get("tool"), r.get("outcome"), r.get("data") or {}
         if outcome in ("not_in_graph", "unknown_entity", "not_permitted", "needs_approval"):
             out.append(f"{r.get('reason', '').capitalize()}.")
+        elif tool == "company_pulse":
+            s = d.get("support") or {}
+            o = d.get("operations") or {}
+            m = d.get("marketing") or {}
+            f = d.get("finance") or {}
+            if m:
+                out.append(f"Orders this week: {m['orders_this_week']} (last week {m['orders_last_week']}).")
+            if f:
+                out.append(f"Revenue this week: ${f['revenue_this_week']:,.2f} (last week ${f['revenue_last_week']:,.2f}).")
+            if s:
+                out.append(f"Tickets this week: {s['tickets_this_week']} (last week {s['tickets_last_week']}).")
+            if o and o.get("on_time_rate") is not None:
+                out.append(f"On-time delivery: {_pct(o['on_time_rate'])}; {o['parcels_late_now']} parcels late now.")
+            for h in r.get("hidden", []):
+                out.append(h["reason"][0].upper() + h["reason"][1:] + ".")
         elif tool == "search_docs":
             for doc in d[:2]:
                 out.append(f"{doc['title']}, \"{doc['heading']}\": {doc['text']}")

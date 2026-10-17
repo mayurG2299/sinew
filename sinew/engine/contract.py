@@ -86,10 +86,17 @@ CONTRACT: dict[str, dict[str, tuple[str, bool]]] = {
         "due_at": (P2, True), "made_by": (B, True), "amount": (B, False),
     },
     "promise.confirmed": {"promise_id": (B, True), "confirmed_by": (B, True)},
-    # --- company documents the company allows Sinew to read, one event per passage ---
+    # --- company documents the company allows Sinew to read, one event per passage; each in one area ---
     "doc.passage": {
         "doc_id": (B, True), "title": (B, True), "kind": (B, True), "passage_id": (B, True), "heading": (B, True),
-        "order": (B, True), "text": (P3, True), "mentions": (B, False), "audience": (B, False),
+        "order": (B, True), "text": (P3, True), "area": (B, True), "mentions": (B, False),
+    },
+    # --- who may read which area (support, operations, marketing, finance): set by the company's admin ---
+    "access.policy": {"role": (B, True), "areas": (B, True)},
+    # --- finance: cost lines from the finance system, readable only through the finance area ---
+    "cost.recorded": {
+        "cost_id": (B, True), "kind": (B, True), "subject_id": (B, True), "amount": (B, True),
+        "currency": (B, True), "per": (B, False), "period_start": (P2, True), "period_end": (P2, True),
     },
     "promise.rejected": {"promise_id": (B, True), "rejected_by": (B, True)},
 }
@@ -97,5 +104,7 @@ CONTRACT: dict[str, dict[str, tuple[str, bool]]] = {
 ASSUMPTION_FIELDS = {"assumption_id", "statement", "metric", "op", "threshold", "window_days",
                      "scope_hub", "scope_courier"}
 PROMISE_KINDS = {"refund", "delivery"}
+AREAS = {"support", "operations", "marketing", "finance"}  # what a role can be allowed to read
+COST_KINDS = {"courier_per_parcel", "campaign_spend"}
 
 LINE_FIELDS = {"line_id", "sku", "batch_id", "qty", "price"}

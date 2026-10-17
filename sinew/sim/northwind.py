@@ -68,7 +68,8 @@ STAFF = [
     ("u-agent-s1", "team-support-south", "agent", 100, "u-sup-head", "Sofia Rossi"),
     ("u-contractor-1", "team-contractor", "contractor", 0, "u-lead-west", "Karan Mehta"),
     ("u-logistics", "team-logistics", "logistics_manager", 0, "u-ceo", "Lucas Martin"),
-    ("u-marketing", "team-marketing", "marketing_manager", 0, "u-ceo", "Chloe Dubois"),
+    ("u-cmo", "team-marketing", "cmo", 0, "u-ceo", "Priya Raman"),
+    ("u-marketing", "team-marketing", "marketing_manager", 0, "u-cmo", "Chloe Dubois"),
     ("u-analyst", "team-marketing", "analyst", 0, "u-marketing", "Ken Watanabe"),
     ("u-agent-n2", "team-support-north", "agent", 100, "u-sup-head", "Li Wei"),
 ]
@@ -252,6 +253,17 @@ def build():
         "assumptions": [{"assumption_id": "as-winter-capacity", "statement": "Hub W2 can carry the Winter Sale volume",
                          "metric": "hub_load_ratio", "op": "<=", "threshold": 1.0, "window_days": 7,
                          "scope_hub": "hub-w2"}]}, at(-2), "decision-log")
+
+    # ---- finance: cost lines from the finance system (finance area only)
+    for courier, per_parcel in (("courier-x", 4.80), ("courier-y", 4.20), ("courier-z", 5.10)):
+        emit("cost.recorded", {"cost_id": f"cost-{courier}", "kind": "courier_per_parcel", "subject_id": courier,
+                               "amount": per_parcel, "currency": "USD", "per": "parcel", "period_start": at(-60),
+                               "period_end": at(30)}, at(-60), "finance")
+    emit("cost.recorded", {"cost_id": "cost-fest40", "kind": "campaign_spend", "subject_id": "fest40", "amount": 3500,
+                           "currency": "USD", "period_start": at(-10), "period_end": at(2)}, at(-12), "finance")
+    emit("cost.recorded", {"cost_id": "cost-winter25", "kind": "campaign_spend", "subject_id": "winter25",
+                           "amount": 4000, "currency": "USD", "period_start": at(10), "period_end": at(20)},
+         at(-2), "finance")
 
     # ---- customers: 200 people, 320 channel profiles sharing phones/emails in different formats
     customers = []

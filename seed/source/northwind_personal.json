@@ -1756,6 +1756,10 @@
    "display_name": "Lucas Martin",
    "email": "lucas@northwind.example"
   },
+  "u-cmo": {
+   "display_name": "Priya Raman",
+   "email": "priya@northwind.example"
+  },
   "u-marketing": {
    "display_name": "Chloe Dubois",
    "email": "chloe@northwind.example"

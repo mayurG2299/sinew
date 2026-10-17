@@ -38,7 +38,7 @@ def test_switching_person_changes_what_the_inbox_shows(api):
     west = get(api, "/api/inbox", as_user="u-agent-w1")["tickets"]
     north = get(api, "/api/inbox", as_user="u-agent-n1")["tickets"]
     assert west and north and {t["region"] for t in west} == {"west"} and {t["region"] for t in north} == {"north"}
-    assert get(api, "/api/inbox", as_user="u-marketing")["tickets"] == []
+    assert api.get("/api/inbox", params={"tenant": T, "as_user": "u-marketing"}).status_code == 403  # no support area
     contractor = get(api, "/api/inbox", as_user="u-contractor-1")["tickets"]
     assert contractor and {t["queue"] for t in contractor} == {"q-overflow"}
 
@@ -65,7 +65,7 @@ def test_opening_someone_elses_ticket_explains_why_not(api):
 
 
 def test_decision_impact_page(api):
-    v = get(api, "/api/impact")
+    v = get(api, "/api/impact", as_user="u-logistics")
     assert v["clusters"]["data"]["clusters"][0]["root_hub"] == "hub-w2"
     assert v["impact"]["data"]["decision"] == "dec-courier-y"
     assert v["prelaunch"]["data"]["warnings"][0]["campaign"] == "winter25"

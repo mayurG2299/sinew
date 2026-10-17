@@ -40,6 +40,7 @@ class Viewer:
     regions: list[str] = field(default_factory=list)
     queues: list[str] = field(default_factory=list)
     teams: list[str] = field(default_factory=list)
+    areas: list[str] = field(default_factory=list)  # (u)-[:HAS_ROLE]->(:Role)-[:CAN_READ]->(:Area); none = reads nothing
 
     @classmethod
     def load(cls, tenant: str, user_id: str) -> "Viewer | None":
@@ -48,13 +49,40 @@ class Viewer:
             "OPTIONAL MATCH (u)-[:MEMBER_OF]->(t:Team) "
             "OPTIONAL MATCH (t)-[:COVERS]->(r:Region) "
             "OPTIONAL MATCH (t)-[:WORKS]->(q:Queue) "
-            "RETURN u.role, u.refund_limit, collect(DISTINCT t.id), collect(DISTINCT r.id), collect(DISTINCT q.id)",
+            "OPTIONAL MATCH (u)-[:HAS_ROLE]->(:Role)-[:CAN_READ]->(a:Area) "
+            "RETURN u.role, u.refund_limit, collect(DISTINCT t.id), collect(DISTINCT r.id), collect(DISTINCT q.id), "
+            "collect(DISTINCT a.id)",
             {"u": user_id},
         ).result_set
         if not rows or rows[0][0] is None:
             return None
-        role, limit, teams, regions, queues = rows[0]
-        return cls(user_id, tenant, role, limit or 0, regions, queues, teams)
+        role, limit, teams, regions, queues, areas = rows[0]
+        return cls(user_id, tenant, role, limit or 0, regions, queues, teams, sorted(areas))
+
+
+AREA_NAMES = {"support": "support", "operations": "operations", "marketing": "marketing", "finance": "finance"}
+# Which area a skill reads. Customer-level skills also need a path to the customer (customer_access below).
+TOOL_AREA = {
+    "customer_trace": "support", "open_loops": "support", "related_issues": "support", "search_tickets": "support",
+    "find_approver": "support", "issue_refund": "support", "record_promise": "support", "confirm_promise": "support",
+    "promises": "support", "inbox": "support",
+    "cluster_incidents": "operations", "trace_decisions": "operations", "decision_impact": "operations",
+    "prelaunch_check": "operations", "reroute": "operations", "choke_points": "operations",
+    "evaluate_assumptions": "operations", "file_incident": "operations", "notify_owner": "operations",
+    "impact": "operations",
+}
+
+
+def gate(tenant: str, user_id: str, tool: str) -> dict | None:
+    """None if this person's role may use the skill; otherwise a refusal to return instead (default deny)."""
+    from sinew.tools.answer import refused
+    v = Viewer.load(tenant, user_id)
+    area = TOOL_AREA.get(tool)
+    if v is None:
+        return refused(tool, "unknown person").as_dict()
+    if area and area not in v.areas:
+        return refused(tool, f"your role doesn't have access to {AREA_NAMES[area]} information").as_dict()
+    return None
 
 
 def customer_access(v: Viewer, customer_id: str) -> tuple[bool, str, list[str]]:
