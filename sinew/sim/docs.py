@@ -17,22 +17,22 @@ def at(day: float) -> int:
 
 POLICY = {
     "northwind": {
-        "agent": ["support", "operations"], "contractor": ["support"],
-        "team_lead": ["support", "operations"], "support_head": ["support", "operations"],
-        "logistics_manager": ["operations", "support"],
-        "marketing_manager": ["marketing", "operations"], "cmo": ["marketing", "operations", "finance"],
-        "analyst": ["support", "operations", "marketing"], "ceo": ["support", "operations", "marketing", "finance"],
+        "agent": ["company", "support", "operations"], "contractor": ["company", "support"],
+        "team_lead": ["company", "support", "operations"], "support_head": ["company", "support", "operations"],
+        "logistics_manager": ["company", "operations", "support"],
+        "marketing_manager": ["company", "marketing", "operations"], "cmo": ["company", "marketing", "operations", "finance"],
+        "analyst": ["company", "support", "operations", "marketing"], "ceo": ["company", "support", "operations", "marketing", "finance"],
     },
     "larkspur": {
-        "agent": ["support", "operations"], "team_lead": ["support", "operations"],
-        "logistics_manager": ["operations", "support"],
-        "support_head": ["support", "operations", "marketing", "finance"],  # Larkspur's head of operations
+        "agent": ["company", "support", "operations"], "team_lead": ["company", "support", "operations"],
+        "logistics_manager": ["company", "operations", "support"],
+        "support_head": ["company", "support", "operations", "marketing", "finance"],  # Larkspur's head of operations
     },
 }
 
 # doc id, title, kind, area, written (day), [(heading, text, mentions)]
 NORTHWIND = [
-    ("doc-refund-policy", "Refund policy", "policy", "support", -120, [
+    ("doc-refund-policy", "Refund policy", "policy", "company", -120, [
         ("Who can approve a refund",
          "Support agents may refund up to $100. Team leads approve up to $500. Anything above $500 goes to the head "
          "of support. If a refund is over your limit, Sinew sends it to the right person for approval.", []),
@@ -43,7 +43,7 @@ NORTHWIND = [
          "Damaged or wrong items can be returned within 30 days. The refund is issued once the return is received "
          "at the warehouse, or straight away for items under $40.", []),
     ]),
-    ("doc-delivery-standard", "Delivery standard: west region", "policy", "support", -40, [
+    ("doc-delivery-standard", "Delivery standard: west region", "policy", "company", -40, [
         ("What we tell west customers",
          "Orders in the west region are delivered within 2 days. This standard relies on Courier Y running Hub W2 "
          "on time; it was set after the courier switch.", ["dec-2day-west", "hub-w2", "courier-y", "dec-courier-y"]),
@@ -103,7 +103,7 @@ NORTHWIND = [
 ]
 
 LARKSPUR = [
-    ("doc-ls-refund-policy", "Refund policy", "policy", "support", -200, [
+    ("doc-ls-refund-policy", "Refund policy", "policy", "company", -200, [
         ("Who can approve a refund",
          "Care agents may refund up to $80. The care lead approves up to $400; above that, the head of operations.",
          []),

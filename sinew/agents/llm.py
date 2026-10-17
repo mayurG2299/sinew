@@ -6,7 +6,11 @@ quota. If both fail, the loop falls back to a recorded replay.
 """
 
 import asyncio
+import json
+import os
+import time
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from google import genai
 from google.genai import types
@@ -14,6 +18,45 @@ from google.genai import types
 from sinew import config
 
 MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
+# Our own ceiling per model, below each model's free 500/day, so Sinew never spends money even if billing were on.
+DAILY_CAP = int(os.environ.get("GEMINI_DAILY_CAP", "450"))
+USAGE = Path(os.environ.get("SINEW_USAGE_FILE", Path(__file__).resolve().parents[2] / ".sinew-usage.json"))
+
+
+def _exhausted(model: str) -> bool:
+    try:
+        return model in json.loads(USAGE.read_text()).get("exhausted:" + time.strftime("%Y-%m-%d", time.gmtime()), [])
+    except Exception:
+        return False
+
+
+def _mark_exhausted(model: str) -> None:
+    key = "exhausted:" + time.strftime("%Y-%m-%d", time.gmtime())
+    try:
+        usage = json.loads(USAGE.read_text())
+        usage[key] = sorted(set(usage.get(key, [])) | {model})
+        USAGE.write_text(json.dumps(usage))
+    except Exception:
+        pass
+
+
+def _count_call(model: str) -> bool:
+    """Count one call to this model for today (UTC). False once today's cap for it is reached: each model's free
+    tier is separate (500 a day), so each has its own cap below that."""
+    today = time.strftime("%Y-%m-%d", time.gmtime())
+    try:
+        usage = json.loads(USAGE.read_text())
+    except Exception:
+        usage = {}
+    key = f"{today}:{model}"
+    if usage.get(key, 0) >= DAILY_CAP:
+        return False
+    try:
+        keep = {k: v for k, v in usage.items() if today in k}  # today's entries only
+        USAGE.write_text(json.dumps({**keep, key: usage.get(key, 0) + 1}))
+    except OSError:
+        pass  # read-only disk: the provider's own free limit still applies
+    return True
 
 
 @dataclass
@@ -48,7 +91,12 @@ class Gemini:
     async def next(self) -> Turn:
         last_error = None
         for model in self.models:
+            if _exhausted(model):
+                continue
             for attempt in range(2):
+                if not _count_call(model):
+                    last_error = f"today's free limit for {model} ({DAILY_CAP} calls) is used up"
+                    break
                 try:
                     r = await self.client.aio.models.generate_content(model=model, contents=self.history,
                                                                      config=self.config)
@@ -59,11 +107,14 @@ class Gemini:
                     return Turn(text=text, calls=calls, model=model)
                 except Exception as e:  # 429 quota / 503 busy: short wait, then the next model
                     last_error = e
+                    if "429" in str(e) and "perday" in str(e).lower().replace(" ", ""):
+                        _mark_exhausted(model)  # today's free quota for this model is gone: skip it until tomorrow
+                        break
                     if attempt == 0 and ("503" in str(e) or "429" in str(e)):
                         await asyncio.sleep(2)
                         continue
                     break
-        raise LLMUnavailable(str(last_error)[:200])
+        raise LLMUnavailable(str(last_error or "today's free AI limit is used up")[:200])
 
     def add_user(self, text: str):
         """A follow-up message from Sinew itself (used once, to ask for a corrected answer)."""

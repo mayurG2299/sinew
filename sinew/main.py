@@ -80,7 +80,10 @@ def people():
 @app.get("/api/home")
 def home_view(as_user: str, tenant: str = "northwind"):
     from sinew.home import home
-    return home(_tenant(tenant), as_user)
+    out = home(_tenant(tenant), as_user)
+    if not out:
+        raise HTTPException(404, "unknown user")
+    return out
 
 
 @app.get("/api/pulse")

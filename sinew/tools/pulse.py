@@ -23,6 +23,10 @@ def _change(now: float | int | None, before: float | int | None) -> float | None
     return round((now - before) / before * 100, 1)
 
 
+def _money(x: float | int) -> str:
+    return f"${x:,.2f}"
+
+
 def _ratio(part: float | int, whole: float | int) -> float | None:
     return round(part / whole, 4) if whole else None
 
@@ -41,7 +45,7 @@ def _support(g, w: dict) -> dict:
     overdue = _one(g, "MATCH (p:Promise {status: 'broken'}) RETURN count(p)", w)
     open_tickets = _one(g, "MATCH (t:Ticket) WHERE t.status <> 'solved' RETURN count(t)", w)
     return {"tickets_this_week": tickets, "tickets_last_week": before, "tickets_change_pct": _change(tickets, before),
-            "complaints_per_100_orders": round(tickets / orders * 100, 1) if orders else None,
+            "complaints_per_100_orders": f"{tickets / orders * 100:.1f} complaints per 100 orders" if orders else None,
             "top_issues": [{"issue": i.replace("_", " "), "tickets": n} for i, n in issues],
             "open_tickets": open_tickets, "overdue_commitments": overdue}
 
@@ -98,13 +102,13 @@ def _finance(g, w: dict) -> dict:
         "MATCH (k:CostLine {kind: 'courier_per_parcel'})-[:FOR]->(c:Courier) "
         "OPTIONAL MATCH (c)<-[:VIA]-(s:Shipment)<-[:SHIPPED_AS]-(o:Order) WHERE o.placed_at >= $start AND o.placed_at < $end "
         "RETURN c.id, k.amount, count(DISTINCT s) ORDER BY c.id", w).result_set
-    return {"revenue_this_week": round(revenue, 2), "revenue_last_week": round(before, 2),
-            "revenue_change_pct": _change(revenue, before), "refunds_paid_this_week": round(refunds, 2),
-            "campaign_spend": [{"campaign": cid.upper(), "name": name, "spend": spend, "coupon_orders": n,
-                                "coupon_revenue": round(rev or 0, 2),
-                                "spend_per_coupon_order": round(spend / n, 2) if n else None}
+    return {"revenue_this_week": _money(revenue), "revenue_last_week": _money(before),
+            "revenue_change_pct": _change(revenue, before), "refunds_paid_this_week": _money(refunds),
+            "campaign_spend": [{"campaign": cid.upper(), "name": name, "spend": _money(spend), "coupon_orders": n,
+                                "coupon_revenue": _money(rev or 0),
+                                "spend_per_coupon_order": _money(spend / n) if n else None}
                                for cid, name, spend, n, rev in campaigns],
-            "delivery_cost": [{"courier": c, "per_parcel": per, "parcels_this_week": n, "cost_this_week": round(per * n, 2)}
+            "delivery_cost": [{"courier": c, "per_parcel": _money(per), "parcels_this_week": n, "cost_this_week": _money(per * n)}
                               for c, per, n in couriers]}
 
 

@@ -219,7 +219,7 @@ def build():
                          "metric": "courier_on_time_rate", "op": ">=", "threshold": 0.9, "window_days": 7,
                          "scope_hub": "hub-w2", "scope_courier": "courier-y"}]}, at(-60), "decision-log")
     emit("decision.recorded", {
-        "decision_id": "dec-2day-west", "title": "Promise 2-day delivery to west customers",
+        "decision_id": "dec-2day-west", "title": "Offer 2-day delivery to west customers",
         "made_at": at(-40), "owner": "u-sup-head", "chose_kind": "Hub", "chose_id": "hub-w2", "region": "west",
         "builds_on": ["dec-courier-y"],
         "assumptions": [{"assumption_id": "as-2day-ontime", "statement": "West deliveries via W2 are 85% on time",

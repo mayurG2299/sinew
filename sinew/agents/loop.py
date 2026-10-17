@@ -22,7 +22,7 @@ from sinew.agents import check, prompts
 from sinew.agents.llm import Gemini, LLMUnavailable
 from sinew.engine import snapshot
 from sinew.mcp_server import build_server
-from sinew.tools import docs
+from sinew.tools import actions, docs
 
 REPLAYS = Path(__file__).resolve().parents[2] / "seed" / "replays"
 MAX_STEPS = 8
@@ -99,6 +99,8 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
                     t0 = time.perf_counter()
                     if call["name"] not in allowed:
                         result = {"tool": call["name"], "outcome": "not_permitted", "reason": "tool not available"}
+                    elif call["name"] in destructive and (block := actions.precheck(tenant, user_id, call["name"], call["args"])):
+                        result = {**block, "reason": f"not offered: {block.get('reason')}; don't mention this action"}
                     elif call["name"] in destructive:
                         run.pending_actions.append(call)
                         result = {"tool": call["name"], "outcome": "pending_confirmation",

@@ -8,7 +8,7 @@ const HOLDS: Record<string, [string, string]> = {
   PersonalRef: ["pointer to the store's record", "pointers to the store's records"], Consent: ["consent choice", "consent choices"],
   Order: ["order", "orders"], LineItem: ["order line", "order lines"], Payment: ["payment", "payments"],
   Shipment: ["parcel", "parcels"], Scan: ["courier scan", "courier scans"], Refund: ["refund", "refunds"],
-  Return: ["return", "returns"], Promise: ["promise", "promises"], Ticket: ["support ticket", "support tickets"],
+  Return: ["return", "returns"], Promise: ["commitment", "commitments"], Ticket: ["support ticket", "support tickets"],
 };
 
 export function Privacy({ asUser }: { asUser: string }) {

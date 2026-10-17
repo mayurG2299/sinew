@@ -3,6 +3,7 @@
 All reads use ro_query. Every entity is resolved against the graph before anything else runs.
 """
 
+import re
 import time
 
 from sinew.db import graph
@@ -25,8 +26,9 @@ def resolve_customer(tenant: str, ref: str) -> str | None:
     """A customer id, a profile id, an order id, a ticket id, or a raw email/phone (hashed, never stored)."""
     g = graph(tenant)
     ref = ref.strip()
-    if ref.startswith("#") and ref[1:].isdigit():
-        ref = "o-" + ref[1:]  # order numbers the way the store shows them
+    m = re.fullmatch(r"(?:order\s*)?#?\s*(\d{3,6})", ref, re.I)
+    if m:
+        ref = "o-" + m.group(1)  # an order number however it is written: #4520, 4520, order 4520
     queries = [
         ("MATCH (c:Customer {id: $r}) RETURN c.id", ref),
         ("MATCH (:Profile {id: $r})-[:OF]->(c:Customer) RETURN c.id", ref),

@@ -104,7 +104,7 @@ CONTRACT: dict[str, dict[str, tuple[str, bool]]] = {
 ASSUMPTION_FIELDS = {"assumption_id", "statement", "metric", "op", "threshold", "window_days",
                      "scope_hub", "scope_courier"}
 PROMISE_KINDS = {"refund", "delivery"}
-AREAS = {"support", "operations", "marketing", "finance"}  # what a role can be allowed to read
+AREAS = {"company", "support", "operations", "marketing", "finance"}  # what a role can be allowed to read; company = all staff
 COST_KINDS = {"courier_per_parcel", "campaign_spend"}
 
 LINE_FIELDS = {"line_id", "sku", "batch_id", "qty", "price"}

@@ -103,11 +103,41 @@ def record_promise(tenant: str, user_id: str, ticket_id: str, order_id: str, kin
 def confirm_promise(tenant: str, user_id: str, promise_id: str) -> Answer:
     if not resolve(tenant, "Promise", promise_id):
         return unknown("confirm_promise", f"promise {promise_id}")
+    stop = _may_confirm(tenant, user_id, promise_id)
+    if stop:
+        return stop
     pipeline.process(tenant, [{"event_id": f"evt-confirm-{promise_id}", "type": "promise.confirmed",
                                "source": "sinew-ai", "occurred_at": clock(tenant),
                                "payload": {"promise_id": promise_id, "confirmed_by": user_id}}])
     status = graph(tenant).ro_query("MATCH (p:Promise {id: $p}) RETURN p.status", {"p": promise_id}).result_set[0][0]
     return Answer("confirm_promise", "answered_path", data={"promise": promise_id, "status": status})
+
+
+def _may_confirm(tenant: str, user_id: str, promise_id: str) -> Answer | None:
+    """Only the person who made the commitment, or a lead / head of support, may confirm it."""
+    v = guard.Viewer.load(tenant, user_id)
+    maker = graph(tenant).ro_query("MATCH (:Promise {id: $p})-[:MADE_BY]->(u:User) RETURN u.id", {"p": promise_id}).result_set
+    if v is None or (maker and maker[0][0] != user_id and v.role not in ("team_lead", "support_head")):
+        return refused("confirm_promise", "only the person who made it, or their team lead, can confirm it")
+    return None
+
+
+def precheck(tenant: str, user_id: str, name: str, args: dict) -> dict | None:
+    """Before an action is offered to a person as a button: would it be allowed for them? None if yes, else
+    the refusal. (The action checks again when they click; this only stops buttons that can never work.)"""
+    tool_gate = guard.gate(tenant, user_id, name)
+    if tool_gate:
+        return tool_gate
+    v = guard.Viewer.load(tenant, user_id)
+    if name == "file_incident" and v.role not in INCIDENT_ROLES:
+        return refused(name, "opening incidents is for team leads, the head of support or logistics managers").as_dict()
+    if name == "issue_refund":
+        _, stop = _viewer_for_customer_of_order(tenant, user_id, args.get("order_id", ""))
+        return stop.as_dict() if stop else None
+    if name == "confirm_promise":
+        stop = _may_confirm(tenant, user_id, args.get("promise_id", ""))
+        return stop.as_dict() if stop else None
+    return None
 
 
 def file_incident(tenant: str, user_id: str, title: str, ticket_ids: list[str], root_hub: str,

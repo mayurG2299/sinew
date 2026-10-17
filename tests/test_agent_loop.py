@@ -136,3 +136,21 @@ def test_a_rewrite_that_still_breaks_a_rule_falls_back_to_the_rows():
                         Turn(text="It broke because of the sale."), Turn(text="It broke due to the sale.")]),
             agent="pattern", user="u-lead-west", task="why")
     assert r.answer_source == "rows" and "not causes" in r.check_failed
+
+
+def test_an_action_the_person_cannot_take_is_never_offered():
+    # the CEO may read operations but may not open incidents: no button, and the model is told so
+    r = run(Scripted([Turn(calls=[{"name": "file_incident", "args": {"title": "W2 delays", "ticket_ids": ["t-90520"],
+                                                                      "root_hub": "hub-w2"}}]),
+                      Turn(text="The complaints went through hub-w2.")]),
+            agent="pattern", user="u-ceo", task="why")
+    assert r.pending_actions == [] and r.steps[0]["outcome"] == "not_permitted"
+
+
+def test_only_the_maker_or_a_lead_can_confirm_a_commitment():
+    from sinew.tools import actions
+    from sinew.db import graph
+    row = graph("sandbox").ro_query("MATCH (p:Promise)-[:MADE_BY]->(u:User {id: 'u-agent-w2'}) RETURN p.id LIMIT 1").result_set
+    assert row, "needs a commitment made by u-agent-w2"
+    assert actions.confirm_promise("sandbox", "u-agent-w1", row[0][0]).outcome == "not_permitted"
+    assert actions.precheck("sandbox", "u-lead-west", "confirm_promise", {"promise_id": row[0][0]}) is None

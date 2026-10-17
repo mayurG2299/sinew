@@ -9,6 +9,7 @@ If the check fails, the caller shows a sentence built from the rows instead.
 
 import json
 import re
+import time
 
 ID = re.compile(r"\b(?:o|t|cu|pf|hub|dec|as|sh|rf|pr|inc|u|fd|note|courier|b|sup|wh|q|team)-[a-z0-9][a-z0-9-]*\b"
                 r"|\b(?:fest|winter)\d+\b", re.I)
@@ -68,7 +69,8 @@ def _place(x: str | None) -> str:
 
 def _plain(text: str) -> str:
     """Ids inside engine sentences: "campaign fest40 ... hub-w2" -> "the FEST40 campaign ... Hub W2"."""
-    text = re.sub(r"\bcampaign ([a-z0-9]+)\b", lambda m: f"the {m.group(1).upper()} campaign", text)
+    text = re.sub(r"\bcampaign ([a-z]+\d+)\b", lambda m: f"the {m.group(1).upper()} campaign", text)  # fest40, not "running"
+    text = re.sub(r"\b1[6-9]\d{8}\b", lambda m: time.strftime("%-d %b, %H:%M", time.gmtime(int(m.group(0)))), text)  # timestamps
     text = re.sub(r"\bo-(\d+)\b", r"#\1", text)
     text = re.sub(r"\s*\(?\b(?:pr|cu|pf|sh|rf|rt|as|pay)-[a-z0-9-]+\)?", "", text)  # internal codes
     text = re.sub(r"\s*\(?\b(?:under |in )?(?:ticket )?t-\d+\)?", "", text)  # ticket codes: "this ticket" is enough
@@ -99,7 +101,7 @@ def fallback(tool_results: list[dict]) -> str:
             if m:
                 out.append(f"Orders this week: {m['orders_this_week']} (last week {m['orders_last_week']}).")
             if f:
-                out.append(f"Revenue this week: ${f['revenue_this_week']:,.2f} (last week ${f['revenue_last_week']:,.2f}).")
+                out.append(f"Revenue this week: {f['revenue_this_week']} (last week {f['revenue_last_week']}).")
             if s:
                 out.append(f"Tickets this week: {s['tickets_this_week']} (last week {s['tickets_last_week']}).")
             if o and o.get("on_time_rate") is not None:
@@ -125,12 +127,16 @@ def fallback(tool_results: list[dict]) -> str:
             c = d["clusters"][0]
             out.append(f"{c['tickets']} {c['issue'].replace('_', ' ')} complaints went through {_place(c['root_hub'])}.")
         elif tool == "trace_decisions":
+            said_overlap = False
             for dec in d.get("decisions", []):
                 for a in dec["assumptions"]:
                     if a.get("status") == "broken":
-                        link = f" It overlaps with another decision: {_plain(a['basis'])}." if a.get("linked") else ""
-                        out.append(f"\"{dec['title']}\" assumed \"{a['statement']}\"; it is now {_pct(a['value'])}, "
-                                   f"needed {a['op']} {_pct(a['threshold'])}.{link}")
+                        need = {">=": "at least", "<=": "at most"}.get(a["op"], a["op"])
+                        link = ""
+                        if a.get("linked") and not said_overlap:
+                            link, said_overlap = f" At the same time, {_plain(a['basis'])}.", True
+                        out.append(f"\"{dec['title']}\" assumed {a['statement'][0].lower() + a['statement'][1:]}; "
+                                   f"this week it is {_pct(a['value'])} (needed {need} {_pct(a['threshold'])}).{link}")
         elif tool == "decision_impact":
             out.append(f"{len(d.get('customers_at_risk', []))} customers are still waiting on "
                        f"{d.get('parcels_in_transit')} parcels, and {len(d.get('dependent_decisions', []))} other "
