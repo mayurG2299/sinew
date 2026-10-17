@@ -3,6 +3,7 @@
 Raw values exist only in memory while an event is processed; they are never written anywhere.
 """
 
+import calendar
 import hashlib
 import hmac
 import re
@@ -80,6 +81,9 @@ def _names_analyzer():
     return _analyzer
 
 
+_CALENDAR = {w.lower() for w in (*calendar.month_name, *calendar.month_abbr, *calendar.day_name, *calendar.day_abbr) if w}
+
+
 def redact(text: str, allow: frozenset[str] = frozenset()) -> str:
     """Remove names, emails, phones, cards and handles. Fails closed: no name check, no text.
 
@@ -90,10 +94,10 @@ def redact(text: str, allow: frozenset[str] = frozenset()) -> str:
         found = _names_analyzer().analyze(text=text, language="en", entities=["PERSON"])
     except Exception:
         return WITHHELD
-    # Codes like "B7" or "W2" are business ids, not people.
+    # Codes like "B7" or "W2" are business ids, not people; nor are month and day names ("due on 15 Oct").
     def business(span: str) -> bool:
         s = span.lower().strip(" .,!?;:'\"")
-        return any(ch.isdigit() for ch in s) or any(s in a for a in allow)
+        return any(ch.isdigit() for ch in s) or s in _CALENDAR or any(s in a for a in allow)
 
     spans = sorted((r for r in found if not business(text[r.start:r.end])), key=lambda r: r.start, reverse=True)
     for r in spans:

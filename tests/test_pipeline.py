@@ -141,3 +141,9 @@ def test_ingest_rejects_bad_signature_and_accepts_good_one():
     good = api.post(f"/api/ingest/{T}", content=body,
                     headers={"X-Sinew-Timestamp": str(ts), "X-Sinew-Signature": signing.sign(body, ts)})
     assert good.status_code == 200 and good.json()["accepted"] == 1
+
+
+def test_dates_in_ticket_text_are_not_taken_for_names():
+    from sinew.engine.minimise import redact
+    assert redact("Order #4498 was due on 15 Oct and nothing. This is Priya Sharma.") == \
+        "Order #4498 was due on 15 Oct and nothing. This is [NAME]."

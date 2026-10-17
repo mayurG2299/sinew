@@ -29,7 +29,7 @@ export function Privacy({ asUser }: { asUser: string }) {
         </div>
         <Section title="1. Find the customer" hint="customer, ticket or order id">
           <div className="flex flex-wrap gap-2">
-            <input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. t-90500 or o-4500"
+            <input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. t-90520 or o-4520"
               className="w-72 rounded-md border border-stone-300 px-3 py-1.5 text-sm" />
             <button onClick={lookup} disabled={!ref.trim() || busy}
               className="rounded-lg bg-teal-700 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50">Show what Sinew holds</button>

@@ -54,13 +54,13 @@ def test_contractor_trace_hides_other_queues_tickets(api):
 
 
 def test_opening_a_ticket_builds_the_trace_with_freshness(api):
-    v = get(api, "/api/trace", ref="t-90500", as_user="u-agent-w1")
+    v = get(api, "/api/trace", ref="t-90520", as_user="u-agent-w1")
     assert v["trace"]["outcome"] == "answered_path" and v["open_loops"] and v["related"]["outcome"] == "answered_path"
     assert all(f["last_event_at"] <= v["now"] for f in v["freshness"])  # nothing from the future
 
 
 def test_opening_someone_elses_ticket_explains_why_not(api):
-    v = get(api, "/api/trace", ref="t-90500", as_user="u-agent-n1")
+    v = get(api, "/api/trace", ref="t-90520", as_user="u-agent-n1")
     assert v["trace"]["outcome"] == "not_permitted" and "region" in v["trace"]["reason"]
 
 
@@ -79,7 +79,7 @@ def test_confirming_prepared_actions(api):
     big = post(api, "/api/confirm", {"name": "issue_refund", "args": {"order_id": "o-4500", "amount": 150},
                                      "as_user": "u-agent-w1"})
     assert big["outcome"] in ("needs_approval", "not_permitted")
-    inc = post(api, "/api/confirm", {"name": "file_incident", "args": {"title": "W2", "ticket_ids": ["t-90500"],
+    inc = post(api, "/api/confirm", {"name": "file_incident", "args": {"title": "W2", "ticket_ids": ["t-90520"],
                                      "root_hub": "hub-w2"}, "as_user": "u-agent-w1"})
     assert inc["outcome"] == "not_permitted"  # agents can't file incidents, even when the AI prepared one
     r = api.post("/api/confirm", json={"tenant": T, "name": "delete_customer", "args": {}, "as_user": "u-sup-head"})
@@ -94,21 +94,21 @@ def test_promises_board_scope(api):
 
 
 def test_privacy_export_and_delete(api):
-    assert get(api, "/api/privacy/export", ref="t-90559", as_user="u-agent-w1")["outcome"] == "not_permitted"
-    exported = get(api, "/api/privacy/export", ref="t-90559", as_user="u-sup-head")
+    assert get(api, "/api/privacy/export", ref="t-95397", as_user="u-agent-w1")["outcome"] == "not_permitted"
+    exported = get(api, "/api/privacy/export", ref="t-95397", as_user="u-sup-head")
     assert exported["outcome"] == "answered_path" and exported["data"]["graph_holds"]
-    deleted = post(api, "/api/privacy/delete", {"ref": "t-90559", "as_user": "u-sup-head"})
+    deleted = post(api, "/api/privacy/delete", {"ref": "t-95397", "as_user": "u-sup-head"})
     assert deleted["data"]["proof"]["nodes_left_with_their_ids"] == 0
 
 
 def test_live_scan_and_reset(api, tmp_path):
-    before = get(api, "/api/trace", ref="t-90500", as_user="u-agent-w1")
-    r = post(api, "/api/demo/live-scan", None, shipment="sh-o-4500")
-    assert r["accepted"] == 1 and {"signal": "late_scan", "shipment": "sh-o-4500", "hub": "hub-w2"} in r["signals"]
+    before = get(api, "/api/trace", ref="t-90520", as_user="u-agent-w1")
+    r = post(api, "/api/demo/live-scan", None, shipment="sh-o-4520")
+    assert r["accepted"] == 1 and {"signal": "late_scan", "shipment": "sh-o-4520", "hub": "hub-w2"} in r["signals"]
     assert api.post("/api/demo/live-scan", params={"tenant": T, "shipment": "sh-nope"}).status_code == 404
-    after = get(api, "/api/trace", ref="t-90500", as_user="u-agent-w1")
+    after = get(api, "/api/trace", ref="t-90520", as_user="u-agent-w1")
     assert after["now"] > before["now"]
     assert sum(1 for i in after["trace"]["data"]["timeline"] if i["kind"] == "scan") == \
         sum(1 for i in before["trace"]["data"]["timeline"] if i["kind"] == "scan") + 1
     assert post(api, "/api/demo/reset", None)["restored"] == T
-    assert get(api, "/api/trace", ref="t-90500", as_user="u-agent-w1")["now"] == before["now"]
+    assert get(api, "/api/trace", ref="t-90520", as_user="u-agent-w1")["now"] == before["now"]

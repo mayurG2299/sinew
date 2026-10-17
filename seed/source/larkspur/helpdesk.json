@@ -1,235 +1,26 @@
 [
  {
-  "id": 30007,
-  "created_at": "2026-10-17T11:00:00Z",
+  "id": 30020,
+  "created_at": "2026-10-08T16:41:12Z",
   "via": {
    "channel": "email"
   },
   "requester": {
-   "id": 47057,
-   "email": "donald.williams37@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Stone Vase in #1008 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1008",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30012,
-  "created_at": "2026-09-22T19:33:07Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47039,
-   "email": "joel.hicks1@example.org"
+   "id": 47028,
+   "email": "stephanie.wright18@example.org"
   },
   "group": "east",
   "subject": "Damaged item",
-  "description": "The Wall Shelf in #1013 arrived damaged.",
+  "description": "The Linen Throw in #1021 arrived damaged.",
   "status": "open",
   "custom_fields": {
-   "order_number": "#1013",
+   "order_number": "#1021",
    "reason": "damaged"
   }
  },
  {
-  "id": 30014,
-  "created_at": "2026-10-02T16:05:52Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47034,
-   "email": "charles.thomas82@example.org"
-  },
-  "group": "east",
-  "subject": "Damaged item",
-  "description": "The Stone Vase in #1015 arrived damaged.",
-  "status": "solved",
-  "custom_fields": {
-   "order_number": "#1015",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30017,
-  "created_at": "2026-10-15T17:17:13Z",
-  "via": {
-   "channel": "web"
-  },
-  "requester": {
-   "id": 47073,
-   "email": "RICHARD.MOORE7@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "My order #1018 is late. Please help.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1018",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30023,
-  "created_at": "2026-10-17T11:00:00Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47051,
-   "email": "LINDA.SCOTT78@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "My order #1024 is late. Please help.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1024",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30028,
-  "created_at": "2026-10-13T23:17:22Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47058,
-   "email": "BENJAMIN.DALE22@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "Hi, it's Benjamin Dale. #1029 hasn't arrived.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1029",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30034,
-  "created_at": "2026-09-26T16:29:35Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47061,
-   "email": "ben.smith47@example.org"
-  },
-  "group": "east",
-  "subject": "Damaged item",
-  "description": "The Linen Throw in #1035 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1035",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30049,
-  "created_at": "2026-10-12T06:51:18Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47066,
-   "email": "brian.riley91@example.org"
-  },
-  "group": "east",
-  "subject": "Damaged item",
-  "description": "The Wool Rug 160 in #1050 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1050",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30052,
-  "created_at": "2026-10-09T17:36:25Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47064,
-   "email": "janet.williams5@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Wool Rug 160 in #1053 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1053",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30057,
-  "created_at": "2026-09-29T06:42:57Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47033,
-   "email": "gillian.hall69@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Desk Lamp Mini in #1058 arrived damaged.",
-  "status": "solved",
-  "custom_fields": {
-   "order_number": "#1058",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30060,
-  "created_at": "2026-10-02T23:39:17Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47068,
-   "email": "RICHARD.DAVIES64@EXAMPLE.ORG"
-  },
-  "group": "central",
-  "subject": "Where is my order?",
-  "description": "Hi, it's Richard Davies. #1061 hasn't arrived.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1061",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30062,
-  "created_at": "2026-10-17T11:00:00Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47079,
-   "email": "lesley.anderson21@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Wool Rug 160 in #1063 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1063",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30065,
-  "created_at": "2026-09-23T16:21:08Z",
+  "id": 30021,
+  "created_at": "2026-09-30T23:02:36Z",
   "via": {
    "channel": "email"
   },
@@ -239,130 +30,73 @@
   },
   "group": "east",
   "subject": "Damaged item",
-  "description": "The Linen Throw in #1066 arrived damaged.",
+  "description": "The Linen Throw in #1022 arrived damaged.",
   "status": "open",
   "custom_fields": {
-   "order_number": "#1066",
+   "order_number": "#1022",
    "reason": "damaged"
   }
  },
  {
-  "id": 30067,
-  "created_at": "2026-09-29T23:28:56Z",
+  "id": 30039,
+  "created_at": "2026-10-09T08:32:09Z",
   "via": {
-   "channel": "email"
+   "channel": "web"
   },
   "requester": {
-   "id": 47037,
-   "email": "juan.davenport65@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Stone Vase in #1068 arrived damaged.",
-  "status": "solved",
-  "custom_fields": {
-   "order_number": "#1068",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30069,
-  "created_at": "2026-09-21T10:16:26Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47052,
-   "email": "emma.johnston1@example.org"
-  },
-  "group": "east",
-  "subject": "Damaged item",
-  "description": "The Desk Lamp Mini in #1070 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1070",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30075,
-  "created_at": "2026-10-16T23:42:18Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47050,
-   "email": "nathan.o'connor50@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Desk Lamp Mini in #1076 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1076",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30086,
-  "created_at": "2026-10-09T18:17:01Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47055,
-   "email": "KIRSTY.PATEL55@EXAMPLE.ORG"
+   "id": 47078,
+   "email": "JILLIAN.GATES11@EXAMPLE.ORG"
   },
   "group": "central",
   "subject": "Where is my order?",
-  "description": "Tracking for #1087 says delayed again.",
+  "description": "Tracking for #1040 says delayed again.",
   "status": "open",
   "custom_fields": {
-   "order_number": "#1087",
+   "order_number": "#1040",
    "reason": "delay"
   }
  },
  {
-  "id": 30088,
-  "created_at": "2026-10-14T19:37:20Z",
-  "via": {
-   "channel": "chat"
-  },
-  "requester": {
-   "id": 47074,
-   "email": "KEVIN.MCKNIGHT81@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "My order #1089 is late. Please help.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1089",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30106,
-  "created_at": "2026-10-09T07:19:06Z",
+  "id": 30044,
+  "created_at": "2026-10-11T08:51:18Z",
   "via": {
    "channel": "email"
   },
   "requester": {
-   "id": 47044,
-   "email": "debra.harrison14@example.org"
+   "id": 47066,
+   "email": "brian.riley91@example.org"
   },
   "group": "east",
   "subject": "Damaged item",
-  "description": "The Arc Floor Lamp in #1107 arrived damaged.",
+  "description": "The Wool Rug 160 in #1045 arrived damaged.",
   "status": "solved",
   "custom_fields": {
-   "order_number": "#1107",
+   "order_number": "#1045",
    "reason": "damaged"
   }
  },
  {
-  "id": 30109,
-  "created_at": "2026-10-17T11:00:00Z",
+  "id": 30045,
+  "created_at": "2026-09-27T03:24:38Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47023,
+   "email": "JAKE.JONES65@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "Tracking for #1046 says delayed again.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1046",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30046,
+  "created_at": "2026-10-09T12:06:44Z",
   "via": {
    "channel": "email"
   },
@@ -372,54 +106,54 @@
   },
   "group": "east",
   "subject": "Damaged item",
-  "description": "The Stone Vase in #1110 arrived damaged.",
-  "status": "solved",
+  "description": "The Oak Side Chair in #1047 arrived damaged.",
+  "status": "open",
   "custom_fields": {
-   "order_number": "#1110",
+   "order_number": "#1047",
    "reason": "damaged"
   }
  },
  {
-  "id": 30114,
-  "created_at": "2026-09-24T10:40:27Z",
+  "id": 30063,
+  "created_at": "2026-09-25T06:26:27Z",
   "via": {
    "channel": "email"
   },
   "requester": {
-   "id": 47009,
-   "email": "CURTIS.HERRERA20@EXAMPLE.ORG"
+   "id": 47036,
+   "email": "mark.bryant35@example.org"
   },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "Tracking for #1115 says delayed again.",
+  "group": "central",
+  "subject": "Damaged item",
+  "description": "The Linen Throw in #1064 arrived damaged.",
   "status": "open",
   "custom_fields": {
-   "order_number": "#1115",
-   "reason": "delay"
+   "order_number": "#1064",
+   "reason": "damaged"
   }
  },
  {
-  "id": 30122,
-  "created_at": "2026-10-07T13:10:43Z",
+  "id": 30081,
+  "created_at": "2026-10-13T09:41:11Z",
   "via": {
    "channel": "email"
   },
   "requester": {
-   "id": 47069,
-   "email": "johnathan.rahman79@example.org"
+   "id": 47041,
+   "email": "shirley.clay52@example.org"
   },
   "group": "east",
   "subject": "Damaged item",
-  "description": "The Stone Vase in #1123 arrived damaged.",
-  "status": "solved",
+  "description": "The Wall Shelf in #1082 arrived damaged.",
+  "status": "open",
   "custom_fields": {
-   "order_number": "#1123",
+   "order_number": "#1082",
    "reason": "damaged"
   }
  },
  {
-  "id": 30124,
-  "created_at": "2026-10-15T16:38:34Z",
+  "id": 30109,
+  "created_at": "2026-10-16T19:38:34Z",
   "via": {
    "channel": "email"
   },
@@ -429,149 +163,16 @@
   },
   "group": "east",
   "subject": "Where is my order?",
-  "description": "My order #1125 is late. Please help.",
+  "description": "My order #1110 is late. Please help.",
   "status": "open",
   "custom_fields": {
-   "order_number": "#1125",
+   "order_number": "#1110",
    "reason": "delay"
   }
  },
  {
-  "id": 30127,
-  "created_at": "2026-09-24T04:42:31Z",
-  "via": {
-   "channel": "web"
-  },
-  "requester": {
-   "id": 47038,
-   "email": "JENNIFER.MAHONEY10@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "Tracking for #1128 says delayed again.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1128",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30131,
-  "created_at": "2026-10-07T08:51:03Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47019,
-   "email": "YVONNE.LARSEN84@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "My order #1132 is late. Please help.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1132",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30134,
-  "created_at": "2026-10-11T13:32:35Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47071,
-   "email": "julian.johnson24@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Stone Vase in #1135 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1135",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30136,
-  "created_at": "2026-10-17T11:00:00Z",
-  "via": {
-   "channel": "chat"
-  },
-  "requester": {
-   "id": 47021,
-   "email": "MATTHEW.WILLIAMS84@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "My order #1137 is late. Please help.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1137",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30145,
-  "created_at": "2026-10-14T04:22:43Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47062,
-   "email": "theresa.mclean63@example.org"
-  },
-  "group": "central",
-  "subject": "Damaged item",
-  "description": "The Linen Throw in #1146 arrived damaged.",
-  "status": "solved",
-  "custom_fields": {
-   "order_number": "#1146",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30150,
-  "created_at": "2026-10-11T22:43:35Z",
-  "via": {
-   "channel": "web"
-  },
-  "requester": {
-   "id": 47051,
-   "email": "LINDA.SCOTT78@EXAMPLE.ORG"
-  },
-  "group": "east",
-  "subject": "Where is my order?",
-  "description": "Tracking for #1151 says delayed again.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1151",
-   "reason": "delay"
-  }
- },
- {
-  "id": 30154,
-  "created_at": "2026-10-03T03:37:02Z",
-  "via": {
-   "channel": "email"
-  },
-  "requester": {
-   "id": 47035,
-   "email": "peter.smith15@example.org"
-  },
-  "group": "east",
-  "subject": "Damaged item",
-  "description": "The Wool Rug 160 in #1155 arrived damaged.",
-  "status": "open",
-  "custom_fields": {
-   "order_number": "#1155",
-   "reason": "damaged"
-  }
- },
- {
-  "id": 30176,
-  "created_at": "2026-10-03T15:46:35Z",
+  "id": 30111,
+  "created_at": "2026-10-12T22:38:45Z",
   "via": {
    "channel": "email"
   },
@@ -581,49 +182,334 @@
   },
   "group": "central",
   "subject": "Damaged item",
-  "description": "The Stone Vase in #1177 arrived damaged.",
+  "description": "The Stone Vase in #1112 arrived damaged.",
   "status": "solved",
   "custom_fields": {
-   "order_number": "#1177",
+   "order_number": "#1112",
    "reason": "damaged"
   }
  },
  {
-  "id": 30184,
-  "created_at": "2026-10-15T23:38:05Z",
+  "id": 30119,
+  "created_at": "2026-10-04T10:18:05Z",
   "via": {
    "channel": "email"
   },
   "requester": {
-   "id": 47076,
-   "email": "shirley.lucas4@example.org"
+   "id": 47063,
+   "email": "ricardo.reyes88@example.org"
+  },
+  "group": "central",
+  "subject": "Damaged item",
+  "description": "The Arc Floor Lamp in #1120 arrived damaged.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1120",
+   "reason": "damaged"
+  }
+ },
+ {
+  "id": 30141,
+  "created_at": "2026-10-14T14:46:09Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47003,
+   "email": "glenn.hussain13@example.org"
   },
   "group": "east",
   "subject": "Damaged item",
-  "description": "The Wall Shelf in #1185 arrived damaged.",
+  "description": "The Stone Vase in #1142 arrived damaged.",
   "status": "solved",
   "custom_fields": {
-   "order_number": "#1185",
+   "order_number": "#1142",
    "reason": "damaged"
+  }
+ },
+ {
+  "id": 30155,
+  "created_at": "2026-09-30T10:59:52Z",
+  "via": {
+   "channel": "web"
+  },
+  "requester": {
+   "id": 47064,
+   "email": "JANET.WILLIAMS5@EXAMPLE.ORG"
+  },
+  "group": "central",
+  "subject": "Where is my order?",
+  "description": "My order #1156 is late. Please help.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1156",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30158,
+  "created_at": "2026-10-10T10:30:16Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47078,
+   "email": "jillian.gates11@example.org"
+  },
+  "group": "central",
+  "subject": "Damaged item",
+  "description": "The Linen Throw in #1159 arrived damaged.",
+  "status": "solved",
+  "custom_fields": {
+   "order_number": "#1159",
+   "reason": "damaged"
+  }
+ },
+ {
+  "id": 30161,
+  "created_at": "2026-10-15T00:46:51Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47072,
+   "email": "JASMINE.GREEN1@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "Hi, it's Jasmine Green. #1162 hasn't arrived.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1162",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30162,
+  "created_at": "2026-10-17T11:24:52Z",
+  "via": {
+   "channel": "web"
+  },
+  "requester": {
+   "id": 47066,
+   "email": "BRIAN.RILEY91@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "Tracking for #1163 says delayed again.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1163",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30193,
+  "created_at": "2026-10-14T19:26:08Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47077,
+   "email": "phillip.johnson2@example.org"
+  },
+  "group": "east",
+  "subject": "Damaged item",
+  "description": "The Linen Throw in #1194 arrived damaged.",
+  "status": "solved",
+  "custom_fields": {
+   "order_number": "#1194",
+   "reason": "damaged"
+  }
+ },
+ {
+  "id": 30202,
+  "created_at": "2026-10-14T21:17:25Z",
+  "via": {
+   "channel": "chat"
+  },
+  "requester": {
+   "id": 47050,
+   "email": "NATHAN.O'CONNOR50@EXAMPLE.ORG"
+  },
+  "group": "central",
+  "subject": "Where is my order?",
+  "description": "Hi, it's Nathan O'Connor. #1203 hasn't arrived.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1203",
+   "reason": "delay"
   }
  },
  {
   "id": 30207,
-  "created_at": "2026-09-29T12:28:42Z",
+  "created_at": "2026-10-16T02:31:43Z",
   "via": {
    "channel": "email"
   },
   "requester": {
-   "id": 47070,
-   "email": "georgia.gordon19@example.org"
+   "id": 47012,
+   "email": "LORETTA.GONZALEZ1@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "Hi, it's Loretta Gonzalez. #1208 hasn't arrived.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1208",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30209,
+  "created_at": "2026-09-24T16:37:19Z",
+  "via": {
+   "channel": "web"
+  },
+  "requester": {
+   "id": 47005,
+   "email": "EMMA.BROWN97@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "Hi, it's Emma Brown. #1210 hasn't arrived.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1210",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30220,
+  "created_at": "2026-10-10T15:10:30Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47015,
+   "email": "abbie.carr19@example.org"
   },
   "group": "east",
   "subject": "Damaged item",
-  "description": "The Wall Shelf in #1208 arrived damaged.",
+  "description": "The Stone Vase in #1221 arrived damaged.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1221",
+   "reason": "damaged"
+  }
+ },
+ {
+  "id": 30226,
+  "created_at": "2026-09-27T20:05:21Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47014,
+   "email": "marc.gregory11@example.org"
+  },
+  "group": "east",
+  "subject": "Damaged item",
+  "description": "The Linen Throw in #1227 arrived damaged.",
   "status": "solved",
   "custom_fields": {
-   "order_number": "#1208",
+   "order_number": "#1227",
    "reason": "damaged"
+  }
+ },
+ {
+  "id": 30237,
+  "created_at": "2026-10-10T15:48:52Z",
+  "via": {
+   "channel": "chat"
+  },
+  "requester": {
+   "id": 47062,
+   "email": "THERESA.MCLEAN63@EXAMPLE.ORG"
+  },
+  "group": "central",
+  "subject": "Where is my order?",
+  "description": "Hi, it's Theresa McLean. #1238 hasn't arrived.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1238",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30240,
+  "created_at": "2026-10-14T12:27:32Z",
+  "via": {
+   "channel": "web"
+  },
+  "requester": {
+   "id": 47051,
+   "email": "LINDA.SCOTT78@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "Hi, it's Linda Scott. #1241 hasn't arrived.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1241",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30242,
+  "created_at": "2026-10-07T11:42:56Z",
+  "via": {
+   "channel": "email"
+  },
+  "requester": {
+   "id": 47059,
+   "email": "danielle.delgado71@example.org"
+  },
+  "group": "east",
+  "subject": "Damaged item",
+  "description": "The Wool Rug 160 in #1243 arrived damaged.",
+  "status": "solved",
+  "custom_fields": {
+   "order_number": "#1243",
+   "reason": "damaged"
+  }
+ },
+ {
+  "id": 30246,
+  "created_at": "2026-10-13T00:01:12Z",
+  "via": {
+   "channel": "chat"
+  },
+  "requester": {
+   "id": 47003,
+   "email": "GLENN.HUSSAIN13@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "Hi, it's Glenn Hussain. #1247 hasn't arrived.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1247",
+   "reason": "delay"
+  }
+ },
+ {
+  "id": 30253,
+  "created_at": "2026-10-16T11:50:13Z",
+  "via": {
+   "channel": "web"
+  },
+  "requester": {
+   "id": 47053,
+   "email": "LINDA.HUNT42@EXAMPLE.ORG"
+  },
+  "group": "east",
+  "subject": "Where is my order?",
+  "description": "My order #1254 is late. Please help.",
+  "status": "open",
+  "custom_fields": {
+   "order_number": "#1254",
+   "reason": "delay"
   }
  }
 ]

@@ -98,7 +98,7 @@ def build():
         customers.append(c)
         personal["Profile"][f"pf-ls-{c['id']}"] = {"name": f"{first} {last}", "email": c["email"], "phone": c["phone"],
                                                    "address": f"{c['default_address']['address1']}, {c['default_address']['city']}"}
-    for n in range(210):
+    for n in range(260):
         c = rng.choice(customers)
         day = rng.uniform(-30, -0.3)
         created = at(day)
@@ -118,7 +118,7 @@ def build():
         hub = "hub-e2" if region == "east" else "hub-c1"
         courier = "courier-q" if region == "east" else "courier-p"
         # Courier Q falls behind at E2 in the last week.
-        late_p = (0.38 if day > -7 else 0.03) if hub == "hub-e2" else 0.03
+        late_p = (0.42 if day > -7 else 0.03) if hub == "hub-e2" else 0.03
         delay_min = rng.choice([900, 1440, 2160]) if rng.random() < late_p else 0
         arrive = created + DAY
         tracking.append({"tracking_number": f"LS{1001 + n}", "order_name": order["name"], "carrier": courier,
@@ -130,8 +130,10 @@ def build():
                              {"time": iso(arrive + DAY + delay_min * 60), "location": hub, "status_code": 3,
                               "delay_min": 0},
                          ) if datetime.fromisoformat(cp["time"].replace("Z", "+00:00")).timestamp() < NOW]})
-        if delay_min and rng.random() < 0.75 and arrive + 6 * 3600 < NOW:
-            tickets.append({"id": 30000 + n, "created_at": iso(min(arrive + rng.randint(4, 30) * 3600, NOW - 3600)),
+        delivered_at = arrive + DAY + delay_min * 60
+        complain_at = arrive + DAY + rng.randint(2, max(3, delay_min // 60 - 2)) * 3600  # expected day passed, still not here
+        if delay_min and rng.random() < 0.9 and complain_at < min(NOW, delivered_at):
+            tickets.append({"id": 30000 + n, "created_at": iso(complain_at),
                             "via": {"channel": rng.choice(["email", "web", "chat"])},
                             "requester": {"id": 40000 + c["id"], "email": c["email"].upper()}, "group": region,
                             "subject": "Where is my order?",
@@ -139,8 +141,8 @@ def build():
                                                        f"Hi, it's {c['first_name']} {c['last_name']}. {order['name']} hasn't arrived.",
                                                        f"Tracking for {order['name']} says delayed again."]),
                             "status": "open", "custom_fields": {"order_number": order["name"], "reason": "delay"}})
-        elif rng.random() < 0.08:
-            tickets.append({"id": 30000 + n, "created_at": iso(min(arrive + 2 * DAY, NOW - 3600)),
+        elif rng.random() < 0.08 and delivered_at + 2 * 3600 < NOW:
+            tickets.append({"id": 30000 + n, "created_at": iso(min(delivered_at + rng.randint(2, 30) * 3600, NOW - 600)),
                             "via": {"channel": "email"}, "requester": {"id": 40000 + c["id"], "email": c["email"]},
                             "group": region,
                             "subject": "Damaged item", "description": f"The {items[0][1]} in {order['name']} arrived damaged.",

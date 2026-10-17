@@ -40,12 +40,12 @@ class Scripted:
         self.seen.extend(results)
 
 
-def run(llm, agent="support", user="u-agent-w1", task="Ticket t-90500: parcel late"):
+def run(llm, agent="support", user="u-agent-w1", task="Ticket t-90520: parcel late"):
     return asyncio.run(loop.run_agent("sandbox", user, agent, task, llm=llm))
 
 
 def test_tools_run_and_a_checked_answer_is_kept():
-    r = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90500"}}]),
+    r = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90520"}}]),
                       Turn(text="Others are affected through hub-w2.")]))
     assert r.answer_source == "model" and r.steps[0]["outcome"] == "answered_path"
 
@@ -64,7 +64,7 @@ def test_tool_outside_the_agents_set_is_refused():
 
 
 def test_made_up_name_is_replaced_by_a_sentence_from_the_rows():
-    r = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90500"}}]),
+    r = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90520"}}]),
                       Turn(text="This is all because of hub-w9.")]))
     assert r.answer_source == "rows" and "hub-w9" in r.check_failed and "hub-w9" not in r.answer
 
@@ -77,7 +77,7 @@ def test_causal_wording_about_decisions_is_rejected():
 
 
 def test_model_down_falls_back_to_the_last_good_run():
-    good = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90500"}}]),
+    good = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90520"}}]),
                          Turn(text="Others are affected through hub-w2.")]))
     again = run(Scripted([LLMUnavailable("429 quota")]))
     assert again.answer_source == "replay" and again.answer == good.answer

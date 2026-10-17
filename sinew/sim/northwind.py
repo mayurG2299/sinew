@@ -138,24 +138,26 @@ def pick_region():
 TEMPLATES = {
     "late_delivery": [
         "Hi, my order {order} still hasn't arrived. Tracking says it's stuck. Can you check?",
-        "This is {name}. Order {order} was due days ago and nothing. Please call me on {phone}.",
+        "This is {name}. Order {order} was due on {due} and nothing. Please call me on {phone}.",
         "Where is my parcel? Order {order}. The courier keeps saying delayed.",
         "Order {order} is late again. I needed it this week. What is going on?",
     ],
     "damaged": ["The {product} from order {order} arrived broken. I want a replacement or refund.",
                 "Box was crushed and the {product} doesn't work. Order {order}. Email me at {email}."],
-    "refund_status": ["I returned my order {order} two weeks ago, where is my refund?",
-                      "Still waiting for the refund on {order}. You said it would be done by now. - {name}"],
+    "refund_status": ["You promised my refund for order {order} by {due}. Where is it?",
+                      "Still waiting for the refund on {order}. You said it would be done by {due}. - {name}"],
     "wrong_item": ["I got the wrong item in order {order}. I ordered a {product}."],
     "product_issue": ["My {product} stopped working after a few days. Order {order}.",
                       "The {product} makes a strange noise, is this normal? Order {order}."],
 }
 
 
-def ticket_text(kind, order_id, product, person):
+def ticket_text(kind, order_id, product, person, due=None):
+    """Customers write the order number the way the store shows it (#4562), not the database id."""
     tpl = rng.choice(TEMPLATES[kind])
-    return tpl.format(order=order_id, product=product, name=person["name"], phone=person["phone_display"],
-                      email=person["email"])
+    due_text = datetime.fromtimestamp(due, tz=timezone.utc).strftime("%-d %b") if due else ""
+    return tpl.format(order="#" + order_id.removeprefix("o-"), product=product, name=person["name"],
+                      phone=person["phone_display"], email=person["email"], due=due_text)
 
 
 # ------------------------------------------------------------------ build
@@ -338,7 +340,7 @@ def build():
         else:
             courier, path = rng.choice(["courier-x", "courier-z"]), ["hub-s1", rng.choice(["hub-s2", "hub-s3"])]
         sid = f"sh-{oid}"
-        promised = placed + 3 * DAY
+        promised = placed + 2 * DAY  # normal delivery lands exactly on the 2-day promise
         emit("shipment.created", {"shipment_id": sid, "order_id": oid, "courier_id": courier, "promised_at": promised},
              placed + 2 * 3600, "courier")
         arrive = placed + DAY
@@ -366,35 +368,41 @@ def build():
                                    "status": "delivered"}, delivered_at, "courier")
             emit("order.updated", {"order_id": oid, "status": "delivered"}, delivered_at, "store")
 
-        # Tickets: late parcels make people write in; some other issues at a base rate.
+        # Tickets, each written at a moment that fits what happened to the order:
+        #   late delivery: after the promised date has passed, while the parcel still hasn't arrived;
+        #   damaged / wrong item: hours after delivery; product stopped working: days after delivery.
         kind = None
-        if late_hours and rng.random() < 0.7:
+        if late_hours >= 18 and rng.random() < 0.9:
             kind = "late_delivery"
-        elif any(l["batch_id"] == "b7" for l in lines) and rng.random() < 0.35:
+            t_at = promised + rng.randint(2, late_hours - 2) * 3600
+        elif delivered and any(l["batch_id"] == "b7" for l in lines) and rng.random() < 0.35:
             kind = rng.choice(["product_issue", "damaged"])
-        elif rng.random() < 0.26:
-            kind = rng.choice(["damaged", "refund_status", "wrong_item", "product_issue"])
+        elif delivered and rng.random() < 0.2:
+            kind = rng.choice(["damaged", "wrong_item", "product_issue"])
         if not kind:
             continue
+        if kind != "late_delivery":
+            t_at = delivered_at + (rng.randint(2, 5) * DAY if kind == "product_issue" else rng.randint(2, 30) * 3600)
+        if t_at >= NOW:
+            continue  # nothing after the demo's "now"
         tid = f"t-{90000 + n}"
-        t_at = min(arrive + rng.randint(4, 30) * 3600, NOW - 3600)
-        if t_at < placed:
-            continue
         channel_profiles = person["profiles"][1:] or person["profiles"]
         pf = rng.choice(channel_profiles)
         agent = rng.choice(AGENTS[region])
         emit("ticket.created", {"ticket_id": tid, "profile_id": pf, "channel": pf.rsplit("-", 1)[1],
                                 "queue_id": "q-overflow" if agent == "u-contractor-1" else QUEUE[region],
                                 "issue_type": kind, "order_id": oid, "handled_by": agent,
-                                "text": ticket_text(kind, oid, items[0]["title"], person)}, t_at, "helpdesk")
+                                "text": ticket_text(kind, oid, items[0]["title"], person, promised if kind == "late_delivery" else None)},
+             t_at, "helpdesk")
         stats["tickets"] += 1
 
         # The agent's reply often contains a promise; the AI proposes it and the agent confirms most.
-        promise_kind = {"late_delivery": "delivery", "damaged": "refund", "refund_status": "refund",
-                        "wrong_item": "refund", "product_issue": "refund"}[kind]
+        promise_kind = {"late_delivery": "delivery", "damaged": "refund", "wrong_item": "refund",
+                        "product_issue": "refund"}[kind]
         refund_amount = round(total, 2)
         will_refund = promise_kind == "refund" and rng.random() < 0.85
-        if rng.random() < 0.55:
+        due = None
+        if rng.random() < (0.8 if promise_kind == "delivery" else 0.55):  # a late parcel almost always gets a new date
             prid = f"pr-{tid}"
             due = t_at + (2 if promise_kind == "delivery" else rng.choice([3, 5])) * DAY
             emit("promise.proposed", {"promise_id": prid, "ticket_id": tid, "order_id": oid, "kind": promise_kind,
@@ -406,21 +414,29 @@ def build():
             stats["promises"] += 1
             if promise_kind == "refund" and rng.random() < 0.12:
                 will_refund = False  # the promise that gets broken
-        if will_refund:
-            r_at = t_at + rng.choice([1, 2, 3, 4, 6]) * DAY
-            if r_at < NOW:
-                approver = agent if refund_amount <= 100 else ("u-lead-west" if refund_amount <= 500 else "u-sup-head")
-                emit("refund.issued", {"refund_id": f"rf-{tid}", "order_id": oid, "amount": refund_amount,
-                                       "status": "issued", "approved_by": approver}, r_at, "payments")
-                stats["refunds"] += 1
-                if kind in ("damaged", "product_issue", "wrong_item"):
-                    emit("return.created", {"return_id": f"rt-{tid}", "line_id": lines[0]["line_id"],
-                                            "reason": kind, "status": "received"}, r_at - DAY, "store")
-                    stats["returns"] += 1
+        r_at = t_at + rng.choice([1, 2, 3, 4, 6]) * DAY
+        if will_refund and r_at < NOW:
+            emit("return.created", {"return_id": f"rt-{tid}", "line_id": lines[0]["line_id"],
+                                    "reason": kind, "status": "received"}, t_at + rng.randint(6, 20) * 3600, "store")
+            stats["returns"] += 1
+            approver = agent if refund_amount <= 100 else ("u-lead-west" if refund_amount <= 500 else "u-sup-head")
+            emit("refund.issued", {"refund_id": f"rf-{tid}", "order_id": oid, "amount": refund_amount,
+                                   "status": "issued", "approved_by": approver}, r_at, "payments")
+            stats["refunds"] += 1
+        # A promised refund that hasn't arrived by its due date makes the customer chase it.
+        paid_at = r_at if will_refund else None
+        if promise_kind == "refund" and due:
+            chase = due + rng.randint(6, 30) * 3600
+            if chase < NOW and (paid_at is None or paid_at > chase) and rng.random() < 0.8:
+                emit("ticket.created", {"ticket_id": f"t-{95000 + n}", "profile_id": pf, "channel": pf.rsplit("-", 1)[1],
+                                        "queue_id": "q-overflow" if agent == "u-contractor-1" else QUEUE[region],
+                                        "issue_type": "refund_status", "order_id": oid, "handled_by": agent,
+                                        "text": ticket_text("refund_status", oid, items[0]["title"], person, due)},
+                     chase, "helpdesk")
+                stats["tickets"] += 1
         if t_at + 2 * DAY < NOW and rng.random() < 0.7:
             emit("ticket.updated", {"ticket_id": tid, "status": "solved", "handled_by": agent}, t_at + 2 * DAY,
                  "helpdesk")
-
     events.sort(key=lambda e: e["occurred_at"])
     return stats
 

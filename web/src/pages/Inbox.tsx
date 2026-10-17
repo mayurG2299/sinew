@@ -28,7 +28,7 @@ export function Inbox({ asUser }: { asUser: string }) {
 
   useEffect(() => {
     setData(null); setSelected(null);
-    const fromLink = window.location.hash.split("/")[1];  // #inbox/t-90500 opens that ticket
+    const fromLink = window.location.hash.split("/")[1];  // #inbox/t-90520 opens that ticket
     api.inbox(asUser).then((d) => {
       setData(d);
       const first = [...d.tickets].sort((a: Row, b: Row) => urgency(b) - urgency(a) || b.at - a.at)[0];

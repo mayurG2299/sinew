@@ -21,7 +21,7 @@ def incident():
 
 
 def test_complaints_cluster_into_one_incident_rooted_at_w2(incident):
-    assert incident["tickets"] == 31 and incident["issue"] == "late_delivery" and incident["root_hub"] == "hub-w2"
+    assert incident["tickets"] == 22 and incident["issue"] == "late_delivery" and incident["root_hub"] == "hub-w2"
     shares = {s["id"]: s["share"] for s in incident["shared"]}
     assert shares["hub-w2"] == 1.0 and shares["courier-y"] == 1.0 and shares["fest40"] > 0.5
 
@@ -36,7 +36,7 @@ def test_hub_leads_to_the_courier_decision_and_the_flash_sale_link():
     a = impact.trace_decisions(T, "hub-w2")
     courier = next(d for d in a.data["decisions"] if d["decision"] == "dec-courier-y")
     assumption = courier["assumptions"][0]
-    assert assumption["status"] == "broken" and assumption["value"] == pytest.approx(0.7117, abs=1e-3)
+    assert assumption["status"] == "broken" and assumption["value"] == pytest.approx(0.7658, abs=1e-3)
     assert assumption["linked"] == "dec-flash-sale" and "58% of parcels" in assumption["basis"]
 
 
@@ -44,7 +44,7 @@ def test_impact_of_the_courier_decision():
     d = impact.decision_impact(T, "dec-courier-y").data
     assert d["keystone_rank"] == 1
     assert {x["decision"] for x in d["dependent_decisions"]} == {"dec-2day-west", "dec-drop-backup"}
-    assert d["parcels_in_transit"] == 23
+    assert d["parcels_in_transit"] == 25
     values = [c["order_value"] for c in d["customers_at_risk"]]
     assert values == sorted(values, reverse=True)
     due = [p["due_at"] for p in d["promises_at_risk"]]
