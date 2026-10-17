@@ -24,6 +24,9 @@ def clock(tenant: str) -> int:
 def resolve_customer(tenant: str, ref: str) -> str | None:
     """A customer id, a profile id, an order id, a ticket id, or a raw email/phone (hashed, never stored)."""
     g = graph(tenant)
+    ref = ref.strip()
+    if ref.startswith("#") and ref[1:].isdigit():
+        ref = "o-" + ref[1:]  # order numbers the way the store shows them
     queries = [
         ("MATCH (c:Customer {id: $r}) RETURN c.id", ref),
         ("MATCH (:Profile {id: $r})-[:OF]->(c:Customer) RETURN c.id", ref),

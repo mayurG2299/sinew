@@ -151,15 +151,27 @@ def inbox_context(v: Viewer, customer_ids: list[str], now: int) -> dict[str, dic
         "RETURN cid, count(DISTINCT pb), min(po.due_at), count(DISTINCT s)", {"cs": customer_ids}).result_set:
         out[c].update(broken_promises=broken, late_parcels=late,
                       due_soon=due if due is not None and due - now <= 86_400 else None)
-    if "name" in PERSONAL_FIELDS.get(v.role, set()) and customer_ids:
-        store = json.loads((SOURCE_RECORDS / f"{v.tenant}_personal.json").read_text()).get("Profile", {})
-        for c, records in g.ro_query(
-            "UNWIND $cs AS cid MATCH (:Customer {id: cid})<-[:OF]-(:Profile)-[:STORED_AT]->(r:PersonalRef) "
-            "RETURN cid, collect(r.record)", {"cs": customer_ids}).result_set:
-            out[c]["name"] = next((store[r]["name"] for r in records if store.get(r, {}).get("name")), None)
-        g.query(
-            "MATCH (u:User {id: $u}) UNWIND $cs AS cid MATCH (c:Customer {id: cid}) "
-            "CREATE (a:Access {id: $id + '-' + cid, at: $at, tool: 'inbox', purpose: 'support'})-[:BY]->(u), (a)-[:OF]->(c)",
-            {"u": v.user_id, "cs": [c for c in customer_ids if out[c]["name"]], "id": f"acc-{uuid.uuid4().hex[:12]}",
-             "at": int(time.time())})
+    for c, n in customer_names(v, customer_ids, "inbox").items():
+        out[c]["name"] = n
     return out
+
+
+def customer_names(v: Viewer, customer_ids: list[str], tool: str) -> dict[str, str]:
+    """Display names for a list of customers, fetched live from the store, only if this role may see names.
+    Each customer shown by name leaves an Access record, like opening their trace does."""
+    if "name" not in PERSONAL_FIELDS.get(v.role, set()) or not customer_ids:
+        return {}
+    g = graph(v.tenant)
+    store = json.loads((SOURCE_RECORDS / f"{v.tenant}_personal.json").read_text()).get("Profile", {})
+    names = {}
+    for c, records in g.ro_query(
+        "UNWIND $cs AS cid MATCH (:Customer {id: cid})<-[:OF]-(:Profile)-[:STORED_AT]->(r:PersonalRef) "
+        "RETURN cid, collect(r.record)", {"cs": customer_ids}).result_set:
+        name = next((store[r]["name"] for r in records if store.get(r, {}).get("name")), None)
+        if name:
+            names[c] = name
+    g.query(
+        "MATCH (u:User {id: $u}) UNWIND $cs AS cid MATCH (c:Customer {id: cid}) "
+        "CREATE (a:Access {id: $id + '-' + cid, at: $at, tool: $tool, purpose: 'support'})-[:BY]->(u), (a)-[:OF]->(c)",
+        {"u": v.user_id, "cs": list(names), "id": f"acc-{uuid.uuid4().hex[:12]}", "at": int(time.time()), "tool": tool})
+    return names

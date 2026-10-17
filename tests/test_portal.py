@@ -97,6 +97,8 @@ def test_privacy_export_and_delete(api):
     assert get(api, "/api/privacy/export", ref="t-95397", as_user="u-agent-w1")["outcome"] == "not_permitted"
     exported = get(api, "/api/privacy/export", ref="t-95397", as_user="u-sup-head")
     assert exported["outcome"] == "answered_path" and exported["data"]["graph_holds"]
+    holds = exported["data"]["graph_holds"]  # only this person's records, never other customers reached via a region
+    assert "Customer" not in holds and "Region" not in holds and 1 <= holds["Profile"] <= 4
     deleted = post(api, "/api/privacy/delete", {"ref": "t-95397", "as_user": "u-sup-head"})
     assert deleted["data"]["proof"]["nodes_left_with_their_ids"] == 0
 

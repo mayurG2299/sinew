@@ -187,13 +187,18 @@ def promises_board(as_user: str, tenant: str = "northwind"):
     rows = g.ro_query(
         "MATCH (p:Promise)-[:MADE_BY]->(u:User) WHERE p.status IN ['proposed', 'open', 'broken'] "
         "OPTIONAL MATCH (p)-[:CONCERNS]->(o:Order) OPTIONAL MATCH (p)-[:MADE_IN]->(t:Ticket) "
-        "RETURN p.id, p.kind, p.status, p.due_at, u.id, o.id, t.id ORDER BY p.due_at").result_set
+        "OPTIONAL MATCH (o)<-[:PLACED]-(:Profile)-[:OF]->(c:Customer) "
+        "RETURN p.id, p.kind, p.status, p.due_at, u.id, o.id, t.id, c.id, p.amount ORDER BY p.due_at").result_set
     now = trace.clock(tenant)
     team = {u for u, in g.ro_query("MATCH (:User {id: $u})-[:MEMBER_OF]->(t:Team)<-[:MEMBER_OF]-(o:User) RETURN o.id",
                                    {"u": as_user}).result_set} | {as_user}
-    out = [{"promise": p, "kind": k, "status": s, "due_at": due, "owner": u, "order": o, "ticket": t,
-            "hours_left": round((due - now) / 3600, 1)}
-           for p, k, s, due, u, o, t in rows if (u == as_user if mine_only else u in team or v.role == "support_head")]
+    out = [{"promise": p, "kind": k, "status": s, "due_at": due, "owner": u, "order": o, "ticket": t, "customer": c,
+            "amount": amount, "hours_left": round((due - now) / 3600, 1)}
+           for p, k, s, due, u, o, t, c, amount in rows
+           if (u == as_user if mine_only else u in team or v.role == "support_head")]
+    names = guard.customer_names(v, sorted({p["customer"] for p in out if p["customer"]}), "promises")
+    for p in out:
+        p["name"] = names.get(p["customer"])
     return {"now": now, "scope": "mine" if mine_only else "team", "promises": out}
 
 

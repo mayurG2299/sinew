@@ -193,15 +193,29 @@ def export_customer(tenant: str, user_id: str, ref: str) -> Answer:
     if customer is None:
         return unknown("export_customer", f"customer {ref!r}")
     g = graph(tenant)
-    held = g.ro_query(
-        "MATCH (c:Customer {id: $c})<-[:OF]-(p:Profile) "
-        "OPTIONAL MATCH (p)-[*1..2]-(x) WHERE NOT x:Region AND NOT x:Product AND NOT x:Hub AND NOT x:Queue "
-        "AND NOT x:User AND NOT x:Courier AND NOT x:Purpose AND NOT x:IssueType "
-        "RETURN labels(x)[0], count(DISTINCT x)", {"c": customer}).result_set
+    # Only records that belong to this person, each by its own directed path. (A loose "anything within two
+    # hops" walk reaches other customers through shared things like a region, so it is never used here.)
+    parts = {
+        "Profile": "(c)<-[:OF]-(x:Profile)",
+        "Identifier": "(c)<-[:OF]-(:Profile)-[:HAS]->(x:Identifier)",
+        "PersonalRef": "(c)<-[:OF]-(:Profile)-[:STORED_AT]->(x:PersonalRef)",
+        "Consent": "(c)<-[:OF]-(:Profile)-[x:CONSENTED]->(:Purpose)",
+        "Order": "(c)<-[:OF]-(:Profile)-[:PLACED]->(x:Order)",
+        "LineItem": "(c)<-[:OF]-(:Profile)-[:PLACED]->(:Order)-[:HAS]->(x:LineItem)",
+        "Payment": "(c)<-[:OF]-(:Profile)-[:PLACED]->(:Order)-[:PAID_BY]->(x:Payment)",
+        "Shipment": "(c)<-[:OF]-(:Profile)-[:PLACED]->(:Order)-[:SHIPPED_AS]->(x:Shipment)",
+        "Scan": "(c)<-[:OF]-(:Profile)-[:PLACED]->(:Order)-[:SHIPPED_AS]->(:Shipment)<-[:FOR]-(x:Scan)",
+        "Refund": "(c)<-[:OF]-(:Profile)-[:PLACED]->(:Order)<-[:FOR]-(x:Refund)",
+        "Return": "(c)<-[:OF]-(:Profile)-[:PLACED]->(:Order)-[:HAS]->(:LineItem)<-[:OF]-(x:Return)",
+        "Promise": "(c)<-[:OF]-(:Profile)-[:PLACED]->(:Order)<-[:CONCERNS]-(x:Promise)",
+        "Ticket": "(c)<-[:OF]-(:Profile)<-[:FROM]-(x:Ticket)",
+    }
+    held = [(label, g.ro_query(f"MATCH (c:Customer {{id: $c}}) MATCH {path} RETURN count(DISTINCT x)",
+                               {"c": customer}).result_set[0][0]) for label, path in parts.items()]
     accesses = g.ro_query("MATCH (a:Access)-[:OF]->(:Customer {id: $c}) RETURN count(a)", {"c": customer}).result_set
     guard.record_access(v, "export_customer", customer, purpose="privacy")
     return Answer("export_customer", "answered_path", data={
-        "customer": customer, "graph_holds": {k: n for k, n in held if k},
+        "customer": customer, "graph_holds": {k: n for k, n in held if n},
         "access_records": accesses[0][0],
         "note": "names, emails, phones and addresses are not in the graph; the store holds them"})
 
