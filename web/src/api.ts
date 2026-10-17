@@ -65,7 +65,8 @@ export function day(at: number): string {
   return new Date(at * 1000).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
 }
 
-export const money = (n: number | null | undefined) => (n == null ? "—" : `$${n.toFixed(2)}`);
+export const money = (n: number | null | undefined) =>
+  (n == null ? "—" : `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
 export const pct = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n * 100)}%`);
 
 /** Plain words for the ids people never type: hub-w2 → Hub W2, courier-y → Courier Y, fest40 → FEST40. */
@@ -83,3 +84,8 @@ export const ISSUE: Record<string, string> = {
   late_delivery: "Late delivery", damaged: "Damaged", refund_status: "Refund status", wrong_item: "Wrong item",
   product_issue: "Product issue", other: "Other",
 };
+
+/** Ids inside engine sentences, said the way people say them: "hub-w2" → "Hub W2", "campaign fest40" → "the FEST40 campaign". */
+export const plain = (text: string) => text
+  .replace(/\bcampaign ([a-z0-9]+)\b/g, (_, c) => `the ${c.toUpperCase()} campaign`)
+  .replace(/\b((?:hub|courier)-[a-z0-9]+)\b/g, (id) => place(id));

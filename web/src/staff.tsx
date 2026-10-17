@@ -9,6 +9,6 @@ export function useName() {
   return (id?: string | null) => (id ? staff[id]?.name ?? id : "—");
 }
 
-export function TicketLink({ id }: { id: string }) {
-  return <a href={`#inbox/${id}`} className="font-mono text-teal-800 underline decoration-teal-200 underline-offset-2 hover:decoration-teal-700">{id}</a>;
+export function TicketLink({ id, label = "open ticket" }: { id: string; label?: string }) {
+  return <a href={`#inbox/${id}`} title={id} className="text-teal-800 underline decoration-teal-200 underline-offset-2 hover:decoration-teal-700">{label}</a>;
 }

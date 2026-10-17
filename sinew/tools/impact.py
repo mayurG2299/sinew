@@ -126,7 +126,7 @@ def decision_impact(tenant: str, decision_id: str) -> Answer:
         "MATCH (s)<-[:SHIPPED_AS]-(o:Order)<-[:PLACED]-(:Profile)-[:OF]->(c:Customer) "
         "OPTIONAL MATCH (c)<-[:OF]-(:Profile)<-[:FROM]-(t:Ticket) WHERE t.status <> 'solved' "
         "RETURN c.id, c.tier, sum(DISTINCT o.total) AS value, collect(DISTINCT o.id), count(DISTINCT t), "
-        "max(s.late_hours) ORDER BY value DESC", {"hubs": hubs}).result_set
+        "max(s.late_hours), min(s.promised_at) ORDER BY value DESC", {"hubs": hubs}).result_set
     promises = g.ro_query(
         "MATCH (s:Shipment) WHERE s.last_hub IN $hubs AND s.status IN ['in_transit', 'delayed'] "
         "MATCH (s)<-[:SHIPPED_AS]-(o:Order)<-[:CONCERNS]-(p:Promise) WHERE p.status IN ['open', 'proposed'] "
@@ -139,7 +139,9 @@ def decision_impact(tenant: str, decision_id: str) -> Answer:
         "hubs": hubs,
         "parcels_in_transit": sum(len(r[3]) for r in at_risk),
         "customers_at_risk": [{"customer": c, "tier": tier, "order_value": round(v, 2), "orders": o,
-                               "open_tickets": t, "late_hours": late} for c, tier, v, o, t, late in at_risk],
+                               "open_tickets": t, "late_hours": late, "promised_by": due,
+                               "past_promise": due is not None and due < now}
+                              for c, tier, v, o, t, late, due in at_risk],
         "promises_at_risk": [{"promise": p, "kind": k, "due_at": due, "order": o, "ticket": t,
                               "hours_left": round((due - now) / 3600, 1)} for p, k, due, o, t in promises],
     }

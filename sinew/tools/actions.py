@@ -116,7 +116,7 @@ def file_incident(tenant: str, user_id: str, title: str, ticket_ids: list[str], 
     if v is None:
         return unknown("file_incident", f"user {user_id}")
     if v.role not in INCIDENT_ROLES:
-        return refused("file_incident", f"filing incidents needs one of {sorted(INCIDENT_ROLES)}")
+        return refused("file_incident", "only team leads, the head of support or logistics managers can open incidents")
     if not resolve(tenant, "Hub", root_hub):
         return unknown("file_incident", f"hub {root_hub}")
     incident_id = _id("inc")
