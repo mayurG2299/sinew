@@ -66,7 +66,7 @@ TOOL_AREA = {
     "customer_trace": "support", "open_loops": "support", "related_issues": "support", "search_tickets": "support",
     "find_approver": "support", "issue_refund": "support", "record_promise": "support", "confirm_promise": "support",
     "promises": "support", "inbox": "support", "order_detail": "support",
-    "decision_detail": "operations", "hub_status": "operations",
+    "decision_detail": "operations", "hub_status": "operations", "product_status": "operations",
     "cluster_incidents": "operations", "trace_decisions": "operations", "decision_impact": "operations",
     "prelaunch_check": "operations", "reroute": "operations", "choke_points": "operations",
     "evaluate_assumptions": "operations", "file_incident": "operations", "notify_owner": "operations",

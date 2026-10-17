@@ -18,7 +18,8 @@ from pathlib import Path
 
 from mcp import Client
 
-from sinew.agents import check, prompts, router
+from sinew import brain
+from sinew.agents import check, prompts
 from sinew.agents.llm import Gemini, LLMUnavailable
 from sinew.engine import snapshot
 from sinew.mcp_server import build_server
@@ -57,6 +58,8 @@ class Run:
     model_ms: list[float] = field(default_factory=list)  # time spent waiting for the model, per turn
     sources: list[dict] = field(default_factory=list)  # document passages behind the answer, from the graph
     repaired: str = ""  # what the first answer got wrong, when one corrected rewrite passed the check
+    plan: dict = field(default_factory=dict)  # how the question was understood and broken down
+    draft: str = ""  # the answer written from the fact sheet alone (used if the model can't do better)
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -92,26 +95,28 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
         async with Client(server) as mcp:
             listed = [t for t in (await mcp.list_tools()).tools if t.name in allowed]
             destructive = {t.name for t in listed if t.annotations and t.annotations.destructive_hint}
-            # The graph goes first: walk from what the question names, without the model choosing, and hand the
-            # results over with the question. The model may still call more read tools if it needs them.
-            todo, facts = router.route(tenant, task), []
-            while todo:
-                name, args = todo.pop(0)
-                t0 = time.perf_counter()
-                out = await mcp.call_tool(name, args)
-                try:
-                    result = json.loads(out.content[0].text)
-                except Exception:
-                    continue
-                run.results.append(result)
-                run.steps.append({"tool": name, "args": args, "outcome": result.get("outcome"),
-                                  "ms": round((time.perf_counter() - t0) * 1000, 1), "tool_ms": result.get("ms"),
-                                  "by": "graph"})
-                facts.append(f"{name} {json.dumps(args)}: {for_model(result)}")
-                todo += router.follow_up(name, result)
-            message = task if not facts else (
-                f"{task}\n\nSinew already looked this up in the company graph for this person (permissions applied). "
-                "Answer from these results; call another tool only if something needed is missing.\n\n" + "\n\n".join(facts))
+            # The analysis layer goes first: understand and break down the question, walk the graph from what it
+            # names (as this person), reconcile into a fact sheet, and write a correct draft from it. The model
+            # then only rewrites the draft for the person; it may call more read tools if something is missing.
+            plan, per_part, sheet = await brain.analyse(tenant, user_id, task)
+            for got in per_part:
+                for result in got:
+                    call = result.pop("_call", {})
+                    if result not in run.results:
+                        run.results.append(result)
+                        run.steps.append({"tool": call.get("tool", result.get("tool")), "args": call.get("args", {}),
+                                          "outcome": result.get("outcome"), "ms": call.get("ms"),
+                                          "tool_ms": result.get("ms"), "by": "graph"})
+            run.plan = {"parts": [{"ask": p["ask"], "intents": p["intents"], "named": p["named"], "status": p["status"]}
+                                  for p in sheet["parts"]], "window": sheet["window"]}
+            run.draft = brain.write(sheet)
+            message = (f"{task}\n\nSinew analysed this question and walked the company graph for this person "
+                       f"(permissions applied). Fact sheet:\n{json.dumps(sheet, default=str)[:RESULT_CHARS]}\n\n"
+                       f"Correct draft written from the fact sheet:\n{run.draft}\n\n"
+                       "Rewrite the draft as your answer for this person: keep every fact and number, add nothing that "
+                       "is not in the fact sheet, follow the format rules. Keep any \"What to do:\" lines exactly as "
+                       "written, and keep the note that an overlap is not proof of cause. Call a tool only if something "
+                       "asked is missing.")
             llm.start(prompts.SYSTEM[agent], [{"name": t.name, "description": t.description or "",
                                                "input_schema": t.input_schema} for t in listed], message)
             for _ in range(MAX_STEPS):
@@ -172,14 +177,14 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
             replay.ms = round((time.perf_counter() - start) * 1000, 1)
             replay.sources = docs.sources(tenant, user_id, replay.results, task, answer=replay.answer)
             return replay
-        run.answer = check.fallback(run.results) if run.results else \
-            f"The AI is unavailable right now ({e}). The graph tools still work."
+        run.answer = run.draft or (check.fallback(run.results) if run.results else
+                                   f"The AI is unavailable right now ({e}). The graph tools still work.")
         run.answer_source, run.check_failed = "rows", f"model unavailable: {str(e)[:120]}"
         run.ms = round((time.perf_counter() - start) * 1000, 1)
         return run
     ok, why = check.check(run.answer, run.results, task) if run.answer else (False, "the model gave no answer")
     if not ok:
-        run.check_failed, run.answer, run.answer_source = why, check.fallback(run.results), "rows"
+        run.check_failed, run.answer, run.answer_source = why, run.draft or check.fallback(run.results), "rows"
     else:
         run.answer = check.plain(run.answer)
     run.ms = round((time.perf_counter() - start) * 1000, 1)

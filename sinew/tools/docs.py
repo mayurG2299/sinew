@@ -29,21 +29,20 @@ def _query(text: str) -> str:
     return "|".join(words)
 
 
-def _rows(tenant: str, user_id: str, text: str | None, about: list[str]) -> tuple[dict[str, dict], int]:
+def _rows(tenant: str, user_id: str, text: str | None, about: list[str]) -> tuple[dict[str, dict], dict[str, str]]:
     """Matching passages this person may read, and how many matching passages they may not.
     The role -> area path is part of the query, so a passage outside it is never read."""
     g = graph(tenant)
     found: dict[str, dict] = {}
-    held: set[str] = set()
+    held: dict[str, str] = {}  # passage -> its words, only to judge relevance; never returned
     may = "MATCH (d)-[:IN_AREA]->(a:Area) OPTIONAL MATCH (:User {id: $u})-[:HAS_ROLE]->(:Role)-[ok:CAN_READ]->(a) "
     keep = ("WITH p, d, score, ok WITH p, d, score, ok IS NOT NULL AS allowed "
-            "RETURN p.id, allowed, CASE WHEN allowed THEN p.heading END, CASE WHEN allowed THEN p.text_clean END, "
-            "d.id, CASE WHEN allowed THEN d.title END, CASE WHEN allowed THEN d.kind END, score")
+            "RETURN p.id, allowed, p.heading, p.text_clean, d.id, d.title, d.kind, score")
 
     def add(rows, score_of):
         for pid, allowed, heading, body, did, title, kind, score in rows:
             if not allowed:
-                held.add(pid)
+                held[pid] = f"{title} {heading} {body}"
                 continue
             hit = found.setdefault(pid, {"passage": pid, "heading": heading, "text": body, "doc": did, "title": title,
                                          "kind": kind, "score": 0.0})
@@ -57,7 +56,7 @@ def _rows(tenant: str, user_id: str, text: str | None, about: list[str]) -> tupl
         add(g.ro_query("MATCH (p:Passage)-[:MENTIONS]->(x) WHERE x.id IN $about WITH p, count(x) AS score "
                        "MATCH (p)-[:PART_OF]->(d:Doc) " + may + keep, {"about": about, "u": user_id}).result_set,
             lambda n: 2.0 * n)
-    return found, len(held - set(found))
+    return found, {k: v for k, v in held.items() if k not in found}
 
 
 def search_docs(tenant: str, user_id: str, text: str | None = None, about: list[str] | None = None,
@@ -66,7 +65,14 @@ def search_docs(tenant: str, user_id: str, text: str | None = None, about: list[
     v = guard.Viewer.load(tenant, user_id)
     if v is None:
         return unknown("search_docs", f"user {user_id}")
-    found, held = _rows(tenant, user_id, text, about or [])
+    found, held_text = _rows(tenant, user_id, text, about or [])
+    if text and not about:  # a passage must share real content words with the question (two when it has 3+)
+        content = _content(text)
+        need = 1 if len(content) <= 2 else 2
+        relevant = lambda words: len(content & _content(words)) >= need
+        found = {k: h for k, h in found.items() if relevant(f"{h['title']} {h['heading']} {h['text']}")}
+        held_text = {k: w for k, w in held_text.items() if relevant(w)}
+    held = len(held_text)
     shown = sorted(found.values(), key=lambda h: -h["score"])
     hidden = [{"kind": "passage", "count": held, "reason": "in documents your role can't read"}] if held else []
     ms = round((time.perf_counter() - start) * 1000, 1)
@@ -119,6 +125,16 @@ def sources(tenant: str, user_id: str, results: list[dict], question: str = "", 
     else:
         picked = list(candidates.values())
     return [{k: h[k] for k in ("passage", "doc", "title", "kind", "heading", "text")} for h in picked[:limit]]
+
+
+QUESTION_STOP = {"what", "does", "much", "many", "have", "has", "who", "how", "the", "our", "for", "with", "about",
+                 "tell", "show", "this", "that", "week", "per", "is", "are", "was", "were", "did", "do", "we", "you",
+                 "can", "should", "must", "will", "into", "from", "there", "their", "when", "which", "any", "all"}
+
+
+def _content(text: str) -> set[str]:
+    """Content words, cut to a 5-letter stem so refund/refunds and decide/decided meet."""
+    return {w[:5] for w in re.findall(r"[a-z0-9]{3,}", text.lower()) if w not in QUESTION_STOP}
 
 
 STOP = {"that", "this", "with", "from", "have", "will", "must", "they", "their", "there", "what", "when", "which",

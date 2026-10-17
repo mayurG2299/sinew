@@ -15,12 +15,8 @@ import sys
 import time
 from pathlib import Path
 
-from mcp import Client
-
-from sinew.agents.router import follow_up, route
 from sinew.db import graph
 from sinew.eval import has_amount
-from sinew.mcp_server import build_server
 from sinew.tools.trace import clock
 
 DAY = 86_400
@@ -31,14 +27,16 @@ def q(tenant, cypher, **p):
 
 
 async def retrieve(tenant: str, user: str, question: str) -> list[dict]:
-    out = []
-    async with Client(build_server(tenant, user, read_only=True)) as c:
-        todo = route(tenant, question)
-        while todo:
-            name, args = todo.pop(0)
-            res = json.loads((await c.call_tool(name, args)).content[0].text)
-            out.append(res)
-            todo += follow_up(name, res)
+    """Exactly what the app does before the AI: the analysis layer's walks, as this person."""
+    from sinew.brain import analyse
+    _, per_part, _ = await analyse(tenant, user, question)
+    seen, out = set(), []
+    for got in per_part:
+        for r in got:
+            key = json.dumps(r.get("_call") or r, sort_keys=True, default=str)
+            if key not in seen:
+                seen.add(key)
+                out.append(r)
     return out
 
 

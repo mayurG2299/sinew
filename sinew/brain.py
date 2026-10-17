@@ -1,0 +1,545 @@
+"""The analysis layer: understand the question, break it down, walk the graph, reconcile, and only then write.
+
+    understand(question)  -> Plan: who is asking, the things named (linked to real graph nodes), the time window,
+                             and the parts of the question, each with its intent
+    walks(plan)           -> for each part, the graph walks that answer it, starting at the nodes it names
+    traverse(...)         -> runs them as the person asking (same tool server, same permission checks), plus
+                             memory: earlier findings about the same things
+    reconcile(...)        -> one fact sheet: facts per part with their scope and source, gaps named
+                             (no data vs no access), scopes labelled where two figures could look like a
+                             conflict, and recommendations that follow from the facts
+    write(sheet)          -> a plain answer from the fact sheet alone; the AI rewrites it in better words
+                             when it is available, and is checked against the same facts
+
+Stages 1, 2 and 4 are deterministic and have their own tests; the AI is only ever the last step.
+"""
+
+import json
+import re
+import time
+from dataclasses import asdict, dataclass, field
+
+from mcp import Client
+
+from sinew.db import graph
+from sinew.mcp_server import build_server
+from sinew.tools import guard
+from sinew.tools.trace import clock
+
+DAY = 86_400
+GENERIC = {"courier", "cost", "costs", "deliveries", "delivery", "customers", "hub", "sale", "day", "the", "and",
+           "west", "east", "region", "run", "off", "for", "with", "move", "home", "kitchen"}
+
+INTENTS = [  # (intent, pattern) in the order they are reported
+    ("why", r"\bwhy\b|what('s| is) behind|root cause|what caused|reason for"),
+    ("what_to_do", r"what should (we|i) do|what (do|can) (we|i) do|what to do|recommend|next step|how (do|can) we fix|should we"),
+    ("pulse", r"how is the company|how are we doing|state of the company|company doing|overview|summary|how('s| is) (it|business) going"),
+    ("cost", r"\bcost|spend|budget|price|revenue|margin|money"),
+    ("policy", r"polic|rule|how fast|who (can|has to|must|should) approve|allowed|contract|agreement|terms|guideline|"
+               r"standard|leave|process for|plan for|meeting notes|what did we (agree|decide)"),
+    ("count", r"how many|how much|what('s| is) the (rate|number)|on-?time|percent|%"),
+]
+
+
+@dataclass
+class Entity:
+    kind: str      # Order, Hub, Courier, Campaign, Decision, Product, Batch, Region
+    id: str
+    label: str
+    said: str      # the words in the question that named it
+
+
+@dataclass
+class Part:
+    text: str
+    intents: list[str]
+    entities: list[Entity]
+
+
+@dataclass
+class Plan:
+    question: str
+    tenant: str
+    user: str
+    role: str
+    areas: list[str]
+    window: dict
+    entities: list[Entity] = field(default_factory=list)
+    parts: list[Part] = field(default_factory=list)
+
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+# ------------------------------------------------------------------ 1. understand
+
+_INDEX: dict[str, tuple[float, list[tuple[str, str, str, list[str]]]]] = {}
+
+
+def _index(tenant: str) -> list[tuple[str, str, str, list[str]]]:
+    """(kind, id, label, ways people say it) for everything a question can name; cached for a minute."""
+    hit = _INDEX.get(tenant)
+    if hit and time.time() - hit[0] < 60:
+        return hit[1]
+    g = graph(tenant)
+    out = []
+    for hid, in g.ro_query("MATCH (h:Hub) RETURN h.id").result_set:
+        code = hid.split("-", 1)[1]
+        out.append(("Hub", hid, f"Hub {code.upper()}", [f"hub {code}", f"hub-{code}", f"hub{code}"]))
+    for cid, name in g.ro_query("MATCH (c:Courier) RETURN c.id, c.name").result_set:
+        code = cid.split("-", 1)[1]
+        out.append(("Courier", cid, f"Courier {code.upper()}", [f"courier {code}", cid]))
+    for cid, name, coupons in g.ro_query("MATCH (c:Campaign) OPTIONAL MATCH (k:Coupon)-[:OF]->(c) "
+                                         "RETURN c.id, c.name, collect(k.id)").result_set:
+        out.append(("Campaign", cid, name, [cid, name.lower()] + [k.lower() for k in coupons]))
+    for pid, title in g.ro_query("MATCH (p:Product) RETURN p.id, p.title").result_set:
+        out.append(("Product", pid, title, [title.lower()]))
+    for bid, in g.ro_query("MATCH (b:Batch) WHERE NOT b.id STARTS WITH 'b-' RETURN b.id").result_set:
+        out.append(("Batch", bid, f"Batch {bid.upper()}", [f"batch {bid}", bid]))
+    for rid, in g.ro_query("MATCH (r:Region) RETURN r.id").result_set:
+        out.append(("Region", rid, rid.title(), [f"{rid} region", f"the {rid}", f"in {rid}"]))
+    for did, title in g.ro_query("MATCH (d:Decision) RETURN d.id, d.title").result_set:
+        out.append(("Decision", did, title, [did, title.lower()]))
+    _INDEX[tenant] = (time.time(), out)
+    return out
+
+
+def _link(tenant: str, text: str) -> list[Entity]:
+    t = " " + re.sub(r"[^a-z0-9#\-\s]", " ", text.lower()) + " "
+    found: list[Entity] = []
+    seen = set()
+
+    def add(kind, nid, label, said):
+        if nid not in seen:
+            seen.add(nid)
+            found.append(Entity(kind, nid, label, said))
+
+    for m in re.finditer(r"\bt-(\d{4,6})\b", t):  # a ticket (the portal passes the one being handled)
+        if graph(tenant).ro_query("MATCH (x:Ticket {id: $t}) RETURN 1", {"t": f"t-{m.group(1)}"}).result_set:
+            add("Ticket", f"t-{m.group(1)}", "this ticket", m.group(0))
+    for m in re.finditer(r"(?<!t-)#\s?(\d{3,6})|\border\s+(?:number\s+)?(\d{3,6})", t):
+        n = m.group(1) or m.group(2)
+        if graph(tenant).ro_query("MATCH (o:Order {id: $o}) RETURN 1", {"o": f"o-{n}"}).result_set:
+            add("Order", f"o-{n}", f"order #{n}", m.group(0).strip())
+    words = set(re.findall(r"[a-z0-9]{3,}", t))
+    decisions = []
+    for kind, nid, label, ways in _index(tenant):
+        if kind == "Decision":
+            decisions.append((nid, label))
+            if any(f" {w} " in t for w in ways):
+                add(kind, nid, label, label)
+            continue
+        for w in ways:
+            if re.search(rf"(?<![a-z0-9]){re.escape(w)}(?![a-z0-9])", t):
+                add(kind, nid, label, w)
+                break
+    title_words = {did: set(re.findall(r"[a-z0-9]{3,}", title.lower())) - GENERIC for did, title in decisions}
+    for did, title in decisions:  # a decision named by its title words ("the courier y switch", "the backup courier")
+        tw = title_words[did]
+        hit = tw & words
+        unique = {w for w in hit if len(w) >= 4 and sum(w in o for o in title_words.values()) == 1}
+        if hit and (len(hit) >= 2 or unique or (len(tw) and len(hit) / len(tw) >= 0.6)):
+            add("Decision", did, title, " ".join(sorted(hit)))
+    return found
+
+
+def _window(text: str, now: int) -> dict:
+    t = text.lower()
+    m = re.search(r"last (\d{1,3}) days", t)
+    if m:
+        d = int(m.group(1))
+    elif "today" in t:
+        d = 1
+    elif "yesterday" in t:
+        return {"label": "yesterday", "start": now - 2 * DAY, "end": now - DAY, "days": 1}
+    elif "this month" in t or "last month" in t or "30 days" in t:
+        d = 30
+    else:
+        d = 7
+    return {"label": {1: "today", 7: "this week", 30: "the last 30 days"}.get(d, f"the last {d} days"),
+            "start": now - d * DAY, "end": now, "days": d}
+
+
+def _intents(text: str, entities: list[Entity]) -> list[str]:
+    t = text.lower()
+    found = [name for name, pattern in INTENTS if re.search(pattern, t)]
+    if entities and not {"why", "pulse"} & set(found):
+        found.insert(0, "status")  # a named thing: tell me about it
+    return found or ["status" if entities else "unknown"]
+
+
+def _split(question: str) -> list[str]:
+    """Break a question into parts that each ask for something different."""
+    pieces = [p.strip(" ,;") for p in re.split(r"\?|;|\band (?=what|why|how|who|which|when|is|are|can|should)\b", question)]
+    return [p for p in pieces if len(p) > 3] or [question]
+
+
+def understand(tenant: str, user_id: str, question: str) -> Plan:
+    v = guard.Viewer.load(tenant, user_id)
+    now = clock(tenant)
+    plan = Plan(question, tenant, user_id, v.role if v else "", v.areas if v else [], _window(question, now))
+    plan.entities = _link(tenant, question)
+    for text in _split(question):
+        ents = _link(tenant, text) or ([] if len(_split(question)) > 1 else plan.entities)
+        plan.parts.append(Part(text, _intents(text, ents), ents))
+    # "...and what should we do?" refers to the things named earlier in the question
+    for p in plan.parts:
+        if not p.entities and p.intents in (["what_to_do"], ["unknown"]) and plan.entities:
+            p.entities = plan.entities
+    return plan
+
+
+# ------------------------------------------------------------------ 2. walks for each part
+
+def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
+    """For each part, the graph walks that answer it, starting at what it names."""
+    out = []
+    for p in plan.parts:
+        calls: list[tuple[str, dict]] = []
+        for e in p.entities:
+            if e.kind == "Ticket":
+                calls += [("customer_trace", {"customer": e.id}), ("open_loops", {"customer": e.id}),
+                          ("related_issues", {"ticket_id": e.id})]
+            elif e.kind == "Order":
+                calls.append(("order_detail", {"order": "#" + e.id[2:]}))
+            elif e.kind == "Hub":
+                calls.append(("hub_status", {"hub": e.label}))
+            elif e.kind == "Decision":
+                calls.append(("decision_detail", {"decision": e.id}))
+            elif e.kind in ("Campaign", "Courier"):
+                chosen = graph(plan.tenant).ro_query("MATCH (d:Decision)-[:CHOSE]->({id: $x}) RETURN d.id", {"x": e.id}).result_set
+                calls += [("decision_detail", {"decision": d}) for d, in chosen]
+            elif e.kind in ("Product", "Batch"):
+                calls.append(("product_status", {"item": e.id if e.kind == "Batch" else e.label,
+                                                 "days": max(plan.window["days"], 30)}))
+        if "why" in p.intents or ("what_to_do" in p.intents and not p.entities):
+            calls += [("cluster_incidents", {}), ("prelaunch_check", {})]
+        if "what_to_do" in p.intents:
+            calls.append(("prelaunch_check", {}))
+        if "pulse" in p.intents or ("count" in p.intents and not p.entities):
+            calls.append(("company_pulse", {"days": plan.window["days"]}))
+        if ("cost" in p.intents and not any(c[0] == "order_detail" for c in calls)) or "policy" in p.intents:
+            calls.append(("search_docs", {"text": p.text}))
+        if "cost" in p.intents and not p.entities:
+            calls.append(("company_pulse", {"days": plan.window["days"]}))
+        if not calls:
+            calls.append(("search_docs", {"text": p.text}))  # nothing named: maybe a document knows
+        seen, unique = set(), []
+        for c in calls:
+            key = (c[0], json.dumps(c[1], sort_keys=True))
+            if key not in seen:
+                seen.add(key)
+                unique.append(c)
+        out.append(unique)
+    return out
+
+
+# ------------------------------------------------------------------ 3. traverse
+
+def follow_up(name: str, result: dict) -> list[tuple[str, dict]]:
+    """Steps that depend on an earlier result: a complaint cluster leads to its root hub's decisions, and a
+    decision whose assumption no longer holds leads to what rests on it."""
+    if result.get("outcome") != "answered_path":
+        return []
+    if name == "cluster_incidents":
+        root = (result["data"].get("clusters") or [{}])[0].get("root_hub")
+        return [("trace_decisions", {"hub_id": root})] if root else []
+    if name == "trace_decisions":
+        broken = [d["decision"] for d in result["data"]["decisions"] if any(a["status"] == "broken" for a in d["assumptions"])]
+        linked = [d["decision"] for d in result["data"]["decisions"]
+                  if any(a["status"] == "broken" and a.get("linked") for a in d["assumptions"])]
+        first = (linked or broken)[:1]
+        return [("decision_impact", {"decision_id": first[0]})] if first else []
+    return []
+
+
+async def traverse(plan: Plan, per_part: list[list[tuple[str, dict]]]) -> list[list[dict]]:
+    """Run each part's walks as the person asking; add earlier findings (memory) about the things named."""
+    done: dict[str, dict] = {}
+    results: list[list[dict]] = []
+    async with Client(build_server(plan.tenant, plan.user, read_only=True)) as c:
+        async def call(name, args):
+            key = name + json.dumps(args, sort_keys=True)
+            if key not in done:
+                t0 = time.perf_counter()
+                out = await c.call_tool(name, args)
+                try:
+                    res = json.loads(out.content[0].text)
+                except Exception:
+                    res = {"tool": name, "outcome": "error", "reason": out.content[0].text[:200]}
+                res["_call"] = {"tool": name, "args": args, "ms": round((time.perf_counter() - t0) * 1000, 1)}
+                done[key] = res
+            return done[key]
+
+        for calls, part in zip(per_part, plan.parts):
+            got, todo = [], list(calls)
+            while todo:
+                name, args = todo.pop(0)
+                res = await call(name, args)
+                got.append(res)
+                todo += follow_up(name, res)
+            for e in part.entities:
+                mem = await call("recall", {"about": e.id})
+                if mem.get("outcome") == "answered_memory":
+                    got.append(mem)
+            results.append(got)
+    return results
+
+
+# ------------------------------------------------------------------ 4. reconcile
+
+def _slim(result: dict) -> dict:
+    return {k: v for k, v in result.items() if k not in ("paths", "_call", "ms") and v not in ("", [], None)}
+
+
+def _scope(result: dict, plan: Plan) -> str:
+    tool = result.get("tool")
+    d = result.get("data") or {}
+    if tool == "hub_status":
+        return d.get("hub", "a hub")
+    if tool == "order_detail":
+        return f"order {d.get('order')}"
+    if tool == "decision_detail":
+        return f"decision \"{d.get('decision')}\""
+    if tool == "company_pulse":
+        return f"whole company, {plan.window['label']}"
+    return tool or ""
+
+
+ANSWERED_BY = {  # which walks can answer an intent; None = any walk about the named thing
+    "why": {"cluster_incidents", "trace_decisions", "decision_impact"},
+    "what_to_do": {"prelaunch_check", "trace_decisions", "cluster_incidents"},
+    "pulse": {"company_pulse"}, "cost": {"search_docs", "company_pulse"}, "policy": {"search_docs", "decision_detail"},
+    "count": None, "status": None, "unknown": None,
+}
+SPECIFIC = {"why", "what_to_do", "pulse", "cost", "policy"}
+MONEY = re.compile(r"\$\s?\d")
+
+
+def _answers(part: Part, r: dict) -> bool:
+    """Does this result answer what the part asks (not just mention the thing it names)?"""
+    if r.get("outcome") not in ("answered_path", "answered_memory"):
+        return False
+    primary = [i for i in part.intents if i in SPECIFIC] or part.intents
+    for intent in primary:
+        tools = ANSWERED_BY.get(intent)
+        if tools is not None and r.get("tool") not in tools:
+            continue
+        if intent == "cost":  # a cost question is answered only by an actual money figure
+            body = json.dumps((r.get("data") or {}).get("finance") if r.get("tool") == "company_pulse" else r.get("data"))
+            if not MONEY.search(body or ""):
+                continue
+        return True
+    return False
+
+
+def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
+    """One fact sheet: each part's facts with their scope, what's missing and why, and next steps that follow."""
+    parts, recs, hidden = [], [], []
+    for part, got in zip(plan.parts, results):
+        answering = [r for r in got if _answers(part, r)]
+        context = [r for r in got if r not in answering and r.get("outcome") in ("answered_path", "answered_memory")
+                   and not ({"cost", "policy"} & set(part.intents))]  # a status is not an answer to a cost question
+        blocked = [r for r in got if r.get("outcome") == "not_permitted" or r.get("hidden")]
+        for r in got:
+            for h in r.get("hidden") or []:
+                if h not in hidden:
+                    hidden.append(h)
+        if answering:
+            status, why = "answered", ""
+        elif blocked:
+            status, why = "no_access", next((r.get("reason") for r in blocked if r.get("reason")), "")
+        else:
+            status, why = "no_data", next((r.get("reason") for r in got if r.get("reason")), "")
+        answered = answering + (context if answering or not blocked else [])
+        facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities], **_slim(r)}
+                 for r in answered]
+        parts.append({"ask": part.text, "intents": part.intents, "named": [e.label for e in part.entities],
+                      "status": status, "why_missing": why, "facts": facts})
+        if "what_to_do" in part.intents or "why" in part.intents:
+            recs += _recommend(got)
+    # Two on-time figures with different scopes are not a conflict; say which is which.
+    notes = []
+    scopes = {f["scope"] for p in parts for f in p["facts"] if f["from"] in ("hub_status", "company_pulse")}
+    if len(scopes) > 1:
+        notes.append("On-time figures differ by scope: " + " vs ".join(sorted(scopes)) + "; both are correct for their scope.")
+    seen, unique_recs = set(), []
+    for r in recs:
+        if r not in seen:
+            seen.add(r)
+            unique_recs.append(r)
+    return {"question": plan.question, "asked_by": plan.role, "window": plan.window["label"], "parts": parts,
+            "what_to_do": unique_recs[:3] if any("what_to_do" in p.intents for p in plan.parts) else [],
+            "hidden": hidden, "notes": notes}
+
+
+def _recommend(got: list[dict]) -> list[str]:
+    """Next steps that follow from the facts, never invented: a reroute the graph found, a decision to review."""
+    out = []
+    for r in got:
+        d = r.get("data") or {}
+        if r.get("tool") == "prelaunch_check" and r.get("outcome") == "answered_path":
+            for w in d.get("warnings", []):
+                if w.get("reroute"):
+                    hub = w["reroute"]["hub"].split("-", 1)[1].upper()
+                    out.append(f"Route the {w['name']} through Hub {hub} instead of {w['hub'].replace('hub-', 'Hub ').upper().replace('HUB', 'Hub')} "
+                               f"(about {w['reroute']['hours']:g} h, room for {w['reroute']['capacity']} parcels a day).")
+        if r.get("tool") == "trace_decisions" and r.get("outcome") == "answered_path":
+            for dec in d.get("decisions", []):
+                broken = [a for a in dec["assumptions"] if a["status"] == "broken" and a.get("linked")]
+                if broken:
+                    out.append(f"Review \"{dec['title']}\" with its owner: it assumed {broken[0]['statement'][0].lower() + broken[0]['statement'][1:]}, "
+                               "and that no longer holds.")
+                    break
+    return out
+
+
+# ------------------------------------------------------------------ 5. write (from the fact sheet only)
+
+def _when(at) -> str:
+    return time.strftime("%-d %b", time.gmtime(at)) if at else "?"
+
+
+def _money(x) -> str:
+    return x if isinstance(x, str) else f"${x:,.2f}"
+
+
+def _say_fact(f: dict) -> list[str]:
+    d = f.get("data") or {}
+    tool = f["from"]
+    if tool == "order_detail":
+        dl = d["delivery"]
+        state = f"delivered on {dl['delivered_on']}" if dl["delivered"] else f"{dl['status']}" + (f", {dl['late_hours']} h late" if dl.get("late_hours") else "")
+        lines = [f"Order {d['order']}: {_money(d['total'])}, {state}."]
+        if d.get("refunded_total"):
+            lines.append(f"Refunded: {_money(d['refunded_total'])}.")
+        open_c = [c for c in d.get("commitments", []) if c["overdue"]]
+        if open_c:
+            lines.append(f"Overdue: a {open_c[0]['kind']} that was due {open_c[0]['due']}.")
+        return lines
+    if tool == "decision_detail":
+        lines = [f"\"{d['decision']}\" (made {d['made']})."]
+        for a in d.get("assumptions", []):
+            lines.append(f"It assumed {a['assumed'][0].lower() + a['assumed'][1:]}: needs {a['needs']}, now {a['now']}"
+                         + (" (holds)." if a["holds"] else " (no longer holds)."))
+        if d.get("campaign", {}).get("starts_in_days"):
+            lines.append(f"{d['campaign']['name']} starts in {d['campaign']['starts_in_days']} days.")
+        return lines
+    if tool == "hub_status":
+        return [f"{d['hub']}: {d['parcels_there_now']} parcels there now for {d['customers_waiting']} customers, "
+                f"{d['late_now']} late; on time this week {d['on_time_this_week']}; capacity {d['capacity_per_day']} a day."]
+    if tool == "company_pulse":
+        lines = []
+        before = lambda x: f" (before: {x})" if x not in (0, None, "$0.00") else ""
+        if d.get("support"):
+            lines.append(f"Tickets: {d['support']['tickets_this_week']}{before(d['support']['tickets_last_week'])}.")
+        if d.get("operations") and d["operations"].get("on_time_rate") is not None:
+            lines.append(f"On time: {round(d['operations']['on_time_rate'] * 100)}% of deliveries; "
+                         f"{d['operations']['parcels_late_now']} parcels late now.")
+        if d.get("marketing"):
+            lines.append(f"Orders: {d['marketing']['orders_this_week']}{before(d['marketing']['orders_last_week'])}.")
+        if d.get("finance"):
+            lines.append(f"Revenue: {d['finance']['revenue_this_week']}{before(d['finance']['revenue_last_week'])}.")
+        return lines
+    if tool == "search_docs":
+        return [f"{x['title']}, \"{x['heading']}\": {x['text']}" for x in (f.get("data") or [])[:2]]
+    if tool == "customer_trace":
+        kinds = [i["kind"] for i in d.get("timeline", [])]
+        tickets = [i for i in d.get("timeline", []) if i["kind"] == "ticket"]
+        current = next((i for i in tickets if i["id"] in f.get("named", [])), tickets[-1] if tickets else None)
+        n = lambda k, word: f"{kinds.count(k)} {word}{'' if kinds.count(k) == 1 else 's'}"
+        lines = [f"This customer has {n('order', 'order')}, {n('ticket', 'ticket')} and {n('refund', 'refund')}."]
+        if current:
+            lines.append(f"Latest ticket ({(current.get('issue') or '').replace('_', ' ')}, {current.get('status')}): "
+                         f"\"{current.get('summary')}\"")
+        return lines
+    if tool == "open_loops":
+        lines = []
+        for p in d.get("broken_promises", []):
+            lines.append(f"Overdue: a {p['promise']} on order #{p['order'][2:]} was due {_when(p['due_at'])}.")
+        for s in d.get("late_in_transit", []):
+            lines.append(f"Late: order #{s['order'][2:]} is at {s['hub'].replace('hub-', 'Hub ').upper().replace('HUB', 'Hub')}, {s['late_hours']} h late.")
+        for p in d.get("open_promises", []):
+            lines.append(f"Still due: a {p['promise']} on order #{p['order'][2:]} by {_when(p['due_at'])}.")
+        others = len(d.get("open_tickets", [])) - 1
+        if others > 0:
+            lines.append(f"{others} other open tickets from this customer.")
+        return lines
+    if tool == "related_issues" and d.get("shared"):
+        s = d["shared"][0]
+        top = [x for x in d["shared"] if x["other_tickets"] == s["other_tickets"]]
+        name = lambda i: i.replace("hub-", "Hub ").replace("courier-", "Courier ").upper().replace("HUB", "Hub").replace("COURIER", "Courier")
+        return [f"{s['other_tickets']} other tickets in the last {d.get('days')} days went through the same places: "
+                f"{', '.join(name(x['id']) for x in top)}."]
+    if tool == "trace_decisions":
+        lines, said_overlap = [], False
+        for dec in d.get("decisions", []):
+            for a in dec["assumptions"]:
+                if a["status"] == "broken":
+                    now_v = f"{round(a['value'] * 100)}%" if a["metric"] == "courier_on_time_rate" else f"{a['value']:.2f}x capacity"
+                    need = f"{round(a['threshold'] * 100)}%" if a["metric"] == "courier_on_time_rate" else f"{a['threshold']:.2f}x"
+                    lines.append(f"\"{dec['title']}\" assumed {a['statement'][0].lower() + a['statement'][1:]}; it is now {now_v} (needed {need}).")
+                    if a.get("linked") and not said_overlap:
+                        said_overlap = True
+                        lines.append("At the same time, " + a["basis"].replace("campaign fest40", "the FEST40 campaign")
+                                     .replace("hub-w2", "Hub W2") + ". That is an overlap in the data, not proof of cause.")
+                    break
+        return lines[:4]
+    if tool == "decision_impact":
+        return [f"{len(d.get('customers_at_risk', []))} customers are still waiting on {d.get('parcels_in_transit')} parcels there; "
+                f"{len(d.get('dependent_decisions', []))} other decisions rely on this one."]
+    if tool == "prelaunch_check":
+        return [f"{w['name']} starts in {w['starts_in_days']:g} days and its parcels go through "
+                f"{w['hub'].replace('hub-', 'Hub ').upper().replace('HUB', 'Hub')}, which is already struggling."
+                for w in d.get("warnings", [])]
+    if tool == "product_status":
+        base = f" Across all products it is {d['baseline_complaints_per_100_orders'].split(' per')[0]} per 100." if d.get("baseline_complaints_per_100_orders") else ""
+        return [f"{d['item']}, last {d['days']} days: {d['orders']} orders, {d['complaints']} complaints "
+                f"({d['complaints_per_100_orders']}; {d['quality_complaints']} about the product itself), "
+                f"{d['returns']} returns.{base}"]
+    if tool == "cluster_incidents" and d.get("clusters"):
+        c = d["clusters"][0]
+        return [f"{c['tickets']} {c['issue'].replace('_', ' ')} complaints went through {c['root_hub'].replace('hub-', 'Hub ').upper().replace('HUB', 'Hub')}."]
+    if tool == "recall":
+        return [f"Noted earlier: {x['text']}" for x in (f.get("data") or [])[:1]]
+    return []
+
+
+def write(sheet: dict) -> str:
+    """A plain, correct answer built from the fact sheet alone (used when the AI is unavailable or its wording
+    fails the check)."""
+    lines = []
+    for p in sheet["parts"]:
+        if p["status"] == "no_access":
+            lines.append("That's outside your access.")
+        elif p["status"] == "no_data":
+            lines.append(f"Sinew has no information about that{': ' + p['why_missing'] if p['why_missing'] else ''}.")
+        else:
+            for f in p["facts"]:
+                lines += _say_fact(f)
+    if sheet["what_to_do"]:
+        lines.append("What to do:")
+        lines += [f"- {r}" for r in sheet["what_to_do"]]
+    refused = any(p["status"] == "no_access" for p in sheet["parts"])
+    for h in sheet["hidden"][:2]:
+        if h.get("kind") == "passage" and refused:
+            continue  # already said: "That's outside your access."
+        if h.get("kind") == "passage":
+            lines.append("Some matching documents are outside your access.")
+        elif h.get("kind") == "ticket":
+            lines.append(f"{h['count']} of their tickets {'is' if h['count'] == 1 else 'are'} in other teams' queues and not shown.")
+        elif h.get("kind") in ("area", "payment"):
+            lines.append(h["reason"][0].upper() + h["reason"][1:] + ".")
+    lines = [re.sub(r"\[(NAME|PHONE|EMAIL|CARD|HANDLE)\]", lambda m: f"({m.group(1).lower()} removed)", x) for x in lines]
+    seen, out = set(), []
+    for line in lines:
+        if line not in seen:
+            seen.add(line)
+            out.append(line)
+    return "\n".join(out) or "Sinew couldn't find anything about that."
+
+
+async def analyse(tenant: str, user_id: str, question: str) -> tuple[Plan, list[list[dict]], dict]:
+    plan = understand(tenant, user_id, question)
+    results = await traverse(plan, walks(plan))
+    return plan, results, reconcile(plan, results)

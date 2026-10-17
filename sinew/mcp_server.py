@@ -53,6 +53,12 @@ def build_server(tenant: str, user_id: str, run_id: str | None = None, read_only
         return guard.gate(tenant, user_id, "hub_status") or focus.hub_status(tenant, user_id, hub).as_dict()
 
     @mcp.tool(annotations=READ)
+    def product_status(item: Annotated[str, Field(min_length=2, max_length=60, description="a product title or a batch, "
+                                                  "e.g. Knife Set or B7")], days: Annotated[int, Field(ge=1, le=90)] = 30) -> dict:
+        """A product or batch: orders containing it, complaints and returns on those orders, by issue."""
+        return guard.gate(tenant, user_id, "product_status") or focus.product_status(tenant, user_id, item, days).as_dict()
+
+    @mcp.tool(annotations=READ)
     def open_loops(customer: Id) -> dict:
         """What is still open for a customer: open tickets, open or broken promises, late parcels, unrefunded returns."""
         return guard.gate(tenant, user_id, "open_loops") or trace.open_loops(tenant, user_id, customer).as_dict()

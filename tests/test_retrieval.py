@@ -6,7 +6,7 @@ import asyncio
 import pytest
 
 from sinew import eval_retrieval
-from sinew.agents.router import route
+from sinew.brain import understand, walks
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -24,8 +24,8 @@ def test_random_questions_retrieve_the_true_facts(seed):
 @pytest.mark.parametrize("question, first", [
     ("What was the total of order #4581?", "order_detail"), ("Has order 4520 been delivered?", "order_detail"),
     ("How many customers are waiting at Hub W2?", "hub_status"), ("Tell me about the courier Y switch", "decision_detail"),
-    ("How is the company doing this week?", "company_pulse"), ("What does Courier Y cost per parcel?", "search_docs"),
+    ("How is the company doing this week?", "company_pulse"), ("What does Courier Y cost per parcel?", "decision_detail"),
     ("Why are complaints up this week?", "cluster_incidents"),
 ])
 def test_questions_start_at_the_node_they_name(question, first):
-    assert route("sandbox", question)[0][0] == first
+    assert walks(understand("sandbox", "u-ceo", question))[0][0][0] == first

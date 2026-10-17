@@ -16,6 +16,8 @@ export type Run = {
   steps: { tool: string; args: any; outcome: string; ms: number; tool_ms?: number }[];
   pending_actions: { name: string; args: any }[]; ms: number; model_ms: number[];
   repaired?: string;
+  draft?: string;
+  plan?: { window: string; parts: { ask: string; intents: string[]; named: string[]; status: string }[] };
   sources?: { passage: string; doc: string; title: string; kind: string; heading: string; text: string }[];
 };
 

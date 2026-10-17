@@ -147,9 +147,12 @@ def decision_detail(tenant: str, user_id: str, decision: str) -> Answer:
     }
     if campaign:
         name, cstatus, starts, ends = campaign[0]
+        coupon_orders = g.ro_query("MATCH (:Decision {id: $d})-[:CHOSE]->(c:Campaign)<-[:OF]-(:Coupon)<-[:USED]-(o:Order) "
+                                   "RETURN count(DISTINCT o)", {"d": did}).result_set[0][0]
         data["campaign"] = {"name": name, "status": cstatus,
                             "starts_in_days": round((starts - now) / DAY) if starts > now else None,
-                            "ends_in_days": round((ends - now) / DAY) if ends > now else None}
+                            "ends_in_days": round((ends - now) / DAY) if ends > now else None,
+                            "coupon_orders_so_far": coupon_orders}
     return Answer("decision_detail", "answered_path", data=data, ms=_ms(start),
                   paths=[[did, h] for h in hubs] + [[did, "RESTS_ON", s] for s, *_ in assumptions])
 
@@ -186,3 +189,43 @@ def hub_status(tenant: str, user_id: str, hub: str) -> Answer:
             "busiest_day_parcels": max(per_day.values()) if per_day else 0,
             "decisions": [{"decision": t, "assumption_broken": b} for t, b in decisions]}
     return Answer("hub_status", "answered_path", data=data, ms=_ms(start), paths=[[hid, courier]])
+
+
+def product_status(tenant: str, user_id: str, item: str, days: int = 30) -> Answer:
+    """A product or a batch, walked to the orders that contain it and the complaints and returns on those orders:
+    (Product|Batch)<-[:OF|FROM]-(LineItem)<-[:HAS]-(Order)<-[:ABOUT]-(Ticket), (LineItem)<-[:OF]-(Return)."""
+    start = time.perf_counter()
+    g = graph(tenant)
+    ref = item.strip().lower()
+    ref = re.sub(r"^batch\s+", "", ref)
+    found = g.ro_query("MATCH (b:Batch) WHERE toLower(b.id) = $r RETURN 'Batch' AS kind, b.id AS id, b.id AS label",
+                       {"r": ref}).result_set or \
+        g.ro_query("MATCH (p:Product) WHERE toLower(p.title) = $r OR p.id = $r RETURN 'Product', p.id, p.title", {"r": ref}).result_set
+    if not found:
+        return unknown("product_status", f"product or batch {item!r}")
+    kind, nid, label = found[0]
+    rel = "(l:LineItem)-[:FROM]->(:Batch {id: $x})" if kind == "Batch" else "(l:LineItem)-[:OF]->(:Product {id: $x})"
+    now = clock(tenant)
+    w = {"x": nid, "s": now - days * DAY}
+    orders = g.ro_query(f"MATCH {rel} MATCH (o:Order)-[:HAS]->(l) WHERE o.placed_at >= $s RETURN count(DISTINCT o)", w).result_set[0][0]
+    issues = g.ro_query(f"MATCH {rel} MATCH (o:Order)-[:HAS]->(l) WHERE o.placed_at >= $s "
+                        "MATCH (t:Ticket)-[:ABOUT]->(o) RETURN t.issue_type, count(DISTINCT t) ORDER BY count(DISTINCT t) DESC", w).result_set
+    returns = g.ro_query(f"MATCH {rel} MATCH (o:Order)-[:HAS]->(l) WHERE o.placed_at >= $s "
+                         "MATCH (r:Return)-[:OF]->(l) RETURN count(DISTINCT r)", w).result_set[0][0]
+    complaints = sum(n for _, n in issues)
+    all_orders = g.ro_query("MATCH (o:Order) WHERE o.placed_at >= $s RETURN count(o)", w).result_set[0][0]
+    all_tickets = g.ro_query("MATCH (o:Order) WHERE o.placed_at >= $s MATCH (t:Ticket)-[:ABOUT]->(o) RETURN count(DISTINCT t)",
+                             w).result_set[0][0]
+    product_kinds = {"product_issue", "damaged", "wrong_item"}
+    quality = sum(n for i, n in issues if i in product_kinds)
+    data = {"item": label if kind == "Product" else f"Batch {nid.upper()}", "kind": kind.lower(), "days": days,
+            "orders": orders, "complaints": complaints, "quality_complaints": quality, "returns": returns,
+            "complaints_per_100_orders": f"{complaints / orders * 100:.1f} per 100 orders" if orders else None,
+            "baseline_complaints_per_100_orders": f"{all_tickets / all_orders * 100:.1f} per 100 orders (all products)" if all_orders else None,
+            "by_issue": [{"issue": (i or "other").replace("_", " "), "tickets": n} for i, n in issues]}
+    if kind == "Batch":
+        sup = g.ro_query("MATCH (:Batch {id: $x}) OPTIONAL MATCH (b:Batch {id: $x})-[:FROM|MADE_BY|SUPPLIED_BY]->(s) "
+                         "OPTIONAL MATCH (b)-[:OF]->(p:Product) RETURN s.id, p.title", w).result_set
+        if sup:
+            data["supplier"], data["product"] = sup[0]
+    return Answer("product_status", "answered_path", data=data, ms=_ms(start), paths=[[nid, "orders", "tickets"]])

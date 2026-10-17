@@ -91,6 +91,8 @@ const STEP: Record<string, string> = {
   recall: "Checked earlier findings", cluster_incidents: "Grouped this week's complaints", trace_decisions: "Found the decisions behind it",
   decision_impact: "Measured what is at risk", prelaunch_check: "Checked upcoming launches", reroute: "Looked for another route",
   choke_points: "Found the busiest hubs", evaluate_assumptions: "Re-measured the assumptions", write_finding: "Saved a note for next time",
+  order_detail: "Walked from the order", decision_detail: "Walked from the decision", hub_status: "Walked from the hub",
+  product_status: "Walked from the product or batch", company_pulse: "Summarised the areas you can see",
   issue_refund: "Prepared a refund", record_promise: "Prepared a follow-up", file_incident: "Prepared an incident", notify_owner: "Prepared a message",
 };
 const ACTION: Record<string, (a: any) => string> = {
@@ -100,6 +102,8 @@ const ACTION: Record<string, (a: any) => string> = {
   file_incident: (a) => `Open an incident for ${place(a.root_hub)} (${a.ticket_ids?.length ?? 0} complaints)`,
   notify_owner: () => "Tell the decision owner",
 };
+const INTENT: Record<string, string> = { why: "why it is happening", what_to_do: "what to do", pulse: "how the company is doing",
+  cost: "a cost question", policy: "a policy or decision", count: "a number", status: "the latest on it", unknown: "a question" };
 const KIND: Record<string, string> = { policy: "Policy", contract: "Contract", meeting_notes: "Meeting notes", plan: "Plan", guide: "Guide" };
 
 /** Under each answer: the actions (wait for a click), the documents it came from, and the rest behind a click. */
@@ -144,6 +148,18 @@ function Extras({ run, view, me }: { run: Run | null; view: Notice["view"] | nul
       {open === "picture" && <div className="rounded-xl border p-2"><View v={view} me={me} /></div>}
       {open === "how" && (
         <div className="rounded-xl bg-stone-50 p-4 text-stone-700">
+          {run.plan?.parts?.length ? (
+            <div className="mb-3">
+              <p className="font-medium text-stone-800">How Sinew read your question ({run.plan.window})</p>
+              <ul className="mt-1 space-y-0.5">
+                {run.plan.parts.map((p, i) => (
+                  <li key={i}>“{p.ask}” — {INTENT[p.intents[0]] ?? p.intents[0]}{p.named.length > 0 && <>, about {p.named.join(", ")}</>}
+                    <span className="text-stone-500"> · {p.status === "answered" ? "found" : p.status === "no_access" ? "outside your access" : "no information"}</span></li>
+                ))}
+              </ul>
+              <p className="mt-2 font-medium text-stone-800">What it looked up</p>
+            </div>
+          ) : null}
           <ol className="list-decimal space-y-0.5 pl-5">
             {run.steps.map((s, i) => <li key={i}>{STEP[s.tool] ?? s.tool}{s.tool_ms != null && <span className="text-stone-400"> · {s.tool_ms} ms</span>}</li>)}
           </ol>

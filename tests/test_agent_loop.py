@@ -40,6 +40,11 @@ class Scripted:
         self.seen.extend(results)
 
 
+def ai(r):
+    """The steps the model took itself (the analysis layer's graph walks come first)."""
+    return [s for s in r.steps if s.get("by") != "graph"]
+
+
 def run(llm, agent="support", user="u-agent-w1", task="Ticket t-90520: parcel late"):
     return asyncio.run(loop.run_agent("sandbox", user, agent, task, llm=llm))
 
@@ -47,20 +52,20 @@ def run(llm, agent="support", user="u-agent-w1", task="Ticket t-90520: parcel la
 def test_tools_run_and_a_checked_answer_is_kept():
     r = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90520"}}]),
                       Turn(text="Others are affected through hub-w2.")]))
-    assert r.answer_source == "model" and r.steps[0]["outcome"] == "answered_path"
+    assert r.answer_source == "model" and ai(r)[0]["outcome"] == "answered_path"
 
 
 def test_destructive_tool_waits_for_a_person():
     r = run(Scripted([Turn(calls=[{"name": "issue_refund", "args": {"order_id": "o-4500", "amount": 10}}]),
                       Turn(text="I have prepared a refund for o-4500 for you to confirm.")]))
     assert r.pending_actions == [{"name": "issue_refund", "args": {"order_id": "o-4500", "amount": 10}}]
-    assert r.steps[0]["outcome"] == "pending_confirmation"
+    assert ai(r)[0]["outcome"] == "pending_confirmation"
 
 
 def test_tool_outside_the_agents_set_is_refused():
     r = run(Scripted([Turn(calls=[{"name": "notify_owner", "args": {"decision_id": "dec-courier-y", "message": "x"}}]),
                       Turn(text="Done.")]))
-    assert r.steps[0]["outcome"] == "not_permitted" and r.pending_actions == []
+    assert ai(r)[0]["outcome"] == "not_permitted" and r.pending_actions == []
 
 
 def test_made_up_name_is_replaced_by_a_sentence_from_the_rows():
@@ -144,7 +149,7 @@ def test_an_action_the_person_cannot_take_is_never_offered():
                                                                       "root_hub": "hub-w2"}}]),
                       Turn(text="The complaints went through hub-w2.")]),
             agent="pattern", user="u-ceo", task="why")
-    assert r.pending_actions == [] and r.steps[0]["outcome"] == "not_permitted"
+    assert r.pending_actions == [] and ai(r)[0]["outcome"] == "not_permitted"
 
 
 def test_only_the_maker_or_a_lead_can_confirm_a_commitment():
