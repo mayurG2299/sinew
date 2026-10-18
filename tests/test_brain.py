@@ -189,3 +189,11 @@ def test_open_tickets_can_be_listed_by_role():
     ravi = write(sheet("u-agent-w1", "what are my open tickets"))
     assert "(in your regions)" in ravi and "Most urgent:" in ravi and "Ladli Kakar" in ravi
     assert "That's outside your access" in write(sheet("u-marketing", "what are the open tickets"))
+
+
+def test_capacity_questions_compare_every_hub_and_explain_the_figure():
+    out = write(sheet("u-ceo", "hey what is under 157% capacity ?"))
+    assert out.startswith("Hub W2 is at 1.57x its capacity: its busiest day this week had 22 parcels against 14 a day")  # the 157%
+    assert "Within capacity" in out and "Hub W4 0 of 10" in out and "Hub N1" in out
+    assert "Tickets:" not in out  # not a company summary
+    assert "outside your access" in write(sheet("u-marketing", "which hub has spare capacity?")).lower() or "Hub W2" in write(sheet("u-marketing", "which hub has spare capacity?"))

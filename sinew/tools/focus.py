@@ -173,13 +173,13 @@ def hub_status(tenant: str, user_id: str, hub: str) -> Answer:
         "MATCH (s:Shipment {last_hub: $h}) WHERE s.status IN ['in_transit', 'delayed'] "
         "OPTIONAL MATCH (s)<-[:SHIPPED_AS]-(:Order)<-[:PLACED]-(:Profile)-[:OF]->(c:Customer) "
         "RETURN count(DISTINCT s), count(DISTINCT CASE WHEN s.late_hours > 0 THEN s END), count(DISTINCT c)", w).result_set[0]
-    scans, on_time, busiest = g.ro_query(
+    scans, on_time = g.ro_query(
         "MATCH (sc:Scan)-[:AT]->(:Hub {id: $h}) WHERE sc.at >= $s AND sc.at < $e AND sc.status IN ['in_transit', 'delayed'] "
-        "WITH sc, sc.at / 86400 AS day WITH count(sc) AS n, sum(CASE WHEN coalesce(sc.late_hours, 0) = 0 THEN 1 ELSE 0 END) AS ok, "
-        "collect(day) AS days RETURN n, ok, days", w).result_set[0]
-    per_day = {}
-    for d in busiest:
-        per_day[d] = per_day.get(d, 0) + 1
+        "RETURN count(sc), sum(CASE WHEN coalesce(sc.late_hours, 0) = 0 THEN 1 ELSE 0 END)", w).result_set[0]
+    # distinct parcels per day, the same definition as the load assumption (22 / 14 = 1.57x at Hub W2)
+    per_day = dict(g.ro_query(
+        "MATCH (sc:Scan)-[:AT]->(:Hub {id: $h}) WHERE sc.at >= $s AND sc.at < $e AND sc.status IN ['in_transit', 'delayed'] "
+        "MATCH (sc)-[:FOR]->(s:Shipment) RETURN sc.at / 86400 AS day, count(DISTINCT s)", w).result_set)
     decisions = g.ro_query(
         "MATCH (d:Decision)-[:AFFECTS]->(:Hub {id: $h}) OPTIONAL MATCH (d)-[:RESTS_ON]->(a:Assumption {status: 'broken'}) "
         "RETURN d.title, count(a) > 0", w).result_set
@@ -187,6 +187,8 @@ def hub_status(tenant: str, user_id: str, hub: str) -> Answer:
             "capacity_per_day": capacity, "parcels_there_now": waiting, "customers_waiting": people, "late_now": int(late or 0),
             "on_time_this_week": f"{round(on_time / scans * 100)}%" if scans else None,
             "busiest_day_parcels": max(per_day.values()) if per_day else 0,
+            "load_vs_capacity": round((max(per_day.values()) if per_day else 0) / capacity, 2) if capacity else None,
+            "region": g.ro_query("MATCH (:Hub {id: $h})-[:IN]->(r:Region) RETURN r.id", w).result_set[0][0],
             "decisions": [{"decision": t, "assumption_broken": b} for t, b in decisions]}
     return Answer("hub_status", "answered_path", data=data, ms=_ms(start), paths=[[hid, courier]])
 

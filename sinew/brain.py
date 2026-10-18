@@ -46,6 +46,7 @@ INTENTS = [  # (intent, pattern) in the order they are reported
     ("detail", r"\bmore (details?|info|information|about)\b|\bdetails?\b|elaborate|tell me more|know more|want more|go deeper|"
                r"break (it|that|this) down|in depth|explain (that|it|this)"),
     ("tickets", r"\b(open |unsolved |pending |those |these )?tickets\b|\bopen (ticket|complaint)s?\b"),
+    ("capacity", r"capacity|headroom|spare room|overload(ed)?|how full|utili[sz]ation|over capacity|under capacity|\bbusy\b"),
     ("pulse", r"how is the company|how are we doing|state of the company|company doing|overview|summary|how('s| is) (it|business) going"),
     ("cost", r"\bcost|spend|budget|price|revenue|margin|money"),
     ("policy", r"polic|rule|how fast|who (can|has to|must|should) approve|allowed|contract|agreement|terms|guideline|"
@@ -305,6 +306,9 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
                     calls.append(("decision_impact", {"decision_id": e.id}))
             if "detail" in p.intents and not p.entities:
                 calls += [("company_pulse", {"days": plan.window["days"]}), ("cluster_incidents", {})]
+        if "capacity" in p.intents and not any(e.kind == "Hub" for e in p.entities):  # every hub, to compare them
+            hubs = graph(plan.tenant).ro_query("MATCH (h:Hub) RETURN h.id ORDER BY h.id").result_set
+            calls += [("hub_status", {"hub": "Hub " + h.split("-", 1)[1].upper()}) for h, in hubs]
         if "tickets" in p.intents and not any(e.kind == "Ticket" for e in p.entities):
             calls.append(("ticket_summary", {}))
         if "contact" in p.intents:
@@ -312,7 +316,7 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
                       for e in p.entities if e.kind in ("Order", "Ticket")]
         if "attention" in p.intents:
             calls += [("company_pulse", {"days": plan.window["days"]}), ("cluster_incidents", {}), ("prelaunch_check", {})]
-        if "rank" in p.intents:
+        if "rank" in p.intents and "capacity" not in p.intents:
             t = p.text.lower()
             calls.append(("product_ranking", {"days": max(plan.window["days"], 30)}) if re.search(r"product|item|batch", t)
                          else ("company_pulse", {"days": plan.window["days"]}))
@@ -320,7 +324,8 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
             calls += [("cluster_incidents", {}), ("prelaunch_check", {})]
         if "what_to_do" in p.intents:
             calls.append(("prelaunch_check", {}))
-        if "pulse" in p.intents or ("count" in p.intents and not p.entities):
+        other_specific = (SPECIFIC - {"pulse", "tickets"}) & set(p.intents)
+        if "pulse" in p.intents or ("count" in p.intents and not p.entities and not other_specific):
             calls.append(("company_pulse", {"days": plan.window["days"]}))
         if ("cost" in p.intents and not any(e.kind == "Order" for e in p.entities)) or "policy" in p.intents:
             calls.append(("search_docs", {"text": p.text}))
@@ -491,11 +496,12 @@ ANSWERED_BY = {  # which walks can answer an intent; None = any walk about the n
     "count": None, "status": None, "unknown": None,
     "attention": {"company_pulse", "cluster_incidents", "trace_decisions", "prelaunch_check"}, "detail": None,
     "verdict": {"prelaunch_check", "decision_detail", "hub_status", "trace_decisions"},
-    "tickets": {"ticket_summary", "company_pulse"},
+    "tickets": {"ticket_summary", "company_pulse"}, "capacity": {"hub_status"},
     "rank": {"company_pulse", "product_ranking", "choke_points"},
     "contact": {"customer_trace"}, "personal_bulk": set(),
 }
-SPECIFIC = {"why", "what_to_do", "pulse", "cost", "policy", "attention", "rank", "contact", "personal_bulk", "verdict", "tickets"}
+SPECIFIC = {"why", "what_to_do", "pulse", "cost", "policy", "attention", "rank", "contact", "personal_bulk", "verdict", "tickets",
+            "capacity"}
 MONEY = re.compile(r"\$\s?\d")
 
 
@@ -819,6 +825,30 @@ def write(sheet: dict) -> str:
         lines.append(verdict)
     if not sheet["parts"]:
         return "Ask me something about your company: an order, a hub, a decision, a policy, or how things are going."
+    for p in sheet["parts"]:
+        hubs = [f["data"] for f in p["facts"] if f["from"] == "hub_status" and f.get("data", {}).get("load_vs_capacity") is not None]
+        if "capacity" in p["intents"] and hubs:
+            hubs.sort(key=lambda h: -h["load_vs_capacity"])
+            said = re.search(r"(\d+(?:\.\d+)?)\s*%|(\d\.\d+)\s*x\b", sheet["question"].lower())
+            if said:  # the figure the person quotes ("157%") leads: say which hub it is
+                target = float(said.group(1) or 0) / 100 if said.group(1) else float(said.group(2))
+                hubs.sort(key=lambda h: abs(h["load_vs_capacity"] - target) > 0.011)
+            over = [h for h in hubs if h["load_vs_capacity"] > 1]
+            under = [h for h in hubs if h["load_vs_capacity"] <= 1]
+            if over:
+                top = over[0]
+                lines.append(f"{top['hub']} is at {top['load_vs_capacity']:.2f}x its capacity: its busiest day this week had "
+                             f"{top['busiest_day_parcels']} parcels against {top['capacity_per_day']} a day.")
+                if len(over) > 1:
+                    lines.append("Also over capacity: " + "; ".join(f"{h['hub']} {h['load_vs_capacity']:.2f}x" for h in over[1:]) + ".")
+            else:
+                lines.append("No hub went over its daily capacity this week.")
+            if under:
+                lines.append("Within capacity (busiest day against daily capacity): " + "; ".join(
+                    f"{h['hub']} {h['busiest_day_parcels']} of {h['capacity_per_day']} ({h['load_vs_capacity']:.2f}x)" for h in under) + ".")
+            p["facts"] = [f for f in p["facts"] if f["from"] != "hub_status"]
+            if not p["facts"]:
+                p["status"] = "handled"
     if sheet.get("you") and sheet["you"].get("refund_limit") is not None and any("policy" in p["intents"] for p in sheet["parts"]):
         lim = sheet["you"]["refund_limit"]
         asked = re.search(r"\$\s?(\d+(?:\.\d+)?)", sheet["question"])
@@ -834,6 +864,8 @@ def write(sheet: dict) -> str:
             lines.append(p["why_missing"][0].upper() + p["why_missing"][1:] + ".")
         elif p["status"] == "no_access":
             lines.append("That's outside your access.")
+        elif p["status"] == "handled":
+            continue  # said above
         elif p["status"] == "no_data" and sheet.get("you") and "policy" in p["intents"]:
             continue  # the person's own limit (above) already answers it
         elif p["status"] == "no_data":

@@ -2775,7 +2775,7 @@
    "hub_status",
    "decision_detail"
   ],
-  "size": 1796,
+  "size": 1840,
   "got": "[{\"scope\": \"Hub W2\", \"from\": \"hub_status\", \"named\": [\"hub-w2\", \"courier-y\"], \"asked\": \"What is Courier Y's on-time rate at Hub W2 this week\", \"intents\": [\"status\", \"count\"], \"answers\": true, \"tool\": \"hub_status\", \"outcome\": \"answered_path\", \"data\": {\"hub\": \"Hub W2\", \"run_by\": \"courier-y\", \"capacity_per_day\": 14, \"parcels_there_now\": 25, \"customers_waiting\": 21, \"late_now\": 12, \"on_time_this_week\":"
  },
  {
@@ -2786,7 +2786,7 @@
   "tools": [
    "hub_status"
   ],
-  "size": 817,
+  "size": 861,
   "got": "[{\"scope\": \"Hub W2\", \"from\": \"hub_status\", \"named\": [\"hub-w2\"], \"asked\": \"How many customers are still waiting on parcels at Hub W2\", \"intents\": [\"status\", \"count\"], \"answers\": true, \"tool\": \"hub_status\", \"outcome\": \"answered_path\", \"data\": {\"hub\": \"Hub W2\", \"run_by\": \"courier-y\", \"capacity_per_day\": 14, \"parcels_there_now\": 25, \"customers_waiting\": 21, \"late_now\": 12, \"on_time_this_week\": \"77%\", "
  },
  {
