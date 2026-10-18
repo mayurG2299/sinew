@@ -110,3 +110,19 @@ def test_how_people_really_ask(who, question, expected):
 def test_contact_details_follow_the_role():
     assert "Contact:" not in write(sheet("u-agent-n1", "phone number for order 4520"))  # other region
     assert "outside your access" in write(sheet("u-marketing", "phone number for order 4520")).lower()
+
+
+def test_the_facts_propose_actions_and_only_permitted_ones_are_offered():
+    import asyncio as aio
+    from sinew.agents import loop
+    import os
+    os.environ["SINEW_AI"] = "off"
+    try:
+        lucas = aio.run(loop.run_agent(T, "u-logistics", "ask", "Why are complaints up this week, and what should we do?"))
+        ceo = aio.run(loop.run_agent(T, "u-ceo", "ask", "Why are complaints up this week, and what should we do?"))
+        ravi = aio.run(loop.run_agent(T, "u-agent-w1", "support", "Ticket t-95397: help me handle this customer."))
+    finally:
+        os.environ.pop("SINEW_AI")
+    assert {a["name"] for a in lucas.pending_actions} == {"file_incident", "notify_owner"}
+    assert "file_incident" not in {a["name"] for a in ceo.pending_actions}  # the CEO may not open incidents
+    assert [a["name"] for a in ravi.pending_actions] == ["issue_refund"] and ravi.pending_actions[0]["args"]["order_id"] == "o-4397"

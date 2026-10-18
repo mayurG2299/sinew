@@ -72,6 +72,8 @@ class LLMUnavailable(Exception):
 
 class Gemini:
     def __init__(self, models: list[str] | None = None):
+        if os.environ.get("SINEW_AI") == "off":  # tests and quota-free runs: answers come from the fact sheet
+            raise LLMUnavailable("the AI is switched off")
         if not config.GEMINI_API_KEY:
             raise LLMUnavailable("GEMINI_API_KEY is not set")
         self.client = genai.Client(api_key=config.GEMINI_API_KEY)

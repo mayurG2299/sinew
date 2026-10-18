@@ -166,6 +166,7 @@ function Extras({ run, view, me }: { run: Run | null; view: Notice["view"] | nul
           <p className="mt-2 text-xs text-stone-500">
             {run.answer_source === "model" ? "Written by AI from these results, then every name and number was checked against them."
               : run.answer_source === "replay" ? "The AI is unavailable right now, so this is its last checked answer to the same question."
+              : run.answer_source === "graph" ? "Written straight from the graph results (the AI wasn't used for this answer)."
               : "The AI's wording didn't pass the check, so this answer is built straight from the results."}
             {run.repaired && ` The first draft ${run.repaired}, so Sinew asked for a corrected answer and checked it again.`}
             {" "}{(run.ms / 1000).toFixed(1)} s.

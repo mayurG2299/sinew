@@ -268,7 +268,8 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
             calls.append(("company_pulse", {"days": plan.window["days"]}))
         if ("cost" in p.intents and not any(e.kind == "Order" for e in p.entities)) or "policy" in p.intents:
             calls.append(("search_docs", {"text": p.text}))
-        if "cost" in p.intents and not any(e.kind == "Order" for e in p.entities) and not p.entities:
+        if "cost" in p.intents and not p.entities and re.search(r"revenue|sales|income|turnover|earn|spend this|money in",
+                                                                 p.text.lower()):
             calls.append(("company_pulse", {"days": plan.window["days"]}))
         if not calls and not plan.missing:
             calls.append(("search_docs", {"text": p.text}))  # nothing named: maybe a document knows
@@ -451,8 +452,15 @@ def _answers(part: Part, r: dict) -> bool:
         tools = ANSWERED_BY.get(intent)
         if tools is not None and r.get("tool") not in tools:
             continue
-        if intent == "cost":  # a cost question is answered only by an actual money figure
-            body = json.dumps((r.get("data") or {}).get("finance") if r.get("tool") == "company_pulse" else r.get("data"))
+        if intent == "cost":  # answered only by an actual figure of the kind asked: revenue, or costs and spend
+            d = r.get("data") or {}
+            if r.get("tool") == "company_pulse":
+                fin = d.get("finance") or {}
+                wants_revenue = re.search(r"revenue|sales|income|turnover|earn", part.text.lower())
+                body = json.dumps({k: fin.get(k) for k in (("revenue_this_week", "revenue_last_week") if wants_revenue
+                                                           else ("delivery_cost", "campaign_spend"))})
+            else:
+                body = json.dumps(d)
             if not MONEY.search(body or ""):
                 continue
         return True
@@ -484,6 +492,7 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
             status, why = "no_data", next((r.get("reason") for r in got if r.get("reason")), "")
         answered = answering + (context if answering or not blocked else [])
         facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities],
+                  "asked": part.text, "intents": part.intents,
                   "answers": r in answering, **_slim(r, plan.tenant)} for r in answered]
         parts.append({"ask": part.text, "intents": part.intents, "named": [e.label for e in part.entities],
                       "status": status, "why_missing": why, "facts": facts})
@@ -526,6 +535,39 @@ def _recommend(got: list[dict]) -> list[str]:
     return out
 
 
+# ------------------------------------------------------------------ 4b. actions the facts call for
+
+def actions(plan: Plan, results: list[list[dict]]) -> list[dict]:
+    """Actions the facts warrant, for the person to confirm (each is permission-checked before it is offered):
+    a broken decision behind a complaint cluster -> open an incident and tell the decision's owner;
+    a customer's overdue agreed refund -> refund it."""
+    flat = [r for got in results for r in got if r.get("outcome") == "answered_path"]
+    out = []
+    cluster = next(((r["data"].get("clusters") or [None])[0] for r in flat if r.get("tool") == "cluster_incidents"), None)
+    decisions = next((r["data"].get("decisions", []) for r in flat if r.get("tool") == "trace_decisions"), [])
+    broken = [d for d in decisions if any(a["status"] == "broken" and a.get("linked") for a in d["assumptions"])] or \
+             [d for d in decisions if any(a["status"] == "broken" for a in d["assumptions"])]
+    if cluster and broken and any({"why", "what_to_do", "attention"} & set(p.intents) for p in plan.parts):
+        hub = cluster["root_hub"].replace("hub-", "Hub ").upper().replace("HUB", "Hub")
+        issue = cluster["issue"].replace("_", " ")
+        out.append({"name": "file_incident", "args": {"title": f"{issue.capitalize()} complaints at {hub}",
+                                                      "ticket_ids": cluster["ticket_ids"], "root_hub": cluster["root_hub"]}})
+        d = broken[0]
+        a = next(x for x in d["assumptions"] if x["status"] == "broken")
+        now = f"{round(a['value'] * 100)}%" if a["metric"] == "courier_on_time_rate" else f"{a['value']:.2f}x capacity"
+        out.append({"name": "notify_owner", "args": {"decision_id": d["decision"], "message":
+                    f"Your decision \"{d['title']}\" assumed: {a['statement']}. This week it is {now}. "
+                    f"{cluster['tickets']} {issue} complaints went through {hub}."}})
+    for r in flat:
+        if r.get("tool") == "open_loops":
+            for p in (r["data"].get("broken_promises") or [])[:1]:
+                if p.get("promise") == "refund":
+                    total = graph(plan.tenant).ro_query("MATCH (o:Order {id: $o}) RETURN o.total", {"o": p["order"]}).result_set
+                    if total:
+                        out.append({"name": "issue_refund", "args": {"order_id": p["order"], "amount": total[0][0]}})
+    return out
+
+
 # ------------------------------------------------------------------ 5. write (from the fact sheet only)
 
 def _when(at) -> str:
@@ -560,6 +602,11 @@ def _say_fact(f: dict) -> list[str]:
     if tool == "hub_status":
         return [f"{d['hub']}: {d['parcels_there_now']} parcels there now for {d['customers_waiting']} customers, "
                 f"{d['late_now']} late; on time this week {d['on_time_this_week']}; capacity {d['capacity_per_day']} a day."]
+    if tool == "company_pulse" and "cost" in f.get("intents", []):  # a money question gets money lines only
+        fin = d.get("finance") or {}
+        before = lambda x: f" (before: {x})" if x not in (0, None, "$0.00") else ""
+        return ([f"Revenue: {fin['revenue_this_week']}{before(fin['revenue_last_week'])}.",
+                 f"Refunds paid: {fin['refunds_paid_this_week']}."] if fin else [])
     if tool == "company_pulse":
         lines = []
         before = lambda x: f" (before: {x})" if x not in (0, None, "$0.00") else ""
@@ -577,8 +624,14 @@ def _say_fact(f: dict) -> list[str]:
         if d.get("finance"):
             lines.append(f"Revenue: {d['finance']['revenue_this_week']}{before(d['finance']['revenue_last_week'])}.")
         return lines
-    if tool == "search_docs":
-        return [f"{x['title']}, \"{x['heading']}\": {x['text']}" for x in (f.get("data") or [])[:2]]
+    if tool == "search_docs":  # the passages that share the most words with the question, a named document first
+        asked = set(re.findall(r"[a-z0-9]{4,}", f.get("asked", "").lower()))
+        def fit(x):
+            title = set(re.findall(r"[a-z0-9]{4,}", x["title"].lower()))
+            body = set(re.findall(r"[a-z0-9]{4,}", f"{x['heading']} {x['text']}".lower()))
+            return (len(asked & title) * 3 + len(asked & body))
+        ranked = sorted(f.get("data") or [], key=fit, reverse=True)
+        return [f"{x['title']}, \"{x['heading']}\": {x['text']}" for x in ranked[:3]]
     if tool == "product_ranking":
         return [f"Most complaints per 100 orders, last {d['days']} days: " + "; ".join(
             f"{x['product']} {x['per_100']} ({x['complaints']} of {x['orders']} orders)" for x in d.get("products", [])[:3]) + "."]
@@ -691,7 +744,9 @@ def write(sheet: dict) -> str:
             lines.append("Some matching documents are outside your access.")
         elif h.get("kind") == "ticket":
             lines.append(f"{h['count']} of their tickets {'is' if h['count'] == 1 else 'are'} in other teams' queues and not shown.")
-        elif h.get("kind") in ("area", "payment"):
+        elif h.get("kind") == "area" and not refused and any({"pulse", "attention"} & set(p["intents"]) for p in sheet["parts"]):
+            lines.append(h["reason"][0].upper() + h["reason"][1:] + ".")  # only a summary needs to say what it left out
+        elif h.get("kind") == "payment":
             lines.append(h["reason"][0].upper() + h["reason"][1:] + ".")
     lines = [re.sub(r"\[(NAME|PHONE|EMAIL|CARD|HANDLE)\]", lambda m: f"({m.group(1).lower()} removed)", x) for x in lines]
     seen, out = set(), []
@@ -705,4 +760,6 @@ def write(sheet: dict) -> str:
 async def analyse(tenant: str, user_id: str, question: str) -> tuple[Plan, list[list[dict]], dict]:
     plan = understand(tenant, user_id, question)
     results = await traverse(plan, walks(plan))
-    return plan, results, reconcile(plan, results)
+    sheet = reconcile(plan, results)
+    sheet["actions"] = actions(plan, results)
+    return plan, results, sheet

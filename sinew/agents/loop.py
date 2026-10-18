@@ -89,27 +89,30 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
     run = Run(run_id=f"run-{uuid.uuid4().hex[:10]}", agent=agent, task=task)
     allowed = prompts.TOOLS[agent]
     server = build_server(tenant, user_id, run_id=run.run_id)
+    # The analysis layer goes first: understand and break down the question, walk the graph from what it
+    # names (as this person), reconcile into a fact sheet, and write a correct draft from it. The model
+    # then only rewrites the draft for the person; it may call more read tools if something is missing.
+    plan, per_part, sheet = await brain.analyse(tenant, user_id, task)
+    for got in per_part:
+        for result in got:
+            call = result.pop("_call", {})
+            if result not in run.results:
+                run.results.append(result)
+                run.steps.append({"tool": call.get("tool", result.get("tool")), "args": call.get("args", {}),
+                                  "outcome": result.get("outcome"), "ms": call.get("ms"),
+                                  "tool_ms": result.get("ms"), "by": "graph"})
+    run.plan = {"parts": [{"ask": p["ask"], "intents": p["intents"], "named": p["named"], "status": p["status"]}
+                          for p in sheet["parts"]], "window": sheet["window"]}
+    run.draft = brain.write(sheet)
+    for act in sheet.get("actions", []):  # actions the facts call for, offered only if this person may take them
+        if not actions.precheck(tenant, user_id, act["name"], act["args"]):
+            run.pending_actions.append(act)
     unavailable: LLMUnavailable | None = None
     try:
         llm = llm or Gemini()
         async with Client(server) as mcp:
             listed = [t for t in (await mcp.list_tools()).tools if t.name in allowed]
             destructive = {t.name for t in listed if t.annotations and t.annotations.destructive_hint}
-            # The analysis layer goes first: understand and break down the question, walk the graph from what it
-            # names (as this person), reconcile into a fact sheet, and write a correct draft from it. The model
-            # then only rewrites the draft for the person; it may call more read tools if something is missing.
-            plan, per_part, sheet = await brain.analyse(tenant, user_id, task)
-            for got in per_part:
-                for result in got:
-                    call = result.pop("_call", {})
-                    if result not in run.results:
-                        run.results.append(result)
-                        run.steps.append({"tool": call.get("tool", result.get("tool")), "args": call.get("args", {}),
-                                          "outcome": result.get("outcome"), "ms": call.get("ms"),
-                                          "tool_ms": result.get("ms"), "by": "graph"})
-            run.plan = {"parts": [{"ask": p["ask"], "intents": p["intents"], "named": p["named"], "status": p["status"]}
-                                  for p in sheet["parts"]], "window": sheet["window"]}
-            run.draft = brain.write(sheet)
             message = (f"{task}\n\nSinew analysed this question and walked the company graph for this person "
                        f"(permissions applied). Fact sheet:\n{brain.for_model(sheet)}\n\n"
                        f"Correct draft written from the fact sheet:\n{run.draft}\n\n"
@@ -139,7 +142,8 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
                     elif call["name"] in destructive and (block := actions.precheck(tenant, user_id, call["name"], call["args"])):
                         result = {**block, "reason": f"not offered: {block.get('reason')}; don't mention this action"}
                     elif call["name"] in destructive:
-                        run.pending_actions.append(call)
+                        if all(p["name"] != call["name"] for p in run.pending_actions):  # one button per kind
+                            run.pending_actions.append(call)
                         result = {"tool": call["name"], "outcome": "pending_confirmation",
                                   "reason": "waiting for the person to confirm; do not assume it happened"}
                     else:
@@ -172,6 +176,12 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
         unavailable = e
     if unavailable is not None:
         e = unavailable
+        if run.draft:  # the analysis layer already wrote a correct answer from the graph
+            run.answer, run.answer_source = run.draft, "graph"
+            run.check_failed = f"model unavailable: {str(e)[:120]}"
+            run.ms = round((time.perf_counter() - start) * 1000, 1)
+            run.sources = docs.sources(tenant, user_id, run.results, task, answer=run.answer)
+            return run
         replay = _load_replay(tenant, user_id, agent, task)
         if replay:
             replay.ms = round((time.perf_counter() - start) * 1000, 1)

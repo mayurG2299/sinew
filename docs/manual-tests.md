@@ -121,15 +121,16 @@ Ask **"How is the company doing this week?"**
 | H5 | Karan | tickets only | on time, revenue | |
 | H6 | Daniel | "How is the company doing this month?" | 30-day figures; no "(before: 0)" | |
 
-## I. Actions (buttons)
+## I. Actions (buttons; Sinew proposes them from the facts and offers only what you may do)
 
 | # | Who | Do | Correct result | ✓ |
 |---|---|---|---|---|
-| I1 | Ravi | Ask about Desiree Davis's ticket; if a refund button for #4397 ($64.38) appears, click it | Done (within $100) | |
-| I2 | Ravi | Ask "refund order #4005" ($150.25) and click the button if offered | Sent for approval (over $100) | |
-| I3 | Daniel | Ask "Why are complaints up, and what should we do?" | **No** "Open an incident" button for the CEO | |
-| I4 | Lucas | Same question | "Open an incident" button works → "Done" | |
+| I1 | Ravi | Click Desiree Davis on Home (or ask "Ticket t-95397: help me handle this customer.") | Button "Refund $64.38 for order #4397" → click → Done | |
+| I2 | Ravi | Click Ladli Kakar on Home | Button "Refund $98.53 for order #4156" → Done | |
+| I3 | Daniel | "Why are complaints up this week, and what should we do?" | Only "Tell the decision owner" — **no** incident button for the CEO | |
+| I4 | Lucas | Same question | "Open an incident for Hub W2 (22 complaints)" → Done | |
 | I5 | Lucas | Click "Tell the decision owner" | Done | |
+| I6 | Chloe | Same question | No incident button (brand marketer) | |
 
 ## J. Sources and "How Sinew knows"
 
