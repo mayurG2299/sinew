@@ -232,3 +232,25 @@ def test_the_graphs_draft_is_split_into_paragraphs_so_a_page_does_not_run_it_tog
     draft = "Hub W2: 25 parcels.\nTickets: 54.\nDue by customer:\n- Ladli Kakar: 3 Oct\n- Reece Magar: 8 Oct\n\nDone."
     assert check.paragraphs(draft) == ("Hub W2: 25 parcels.\n\nTickets: 54.\n\nDue by customer:\n\n- Ladli Kakar: 3 Oct\n- Reece Magar: 8 Oct\n\nDone.")
     assert check.paragraphs("") == "" and check.paragraphs("one line") == "one line"
+
+
+def test_mcp_over_http_serves_read_tools_only_as_the_person_in_the_url_and_nothing_without_the_secret():
+    from starlette.testclient import TestClient
+    from sinew.mcp_http import make_app
+    secret = "s" * 32
+    headers = {"accept": "application/json, text/event-stream", "content-type": "application/json"}
+    def rpc(client, path, method, params=None, id_=1):
+        return client.post(path, headers=headers, json={"jsonrpc": "2.0", "id": id_, "method": method, "params": params or {}})
+    init = {"protocolVersion": "2025-03-26", "capabilities": {}, "clientInfo": {"name": "test", "version": "0"}}
+    with TestClient(make_app("sandbox", ["u-cmo", "u-marketing"], secret)) as c:
+        assert rpc(c, f"/wrong-secret/u-cmo/mcp", "initialize", init).status_code == 404
+        assert rpc(c, f"/{secret}/u-ceo/mcp", "initialize", init).status_code == 404  # a person that isn't served
+        names = {t["name"] for t in rpc(c, f"/{secret}/u-cmo/mcp", "tools/list").json()["result"]["tools"]}
+        assert {"graph_query", "company_pulse", "hub_status"} <= names
+        assert not names & {"issue_refund", "record_promise", "confirm_promise", "file_incident", "notify_owner", "write_finding"}
+        ask = {"name": "graph_query", "arguments": {"spec": {"match": [{"label": "Courier", "id": "courier-y"}, {"rel": "FOR", "dir": "in", "label": "CostLine"}],
+                                                            "return": [{"agg": "avg", "of": "CostLine", "prop": "amount", "as": "amount"}]}, "ask": "cost"}}
+        cmo = rpc(c, f"/{secret}/u-cmo/mcp", "tools/call", ask, 2).json()["result"]["content"][0]["text"]
+        chloe = rpc(c, f"/{secret}/u-marketing/mcp", "tools/call", ask, 3).json()["result"]["content"][0]["text"]
+        assert "answered_path" in cmo and "4.2" in cmo
+        assert "not_permitted" in chloe and "4.2" not in chloe  # the same call, a different person's URL

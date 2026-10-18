@@ -34,6 +34,19 @@ FalkorDB is the company's memory and the thing that does the reasoning work, not
 
 **Graph model.** About 40 node labels in one graph per company: people and roles, customers (pseudonymous), orders, line items, products, batches, suppliers, shipments, scans, hubs, couriers, tickets, agreed refund/delivery dates, campaigns, coupons, documents and passages, decisions, assumptions, and evidence. Indexes, unique constraints and two full-text indexes are in [sinew/schema.py](sinew/schema.py). Demo size: 6,642 nodes and 13,193 edges (Northwind), 2,621 nodes and 4,256 edges (Larkspur).
 
+**The model in one view.** Full list of labels, properties and all 79 relationship patterns: [docs/graph-model.md](docs/graph-model.md). The links that carry the story:
+
+```
+(Ticket)-[:TOUCHES]->(Hub)<-[:AFFECTS]-(Decision)-[:RESTS_ON]->(Assumption)<-[:TESTS]-(Evidence)
+(Order)-[:SHIPPED_AS]->(Shipment)-[:VIA]->(Courier);  (Scan)-[:FOR]->(Shipment);  (Scan)-[:AT]->(Hub)
+(Hub)-[:ROUTES_TO {transit_h, capacity}]->(Hub)                  -- reroutes, choke points
+(Decision)-[:BUILDS_ON]->(Decision);  (Decision)-[:BREAKS]->(Assumption)
+(User)-[:HAS_ROLE]->(Role)-[:CAN_READ]->(Area);  (Doc|Passage)-[:IN_AREA]->(Area)   -- who may see what
+(User)-[:MEMBER_OF]->(Team)-[:COVERS]->(Region)<-[:IN]-(Customer)  -- which customers a support agent may open
+(Profile)-[:HAS]->(Identifier);  (Profile)-[:OF]->(Customer)     -- identity merge (WCC)
+(Finding)-[:ABOUT]->(any node)                                    -- what the agent remembers, with its date
+```
+
 **Where the graph does the work**
 
 | Need | FalkorDB feature | Where |
@@ -99,6 +112,16 @@ question ─► AI plans the query (spec) ─► Sinew validates + compiles Cyph
 - If the AI is unavailable, answers come straight from the graph (`SINEW_AI=off`).
 - 28 tools are exposed over **MCP**, bound to one signed-in person; actions that change things (refund, incident, notify) wait for a human click.
 
+## Connect another agent over MCP
+
+The same tools the web app uses are available to any MCP client that speaks streamable HTTP, read-only (no refunds, promises, incidents or notifications):
+
+```bash
+SINEW_LOCAL=1 uv run python -m sinew.mcp_http
+```
+
+It serves one URL per person, `http://127.0.0.1:8765/<secret>/<person>/mcp`, written to `work-log/mcp-urls.txt` (git-ignored; the secret in the path is the key, set your own with `SINEW_MCP_SECRET`). Who the agent acts as is fixed by the URL, not chosen by the model, and every call is still checked against that person's role: the CMO's URL can read the cost sheet, the brand marketer's gets "not permitted" for the identical call. This is covered by a test; reaching it from outside your machine needs a tunnel in front of port 8765, which we have not tested against a hosted agent.
+
 ## Privacy by design
 
 - No names, emails or phones in the graph: only pseudonymous ids and keyed hashes. Fields are classified on the way in (drop / hash / redact, with Presidio plus patterns, failing closed). Unknown fields are quarantined.
@@ -127,7 +150,7 @@ Try, as Daniel (CEO): *"Why are complaints up this week, and what should we do?"
 
 ## Tests and evidence
 
-- `uv run pytest -q`: **203 tests** pass in about 12 s, using a scratch graph (never your real ones).
+- `uv run pytest -q`: **204 tests** pass in about 12 s, using a scratch graph (never your real ones).
 - **Graph vs source data:** `SINEW_LOCAL=1 uv run python -m sinew.verify_source northwind` adds up the raw event feed (`seed/events/northwind.jsonl`) in plain Python and asks the graph the same questions. Orders, revenue, order lines, deliveries, payments, shipments by courier, scans by hub, tickets by type, refunds and returns: **26 of 26 totals match exactly** (for example 600 orders, $60,399.92 revenue, 133 tickets, 1,712 scans, $6,892.56 refunded).
 - **AI-free retrieval accuracy:** random questions are routed to graph walks, run as the person asking through the same permission checks, and graded against the truth from *independent* Cypher (`SINEW_LOCAL=1 uv run python -m sinew.eval_retrieval <seed> <rounds>`). Saved runs for nine seeds in `docs/eval-retrieval-*.json`: **2,217 of 2,217 checks passed**. These grade the facts that reach the model, not the model's wording.
 - An end-to-end run *with* the AI (`docs/eval-2611.md`) passed 15 of 16; the miss is an answer that said "no information" about an order that exists. We left it in as evidence the model is the weaker part.
