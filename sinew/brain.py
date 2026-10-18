@@ -227,12 +227,14 @@ def _is_follow_up(tenant: str, question: str, history) -> bool:
     carries on from the previous one."""
     if not history or len(question.split()) > 16:
         return False
-    if _link(tenant, question)[0]:
+    named, missing = _link(tenant, question)
+    if named or missing:  # it names its own thing (even one that doesn't exist, like order 99999): a new question
         return False
     if _topic(tenant, history) is None:
         return False
     intents = _intents(question, [])
-    return intents == ["unknown"] or "detail" in intents or len(question.split()) <= 4
+    points_back = re.search(r"\b(it|its|it's|that|this|they|them|their|those|more)\b", question.lower())
+    return (intents == ["unknown"] and bool(points_back)) or "detail" in intents or len(question.split()) <= 4
 
 
 def understand(tenant: str, user_id: str, question: str, history=()) -> Plan:
@@ -294,6 +296,8 @@ a launch verdict, a capacity question or a what-to-do question can go without on
 "return": [{"of": "<label>", "prop": "<property>", "as": "<name>"}] (decisions, hubs, couriers, products, suppliers,
 campaigns, staff; never customers). Staff are User nodes (their ids come back as names).
 Never answer a question the schema cannot answer: give no query and no intents, and it will be said honestly.
+Costs, spend and budgets are CostLine records (and the cost sheet document). Payment and Order amounts are revenue, money coming in,
+and are never a cost: if the schema has no CostLine data for what is asked, give no query (a total of payments is not a cost).
 If a part asks for a custom count, total or breakdown across the graph that the intents alone can't give ("how many gold
 customers are waiting at Hub W2", "which couriers carried FEST40 orders", "complaints by issue for batch B7"), ALSO give that
 part a "query": a walk through the graph, written in this form (labels, relationships and properties ONLY from the schema below):
@@ -332,7 +336,7 @@ def _catalogue(tenant: str) -> str:
     return "\n".join(f"{k}: " + "; ".join(v) for k, v in kinds.items())
 
 
-async def understand_with_model(llm, tenant: str, user_id: str, question: str, history=()) -> Plan | None:
+async def understand_with_model(llm, tenant: str, user_id: str, question: str, history=(), found_nothing: str = "") -> Plan | None:
     """The model's reading of the question, checked: unknown entity ids are dropped, intents come from a fixed list.
     None if there is no model or its answer is unusable (the word-pattern reading is used instead)."""
     if llm is None or not hasattr(llm, "plan") or not question.strip():
@@ -342,6 +346,9 @@ async def understand_with_model(llm, tenant: str, user_id: str, question: str, h
     prompt = (f"Catalogue of what exists at this company:\n{_catalogue(tenant)}\n\nThe graph's schema:\n{graphquery.schema_text(tenant)}\n\n"
               f"Now is {now} (epoch seconds).\n\n"
               f"Earlier questions in this chat (oldest first): {json.dumps(list(history)[-3:])}\n\nQuestion: {question}")
+    if found_nothing:  # a second reading: the first one's walks found nothing, so plan a different route
+        prompt += (f"\n\nYour first reading of this question found nothing in the graph ({found_nothing}). "
+                   "Read the question again and plan a different route to the answer through the graph schema above.")
     try:
         raw = await llm.plan(PLANNER, prompt)
         known = {(k, nid): label for k, nid, label, _ in _index(tenant)}
@@ -459,8 +466,8 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
         if "contact" in p.intents:
             calls += [("customer_trace", {"customer": "#" + e.id[2:] if e.kind == "Order" else e.id})
                       for e in p.entities if e.kind in ("Order", "Ticket")]
-        if "attention" in p.intents:
-            calls += [("company_pulse", {"days": plan.window["days"]}), ("cluster_incidents", {}), ("prelaunch_check", {})]
+        if "attention" in p.intents:  # the company-wide summary only when nothing specific is named, like capacity and tickets above
+            calls += ([] if p.entities else [("company_pulse", {"days": plan.window["days"]})]) + [("cluster_incidents", {}), ("prelaunch_check", {})]
         if "rank" in p.intents and "capacity" not in p.intents:
             t = p.text.lower()
             if re.search(r"product|item|batch", t):
@@ -669,6 +676,8 @@ def _answers(part: Part, r: dict) -> bool:
         tools = ANSWERED_BY.get(intent)
         if tools is not None and r.get("tool") not in tools:
             continue
+        if tools is None and r.get("tool") == "search_docs" and not part.entities and not part.query:
+            continue  # a question about some thing the company doesn't have is not answered by documents that merely share words
         if intent == "cost":  # answered only by an actual figure of the kind asked: revenue, or costs and spend
             d = r.get("data") or {}
             if r.get("tool") == "company_pulse":
@@ -1131,5 +1140,16 @@ async def analyse(tenant: str, user_id: str, question: str, history=(), llm=None
             break
         results = await traverse(plan, walks(plan))
     sheet = reconcile(plan, results)
+    nothing = [p["why_missing"] or p["ask"] for p in sheet["parts"] if p["status"] == "no_data"]
+    if nothing and not plan.missing and llm is not None and hasattr(llm, "plan"):
+        # One more reading when nothing was found (not when the person may not see it, or the thing doesn't exist):
+        # told what came back empty, the model may plan a different route. Kept only if it answers more.
+        second = await understand_with_model(llm, tenant, user_id, question, history, found_nothing="; ".join(nothing)[:200])
+        if second is not None:
+            again = await traverse(second, walks(second))
+            if (resheet := reconcile(second, again)) and sum(p["status"] == "answered" for p in resheet["parts"]) > \
+                    sum(p["status"] == "answered" for p in sheet["parts"]):
+                plan, results, sheet = second, again, resheet
+                plan.notes.append("read the question a second time after the first found nothing")
     sheet["actions"] = actions(plan, results)
     return plan, results, sheet

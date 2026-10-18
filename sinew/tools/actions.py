@@ -43,7 +43,7 @@ def _viewer_for_customer_of_order(tenant: str, user_id: str, order_id: str):
     if not resolve(tenant, "Order", order_id):
         return None, unknown("action", f"order {order_id}")
     customer = resolve_customer(tenant, order_id)
-    allowed, reason, _ = guard.customer_access(v, customer)
+    allowed, reason, _ = guard.customer_access(v, customer, write=True)
     if not allowed:
         return None, refused("action", reason)
     return v, None

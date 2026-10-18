@@ -185,3 +185,15 @@ def test_a_support_agent_lists_only_their_own_customers_by_name():
 def test_roles_that_do_not_handle_customers_can_only_count_them():
     assert run("u-ceo", WAITING).outcome == "not_in_graph" and "identifies a customer" in run("u-ceo", WAITING).reason
     assert run("u-marketing", WAITING).outcome == "not_permitted"  # no support area for promises
+
+
+def test_money_totals_need_the_finance_area_even_when_the_walk_is_otherwise_allowed():
+    revenue = {"match": [{"label": "Order"}, {"rel": "PAID_BY", "dir": "out", "label": "Payment"}],
+               "return": [{"agg": "sum", "of": "Payment", "prop": "amount", "as": "revenue"}]}
+    for user in ("u-agent-w1", "u-sup-head", "u-marketing"):  # support may read payments; none of them reads finance
+        out = run(user, revenue)
+        assert out.outcome == "not_permitted" and "finance" in out.reason and "17949" not in str(out.data)
+    ok = run("u-cmo", revenue)
+    assert ok.outcome == "answered_path" and ok.data["rows"][0][0] > 0
+    counted = {**revenue, "return": [{"agg": "count_distinct", "of": "Payment", "as": "payments"}]}
+    assert run("u-agent-w1", counted).outcome == "answered_path"  # counting records is not revenue

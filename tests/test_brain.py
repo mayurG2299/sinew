@@ -245,3 +245,73 @@ def test_a_held_back_document_does_not_make_a_customers_own_order_look_blocked()
     out = write(sheet("u-agent-w1", "what should I tell the customer about order 4520?"))
     assert "That's outside your access" not in out and "Order #4520" in out
     assert "Tell the customer the parcel is 30 h late at Hub W2" in out
+
+
+COST_WALK = {"match": [{"label": "Courier", "id": "courier-y"}, {"rel": "FOR", "dir": "in", "label": "CostLine"}],
+             "return": [{"agg": "avg", "of": "CostLine", "prop": "amount", "as": "amount"}]}
+
+
+def _plan(walk):
+    return {"parts": [{"ask": "what does courier y cost per parcel", "intents": ["cost"],
+                       "entities": [{"kind": "Courier", "id": "courier-y"}], "query": walk}]}
+
+
+class TwoReadings:
+    """A model whose first reading plans a walk that finds nothing, and whose second reading (told so) plans a good one."""
+
+    def __init__(self, second_is_good=True):
+        self.prompts, self.good = [], second_is_good
+
+    async def plan(self, system, user):
+        self.prompts.append(user)
+        empty = {**COST_WALK, "match": [COST_WALK["match"][0], {**COST_WALK["match"][1], "where": [{"prop": "amount", "op": ">", "value": 9999}]}]}
+        if "Your walk" in user:  # the walk-repair prompt: the model changes nothing
+            return {"query": empty}
+        return _plan(COST_WALK if self.good and "first reading" in user else empty)
+
+
+def test_a_walk_that_finds_nothing_gets_one_more_reading_and_keeps_it_only_if_it_answers():
+    import asyncio as aio
+    llm = TwoReadings()
+    plan, res, sheet = aio.run(analyse(T, "u-cmo", "What does Courier Y cost per parcel?", (), llm))
+    assert sheet["parts"][0]["status"] == "answered" and "4.2" in write(sheet)
+    assert sum("first reading" in p for p in llm.prompts) == 1 and any("read the question a second time" in n for n in plan.notes)
+    stuck = TwoReadings(second_is_good=False)  # the second reading finds nothing either: still "no data", and it stops there
+    plan, res, sheet = aio.run(analyse(T, "u-cmo", "What does Courier Y cost per parcel?", (), stuck))
+    assert sheet["parts"][0]["status"] == "no_data" and sum("first reading" in p for p in stuck.prompts) == 1
+
+
+def test_no_second_reading_when_the_thing_does_not_exist_or_the_person_may_not_see_it():
+    import asyncio as aio
+    llm = TwoReadings()
+    aio.run(analyse(T, "u-cmo", "How is hub-zz doing?", (), FakePlanner({"parts": [{"ask": "how is hub zz", "intents": ["status"], "entities": [{"kind": "Hub", "id": "hub-zz"}]}]})))
+    _, _, sheet = aio.run(analyse(T, "u-marketing", "What does Courier Y cost per parcel?", (), llm))  # marketing may not read finance
+    assert sheet["parts"][0]["status"] != "answered" and not any("first reading" in p for p in llm.prompts)
+
+
+def test_a_question_about_a_named_thing_does_not_pull_in_the_company_summary():
+    import asyncio as aio
+    from sinew.brain import understand_with_model
+    def tools(parts):
+        plan = aio.run(understand_with_model(FakePlanner({"parts": parts}), T, "u-ceo", "q"))
+        return {name for calls in walks(plan) for name, _ in calls}
+    named = tools([{"ask": "what is going wrong at hub w2", "intents": ["attention", "why"], "entities": [{"kind": "Hub", "id": "hub-w2"}]}])
+    assert "hub_status" in named and "company_pulse" not in named
+    general = tools([{"ask": "what should I worry about", "intents": ["attention"], "entities": []}])
+    assert "company_pulse" in general  # nothing named: the company summary is what was asked for
+
+
+def test_a_status_question_about_something_the_company_does_not_have_is_not_answered_by_documents():
+    import asyncio as aio
+    llm = FakePlanner({"parts": [{"ask": "how is hub z9", "intents": ["status"], "entities": []}]})
+    plan, res, sheet = aio.run(analyse(T, "u-ceo", "How is Hub Z9?", (), llm))
+    assert sheet["parts"][0]["status"] == "no_data" and write(sheet).startswith("Sinew has no information")
+
+
+def test_a_new_question_is_not_taken_for_a_follow_up_of_the_one_before():
+    history = ["list all customers in the west with their emails"]
+    for q in ("show me order 99999", "what is the return window?"):  # names a thing that doesn't exist / names nothing but isn't pointing back
+        plan = understand(T, "u-agent-w1", q, history)
+        assert not plan.follow_up_to and "personal_bulk" not in plan.parts[0].intents
+    follow = understand(T, "u-ceo", "what about that?", ["Is Hub W2 coping?"])
+    assert follow.follow_up_to == "Is Hub W2 coping?" and [e.id for e in follow.entities] == ["hub-w2"]

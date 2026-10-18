@@ -42,6 +42,9 @@ ROW_LABELS = {"Hub", "Courier", "Decision", "Assumption", "Evidence", "Campaign"
               "Region", "Warehouse", "Queue", "User", "CostLine"}
 CUSTOMER_LINKED = {"Order", "LineItem", "Payment", "Refund", "Return", "Ticket", "Promise", "Customer", "Profile"}
 NEVER_RETURNED = {"id", "summary_clean", "hash", "record", "fields", "text_clean"}  # on customer-linked labels
+# Money fields: totalling them across the company is revenue, refunds paid or cost, which only the finance area reads.
+# (Counting the records, or one person's own orders through their own tools, is not affected.)
+MONEY = {"Order": {"total"}, "Payment": {"amount"}, "Refund": {"amount"}, "LineItem": {"price"}, "CostLine": {"amount"}}
 OPS = {"=": "=", "!=": "<>", "<": "<", "<=": "<=", ">": ">", ">=": ">=", "in": "IN"}
 AGGS = {"count": "count({v})", "count_distinct": "count(DISTINCT {v})", "sum": "sum({v}.{p})", "avg": "avg({v}.{p})",
         "min": "min({v}.{p})", "max": "max({v}.{p})"}
@@ -173,6 +176,7 @@ def compile_spec(tenant: str, spec: dict, now: int, customer_rows: bool = False)
         return f"v{i}", label_name
 
     cols, ret = [], []
+    money = False
     listing = spec.get("list") or []
     for g_ in listing:  # "list": rows of the company's own structure, e.g. decisions or hubs; never customer records
         label_ = str(g_.get("of", "")).partition("@")[0]
@@ -189,6 +193,7 @@ def compile_spec(tenant: str, spec: dict, now: int, customer_rows: bool = False)
             where.append(f"{v}.id IN $visible")
         elif label in CUSTOMER_LINKED and prop in NEVER_RETURNED:
             raise QueryError(f"{prop} of {label} identifies a customer record and can't be returned; only counts and totals can")
+        money = money or prop in MONEY.get(label, ())
         a = _alias(g_.get("as"), prop)
         ret.append(f"{v}.{prop} AS {a}")
         cols.append(a)
@@ -200,6 +205,7 @@ def compile_spec(tenant: str, spec: dict, now: int, customer_rows: bool = False)
         prop = str(r.get("prop", "")) if agg not in ("count", "count_distinct") else ""
         if agg not in ("count", "count_distinct") and prop not in props.get(label, set()):
             raise QueryError(f"{agg} needs a numeric property of {label}")
+        money = money or prop in MONEY.get(label, ())
         a = _alias(r.get("as"), agg)
         ret.append(AGGS[agg].format(v=v, p=prop) + f" AS {a}")
         cols.append(a)
@@ -213,7 +219,7 @@ def compile_spec(tenant: str, spec: dict, now: int, customer_rows: bool = False)
     limit = min(max(int(spec.get("limit") or 20), 1), MAX_LIMIT)
     cypher = (f"MATCH {pattern}" + (" WHERE " + " AND ".join(where) if where else "")
               + f" RETURN {distinct}{', '.join(ret)}{order} LIMIT {limit}")
-    return {"cypher": cypher, "params": params, "path": path, "labels": labels, "columns": cols, "customer_cols": customer_cols}
+    return {"cypher": cypher, "params": params, "path": path, "labels": labels, "columns": cols, "customer_cols": customer_cols, "money": money}
 
 
 def _show(cypher: str, params: dict) -> str:
@@ -238,6 +244,8 @@ def run_query(tenant: str, user_id: str, spec: dict, ask: str = "") -> Answer:
         return Answer("graph_query", "not_in_graph", reason=f"couldn't turn that into a valid walk: {e}")
     if blocked_areas(c["labels"]):
         return refused("graph_query", f"your role doesn't have access to {', '.join(blocked_areas(c['labels']))} information")
+    if c["money"] and "finance" not in v.areas:
+        return refused("graph_query", "your role doesn't have access to finance information")
     if c["customer_cols"]:  # only the customers this person may see, by the same paths as the inbox
         seen = guard.visible_customers(v)
         c["params"]["visible"] = seen if seen is not None else [x for x, in graph(tenant).ro_query("MATCH (c:Customer) RETURN c.id").result_set]

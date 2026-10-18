@@ -119,3 +119,21 @@ def test_the_check_accepts_rounded_changes_but_not_invented_ones():
     assert check.check("Orders are up 24% this week.", results)[0]
     assert check.check("Orders are up 25% this week.", results)[0]
     assert not check.check("Orders are up 31% this week.", results)[0]
+
+
+def test_the_ceo_may_open_any_order_and_customer_history_read_only_and_it_is_recorded():
+    from sinew.db import graph
+    from sinew.tools import actions, focus
+    def accesses():
+        return graph(T).ro_query("MATCH (a:Access)-[:BY]->(:User {id: 'u-ceo'}) RETURN count(a)").result_set[0][0]
+    before = accesses()
+    out = focus.order_detail(T, "u-ceo", "#4581")
+    assert out.outcome == "answered_path" and "65.81" in json.dumps(out.data)  # the order, as a support agent sees it
+    cust = out.data.get("customer") or graph(T).ro_query("MATCH (:Order {id: 'o-4581'})<-[:PLACED]-(:Profile)-[:OF]->(c:Customer) RETURN c.id").result_set[0][0]
+    assert trace.customer_trace(T, "u-ceo", cust).outcome == "answered_path"
+    assert accesses() == before + 2  # one Access record per read, the same as for support staff
+    assert guard.fetch_personal(guard.Viewer.load(T, "u-ceo"), cust)[0] == {}  # pseudonymous only: no name, email or phone
+    refund = actions.issue_refund(T, "u-ceo", "o-4581", 5)  # reading is allowed, acting is not
+    assert refund.outcome == "not_permitted" and "not act" in refund.reason
+    assert focus.order_detail(T, "u-marketing", "#4581").outcome == "not_permitted"  # other roles are unchanged
+    assert focus.order_detail(T, "u-logistics", "#4581").outcome == "not_permitted"

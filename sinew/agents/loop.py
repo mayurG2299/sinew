@@ -173,6 +173,8 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
             # the same tool results (no new tools). The rewrite is checked again like any answer.
             if run.answer and run.results and hasattr(llm, "add_user"):
                 ok, why = check.check(run.answer, run.results, task, brain.for_model(sheet))
+                if ok and _ignores_rows(run):
+                    ok, why = False, "mentions nothing the graph query found (state what it returned)"
                 if not ok:
                     llm.add_user(f"Your answer failed Sinew's fact check: it {why}. Rewrite the answer using only "
                                  "names and numbers that appear in the tool results, following every rule. "
@@ -180,7 +182,11 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
                     try:
                         fix = await llm.next()
                         if fix.text and not fix.calls and check.check(fix.text.strip(), run.results, task, brain.for_model(sheet))[0]:
-                            run.answer, run.repaired = fix.text.strip(), why
+                            kept_answer, run.answer = run.answer, fix.text.strip()
+                            if _ignores_rows(run):  # still ignores the finding: keep the first answer, the final check falls back
+                                run.answer = kept_answer
+                            else:
+                                run.repaired = why
                     except LLMUnavailable:
                         pass  # keep the first answer; the check below falls back to the rows
     except LLMUnavailable as e:  # e.g. no API key: raised before the session opens
@@ -188,7 +194,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
     if unavailable is not None:
         e = unavailable
         if run.draft:  # the analysis layer already wrote a correct answer from the graph
-            run.answer, run.answer_source = run.draft, "graph"
+            run.answer, run.answer_source = check.paragraphs(run.draft), "graph"
             run.check_failed = f"model unavailable: {str(e)[:120]}"
             run.ms = round((time.perf_counter() - start) * 1000, 1)
             run.sources = docs.sources(tenant, user_id, run.results, task, answer=run.answer)
@@ -208,8 +214,10 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
         share, left = check.coverage(run.draft, run.answer)
         if share < 0.75:
             ok, why = False, f"the rewrite left out facts from the graph ({', '.join(left[:4])})"
+    if ok and _ignores_rows(run):
+        ok, why = False, "the rewrite mentions nothing the graph query found"  # the walk answered; the draft says what it found
     if not ok:
-        run.check_failed, run.answer, run.answer_source = why, run.draft or check.fallback(run.results), "rows"
+        run.check_failed, run.answer, run.answer_source = why, check.paragraphs(run.draft) or check.fallback(run.results), "rows"
     else:
         run.answer = check.plain(run.answer)
     run.ms = round((time.perf_counter() - start) * 1000, 1)
@@ -217,6 +225,11 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
         _save_replay(tenant, user_id, run)
     run.sources = docs.sources(tenant, user_id, run.results, task, answer=run.answer)
     return run
+
+
+def _ignores_rows(run: Run) -> bool:
+    """The walk found something and the answer mentions none of it."""
+    return bool(run.answer and run.queries) and not any(check.uses_rows(q["rows"], run.answer) for q in run.queries)
 
 
 def run_sync(tenant: str, user_id: str, agent: str, task: str) -> Run:

@@ -85,7 +85,7 @@ def test_causal_wording_about_decisions_is_rejected():
 def test_model_down_answers_from_the_graph_now():
     # a fresh answer written from today's graph beats a saved answer from earlier
     r = run(Scripted([LLMUnavailable("429 quota")]))
-    assert r.answer_source == "graph" and r.answer == r.draft and "This customer has" in r.answer
+    assert r.answer_source == "graph" and r.answer == check.paragraphs(r.draft) and "This customer has" in r.answer
 
 
 def test_model_down_and_nothing_to_draft_falls_back_to_the_last_good_run():
@@ -190,7 +190,7 @@ def test_a_rewrite_that_drops_the_graphs_numbers_is_replaced_by_the_draft():
 def test_the_loop_uses_the_draft_when_the_rewrite_drops_the_facts():
     r = run(Scripted([Turn(text="Everything looks fine here.")]), agent="ask", user="u-ceo",
             task="Why are complaints up this week, and what should we do?")
-    assert r.answer_source == "rows" and "left out facts" in r.check_failed and r.answer == r.draft
+    assert r.answer_source == "rows" and "left out facts" in r.check_failed and r.answer == check.paragraphs(r.draft)
     assert "Hub W2" in r.answer and "77%" in r.answer
 
 
@@ -199,3 +199,36 @@ def test_totals_and_shares_derived_from_the_facts_are_allowed_but_made_up_number
     assert check.check("28 customers have more than one open ticket.", res)[0]  # 9 + 19
     assert check.check("9 of 52 customers, about 17%, have three.", res)[0]  # 9 / (9 + 19 + 24)
     assert not check.check("31 customers have more than one open ticket.", res)[0]
+
+
+def test_uses_rows_tells_a_rewrite_that_kept_the_finding_from_one_that_dropped_it():
+    rows = [["Ladli Kakar", "3 Oct"], ["Reece Magar", "8 Oct"]]
+    assert check.uses_rows(rows, "Ladli Kakar has waited longest.")
+    assert not check.uses_rows(rows, "Sinew has no information about it.")
+    assert check.uses_rows([["courier-y", 4.2]], "Courier Y costs $4.20 per parcel.")
+    assert not check.uses_rows([["courier-y", 4.2]], "Sinew has no document about leave policies.")
+    assert check.uses_rows([[0, 1]], "anything")  # nothing comparable came back
+
+
+class PlansThenWords(Scripted):
+    """A model that plans a graph walk (cost of Courier Y) and then words the answer however the test says."""
+
+    async def plan(self, system, user):
+        return {"parts": [{"ask": "what does courier y cost per parcel", "intents": ["cost"],
+                           "entities": [{"kind": "Courier", "id": "courier-y"}],
+                           "query": {"match": [{"label": "Courier", "id": "courier-y"}, {"rel": "FOR", "dir": "in", "label": "CostLine"}],
+                                     "return": [{"agg": "avg", "of": "CostLine", "prop": "amount", "as": "amount"}]}}]}
+
+
+def test_a_rewrite_that_throws_away_what_the_walk_found_is_replaced_by_the_graphs_draft():
+    q = "What does Courier Y cost per parcel?"
+    bad = run(PlansThenWords([Turn(text="Sinew has no information about that.")]), agent="ask", user="u-cmo", task=q)
+    assert bad.answer_source == "rows" and "4.2" in bad.answer and "mentions nothing" in bad.check_failed
+    good = run(PlansThenWords([Turn(text="Courier Y costs $4.20 per parcel.")]), agent="ask", user="u-cmo", task=q)
+    assert good.answer_source == "model" and "4.20" in good.answer
+
+
+def test_the_graphs_draft_is_split_into_paragraphs_so_a_page_does_not_run_it_together():
+    draft = "Hub W2: 25 parcels.\nTickets: 54.\nDue by customer:\n- Ladli Kakar: 3 Oct\n- Reece Magar: 8 Oct\n\nDone."
+    assert check.paragraphs(draft) == ("Hub W2: 25 parcels.\n\nTickets: 54.\n\nDue by customer:\n\n- Ladli Kakar: 3 Oct\n- Reece Magar: 8 Oct\n\nDone.")
+    assert check.paragraphs("") == "" and check.paragraphs("one line") == "one line"

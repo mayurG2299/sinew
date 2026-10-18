@@ -5,7 +5,8 @@
     support staff  (u)-[:MEMBER_OF]->(:Team)-[:COVERS]->(:Region)<-[:IN]-(c:Customer)
     contractor     (u)-[:MEMBER_OF]->(:Team)-[:WORKS]->(:Queue)<-[:IN]-(:Ticket)-[:FROM]->(:Profile)-[:OF]->(c)
     support head   any customer
-  Other roles (logistics, marketing, analyst, CEO) have no purpose for one person's history.
+    CEO            any customer, read only (no personal fields, never an action)
+  Other roles (logistics, marketing, analyst) have no purpose for one person's history.
 - Which personal fields may they fetch live from the store? Per role, below.
 - Every customer-level read leaves an Access record (ids only).
 """
@@ -87,9 +88,13 @@ def gate(tenant: str, user_id: str, tool: str) -> dict | None:
     return None
 
 
-def customer_access(v: Viewer, customer_id: str) -> tuple[bool, str, list[str]]:
-    """(allowed, reason, the path that grants it)."""
+def customer_access(v: Viewer, customer_id: str, write: bool = False) -> tuple[bool, str, list[str]]:
+    """(allowed, reason, the path that grants it). `write` is for actions on the customer (a refund, a promise)."""
     g = graph(v.tenant)
+    if v.role == "ceo":  # may read any customer's history (the read leaves an Access record), but not act on it
+        if write:
+            return False, "the CEO can read a customer's history but not act on it", []
+        return True, "CEO: read-only, all customers", [v.user_id, customer_id]
     if v.role not in SUPPORT_ROLES:
         return False, f"role {v.role} has no support purpose for one customer's history; use the aggregate views", []
     if v.role == "support_head":

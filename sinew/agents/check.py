@@ -123,6 +123,31 @@ def coverage(draft: str, answer: str) -> tuple[float, list[str]]:
     return (1 - len(missing) / len(want) if want else 1.0), [f"{m:g}" for m in missing]
 
 
+def uses_rows(rows: list[list], answer: str) -> bool:
+    """Does the answer mention anything a graph query returned? A rewrite that mentions none of the rows (a model that
+    says "no information" about a walk that found something) threw the finding away. Numbers match as in coverage()."""
+    cells = [c for r in rows for c in r if isinstance(c, str) and len(c) >= 3
+             or isinstance(c, (int, float)) and not isinstance(c, bool) and c not in (0, 1)]
+    if not cells:
+        return True  # nothing comparable came back
+    low = answer.lower()
+    have = {float(n.replace(",", "")) for n, _ in NUMBER.findall(answer)}
+    return any(c.lower() in low if isinstance(c, str) else
+               any(abs(c - h) < 0.006 or abs(c * 100 - h) < 0.6 or abs(round(c) - h) < 0.006 for h in have) for c in cells)
+
+
+def paragraphs(text: str) -> str:
+    """The graph's plain draft puts one fact per line; a page runs single line breaks together, so give each line its own
+    paragraph (list items stay together)."""
+    out: list[str] = []
+    for line in (ln.rstrip() for ln in text.splitlines()):
+        if not line.strip():
+            continue
+        listed = line.lstrip().startswith(("- ", "* ", "• "))
+        out.append(("\n" if listed and out and out[-1].lstrip().startswith(("- ", "* ", "• ")) else "\n\n" if out else "") + line)
+    return "".join(out)
+
+
 def fallback(tool_results: list[dict]) -> str:
     """Plain sentences built only from the rows, for when the model's own answer fails the check."""
     out = []
