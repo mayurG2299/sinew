@@ -40,6 +40,7 @@ INTENTS = [  # (intent, pattern) in the order they are reported
     ("verdict", r"safe to (launch|run|go|start)|should we (launch|run|go ahead)|ready (to|for) launch|go ahead with|"
                 r"is it (ok|okay|fine|wise|a good idea)|can (it|we|the hub|hub \w+) (handle|cope|carry|take)|will it (hold|cope|work)"),
     ("what_to_do", r"what should (we|i) do|what (do|can) (we|i) do|what to do|recommend|next step|how (do|can) we fix|should we|"
+                   r"what (do|should|can) (i|we) (tell|say|reply|answer)|what to (tell|say)|how (do|should|can) (i|we) (handle|respond|reply|deal)|"
                    r"taken care of|need(s)? to be (done|handled|taken care|checked)|things? (to|we need to) (do|watch|check|handle)|"
                    r"what (do )?(we|i) need|watch out|what could go wrong|\brisks?\b|pitfalls?|\bwhat if\b|"
                    r"\bif we (want to |were to |only |just )?(use|move|switch|stop|drop|end|keep|run|go|rely|continue)"),
@@ -48,7 +49,7 @@ INTENTS = [  # (intent, pattern) in the order they are reported
     ("tickets", r"\b(open |unsolved |pending |those |these )?tickets\b|\bopen (ticket|complaint)s?\b"),
     ("capacity", r"capacity|headroom|spare room|overload(ed)?|how full|utili[sz]ation|over capacity|under capacity|\bbusy\b"),
     ("pulse", r"how is the company|how are we doing|state of the company|company doing|overview|summary|how('s| is) (it|business) going"),
-    ("cost", r"\bcost|spend|budget|price|revenue|margin|money"),
+    ("cost", r"\bcost|spen[dt]|budget|price|revenue|margin|money|pa(y|id) off|\broi\b|worth it"),
     ("policy", r"polic|rule|how fast|who (can|has to|must|should) approve|allowed|contract|agreement|terms|guideline|"
                r"can i (refund|approve|give|offer)|am i allowed|my limit|limit for|refund limit|"
                r"standard|leave|process for|plan for|meeting notes|what did we (agree|decide)"),
@@ -262,6 +263,93 @@ def understand(tenant: str, user_id: str, question: str, history=()) -> Plan:
     return plan
 
 
+# ------------------------------------------------------------------ 1b. understand with the model
+
+ALLOWED_INTENTS = ["why", "what_to_do", "verdict", "pulse", "cost", "policy", "count", "status", "detail", "tickets", "capacity",
+                   "rank", "contact", "attention", "personal_bulk"]
+PLANNER = """You read one question from an employee of an online store and turn it into a plan for searching the company's
+graph. You do NOT answer it. Reply with JSON only:
+{"parts": [{"ask": "<that part of the question, in plain words>", "intents": [<from the list>], "entities": [{"kind": "...", "id": "..."}]}],
+ "window_days": <1-90, default 7>}
+
+Intents: why (why is something happening) · what_to_do (what should we do / what do I tell the customer / how do I handle it / what needs taking care of / what if we ...) ·
+verdict (is it safe / OK / should we) · pulse (how is the company doing, a summary) · cost (money: revenue, costs, spend) ·
+policy (a rule, limit, contract, plan or what was decided) · count (how many / what rate) · status (the latest on a named thing) ·
+detail (more detail on what was just discussed) · tickets (the open or recent support tickets) ·
+capacity (hub load, spare room, what a capacity figure means) · rank (worst / best / most) ·
+contact (a customer's phone or email) · attention (what needs my attention / what should I worry about / what is going wrong / red flags / the bad news) ·
+personal_bulk (a list of customers with their personal details).
+
+Entities (use ONLY ids from the catalogue below, or order/ticket numbers written in the question; kind is one of
+Order, Ticket, Hub, Courier, Campaign, Decision, Product, Batch, Region): an order is "o-<number>", a ticket "t-<number>".
+Split a question into parts only when it asks for different things. Resolve "it", "that", "this issue", "those" and short
+follow-ups ("more details", "why?") from the earlier questions: use their entities and intents, and add "detail" when more
+is asked. A question about something that exists in none of the lists has no entities. Never invent ids.
+
+Examples:
+"what is under 157% capacity?" -> one part, intents [capacity], no entities.
+"i want to know more" after "Is the Winter Sale safe to launch?" -> intents [detail, verdict], entities [Campaign winter25].
+"what are those 59 open tickets" -> intents [tickets].
+"if we use hub w2 only what do we need to take care of" -> intents [what_to_do], entities [Hub hub-w2].
+"how is order 4520 and what did it cost" -> two parts: [status] with Order o-4520, and [cost] with Order o-4520."""
+
+
+def _catalogue(tenant: str) -> str:
+    kinds: dict[str, list[str]] = {}
+    for kind, nid, label, _ in _index(tenant):
+        kinds.setdefault(kind, []).append(f"{nid}={label}" if kind in ("Decision", "Campaign", "Product") else nid)
+    return "\n".join(f"{k}: " + "; ".join(v) for k, v in kinds.items())
+
+
+async def understand_with_model(llm, tenant: str, user_id: str, question: str, history=()) -> Plan | None:
+    """The model's reading of the question, checked: unknown entity ids are dropped, intents come from a fixed list.
+    None if there is no model or its answer is unusable (the word-pattern reading is used instead)."""
+    if llm is None or not hasattr(llm, "plan") or not question.strip():
+        return None
+    v = guard.Viewer.load(tenant, user_id)
+    now = clock(tenant)
+    prompt = (f"Catalogue of what exists at this company:\n{_catalogue(tenant)}\n\n"
+              f"Earlier questions in this chat (oldest first): {json.dumps(list(history)[-3:])}\n\nQuestion: {question}")
+    try:
+        raw = await llm.plan(PLANNER, prompt)
+        known = {(k, nid): label for k, nid, label, _ in _index(tenant)}
+        g = graph(tenant)
+        plan = Plan(question, tenant, user_id, v.role if v else "", v.areas if v else [], {})
+        plan.refund_limit = v.refund_limit if v else 0
+        days = raw.get("window_days") if isinstance(raw.get("window_days"), int) else 7
+        days = min(max(days, 1), 90)
+        plan.window = {"label": {1: "today", 7: "this week", 30: "the last 30 days"}.get(days, f"the last {days} days"),
+                       "start": now - days * DAY, "end": now, "days": days}
+        for part in raw.get("parts") or []:
+            ents = []
+            for e in part.get("entities") or []:
+                kind, nid = str(e.get("kind", "")), str(e.get("id", "")).lower()
+                if kind == "Order" and re.fullmatch(r"o-\d{3,6}", nid):
+                    if g.ro_query("MATCH (o:Order {id: $o}) RETURN 1", {"o": nid}).result_set:
+                        ents.append(Entity("Order", nid, f"order #{nid[2:]}", nid))
+                    else:
+                        plan.missing.append(f"order #{nid[2:]}")
+                elif kind == "Ticket" and re.fullmatch(r"t-\d{4,6}", nid):
+                    if g.ro_query("MATCH (t:Ticket {id: $t}) RETURN 1", {"t": nid}).result_set:
+                        ents.append(Entity("Ticket", nid, "this ticket", nid))
+                elif (kind, nid) in known:
+                    ents.append(Entity(kind, nid, known[(kind, nid)], nid))
+                elif kind in ("Hub", "Order", "Courier", "Campaign", "Decision", "Product", "Batch") and nid:
+                    plan.missing.append(nid.replace("hub-", "Hub ").upper() if kind == "Hub" else nid)
+            text = str(part.get("ask") or question)[:300]
+            intents = [i for i in part.get("intents") or [] if i in ALLOWED_INTENTS]
+            intents += [i for i in _intents(text, ents) if i in ALLOWED_INTENTS and i not in intents and i not in ("status", "unknown")]
+            plan.parts.append(Part(text, intents or (["status"] if ents else ["unknown"]), ents))
+        if not plan.parts:
+            return None
+        plan.entities = [e for p in plan.parts for e in p.entities]
+        if history and plan.entities and not _link(tenant, question)[0]:
+            plan.follow_up_to = list(history)[-1]
+        return plan
+    except Exception:  # model down, bad JSON, anything unexpected: fall back to the word patterns
+        return None
+
+
 # ------------------------------------------------------------------ 2. walks for each part
 
 def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
@@ -269,6 +357,8 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
     out = []
     for p in plan.parts:
         calls: list[tuple[str, dict]] = []
+        about_customer = any(e.kind in ("Order", "Ticket") for e in p.entities)
+        about_product = any(e.kind in ("Product", "Batch") for e in p.entities)
         for e in p.entities:
             if e.kind == "Ticket":
                 calls += [("customer_trace", {"customer": e.id}), ("open_loops", {"customer": e.id}),
@@ -320,15 +410,17 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
             t = p.text.lower()
             calls.append(("product_ranking", {"days": max(plan.window["days"], 30)}) if re.search(r"product|item|batch", t)
                          else ("company_pulse", {"days": plan.window["days"]}))
-        if "why" in p.intents or ("what_to_do" in p.intents and not p.entities):
+        if ("why" in p.intents and not (about_customer or about_product)) or ("what_to_do" in p.intents and not p.entities):
             calls += [("cluster_incidents", {}), ("prelaunch_check", {})]
-        if "what_to_do" in p.intents:
+        if "what_to_do" in p.intents and not about_customer:
             calls.append(("prelaunch_check", {}))
+        if "what_to_do" in p.intents and about_customer:  # what to tell the customer: the company's own rules for it
+            calls.append(("search_docs", {"text": "late parcel customer new delivery date refund apologise"}))
         other_specific = (SPECIFIC - {"pulse", "tickets"}) & set(p.intents)
         if "pulse" in p.intents or ("count" in p.intents and not p.entities and not other_specific):
             calls.append(("company_pulse", {"days": plan.window["days"]}))
         if ("cost" in p.intents and not any(e.kind == "Order" for e in p.entities)) or "policy" in p.intents:
-            calls.append(("search_docs", {"text": p.text}))
+            calls.append(("search_docs", {"text": p.text + (" cost spend budget price" if "cost" in p.intents else "")}))
         if "cost" in p.intents and not p.entities and re.search(r"revenue|sales|income|turnover|earn|spend this|money in",
                                                                  p.text.lower()):
             calls.append(("company_pulse", {"days": plan.window["days"]}))
@@ -490,7 +582,7 @@ def _scope(result: dict, plan: Plan) -> str:
 
 
 ANSWERED_BY = {  # which walks can answer an intent; None = any walk about the named thing
-    "why": {"cluster_incidents", "trace_decisions", "decision_impact"},
+    "why": {"cluster_incidents", "trace_decisions", "decision_impact", "product_status", "hub_status", "order_detail"},
     "what_to_do": {"prelaunch_check", "trace_decisions", "cluster_incidents"},
     "pulse": {"company_pulse"}, "cost": {"search_docs", "company_pulse"}, "policy": {"search_docs", "decision_detail"},
     "count": None, "status": None, "unknown": None,
@@ -509,6 +601,12 @@ def _answers(part: Part, r: dict) -> bool:
     """Does this result answer what the part asks (not just mention the thing it names)?"""
     if r.get("outcome") not in ("answered_path", "answered_memory"):
         return False
+    # The walk that starts at the thing the question names answers a question about it (status, what to do,
+    # why, is it safe): an order's own data answers "what do I tell her". Money and policy need their own figures.
+    own = {"Order": "order_detail", "Hub": "hub_status", "Decision": "decision_detail", "Campaign": "decision_detail",
+           "Courier": "decision_detail", "Product": "product_status", "Batch": "product_status", "Ticket": "customer_trace"}
+    if not {"cost", "policy"} & set(part.intents) and any(r.get("tool") == own.get(e.kind) for e in part.entities):
+        return True
     primary = [i for i in part.intents if i in SPECIFIC] or part.intents
     for intent in primary:
         if intent == "cost" and r.get("tool") == "order_detail":
@@ -537,7 +635,7 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
     for part, got in zip(plan.parts, results):
         answering = [r for r in got if _answers(part, r)]
         context = [r for r in got if r not in answering and r.get("outcome") in ("answered_path", "answered_memory")
-                   and not ({"cost", "policy"} & set(part.intents))]  # a status is not an answer to a cost question
+                   and (part.entities or not ({"cost", "policy"} & set(part.intents)))]  # a status is not a cost answer
         blocked = [r for r in got if r.get("outcome") == "not_permitted" or r.get("hidden")]
         for r in got:
             for h in r.get("hidden") or []:
@@ -554,7 +652,7 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
             status, why = "no_access", next((r.get("reason") for r in blocked if r.get("reason")), "")
         else:
             status, why = "no_data", next((r.get("reason") for r in got if r.get("reason")), "")
-        keep = answering + (context if answering or not blocked else [])
+        keep = answering + (context if answering or not blocked or part.entities else [])
         answered = [r for r in got if r in keep]  # in the order walked: what was named first, then what rests on it
         facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities],
                   "asked": part.text, "intents": part.intents,
@@ -584,6 +682,15 @@ def _recommend(got: list[dict]) -> list[str]:
     out = []
     for r in got:
         d = r.get("data") or {}
+        if r.get("tool") == "order_detail" and r.get("outcome") == "answered_path" and not d["delivery"]["delivered"]:
+            dl = d["delivery"]
+            due = next((c["due"] for c in d.get("commitments", []) if c["status"] == "open"), None)
+            if dl.get("late_hours"):
+                last = dl["scans"][-1]["hub"].replace("hub-", "Hub ").upper().replace("HUB", "Hub") if dl.get("scans") else "a hub"
+                out.append(f"Tell the customer the parcel is {dl['late_hours']} h late at {last}"
+                           + (f" and that the delivery date already agreed is {due}." if due else " and give a new delivery date today."))
+                if dl["late_hours"] > 24:
+                    out.append("It is more than 24 hours late, so tell your team lead (delivery standard).")
         if r.get("tool") == "hub_status" and r.get("outcome") == "answered_path" and d.get("busiest_day_parcels", 0) > d.get("capacity_per_day", 1e9):
             out.append(f"{d['hub']} handled up to {d['busiest_day_parcels']} parcels in a day against a capacity of "
                        f"{d['capacity_per_day']}, so it cannot carry sale volume on its own: plan a second route or limit the offer.")
@@ -864,6 +971,10 @@ def write(sheet: dict) -> str:
             lines.append(p["why_missing"][0].upper() + p["why_missing"][1:] + ".")
         elif p["status"] == "no_access":
             lines.append("That's outside your access.")
+            shown = [x for f in p["facts"] for x in _say_fact(f)]
+            if shown:  # what this person may see about the same thing
+                lines.append("What I can show about it:")
+                lines += shown
         elif p["status"] == "handled":
             continue  # said above
         elif p["status"] == "no_data" and sheet.get("you") and "policy" in p["intents"]:
@@ -903,8 +1014,8 @@ def write(sheet: dict) -> str:
     return "\n".join(out) or "Sinew couldn't find anything about that."
 
 
-async def analyse(tenant: str, user_id: str, question: str, history=()) -> tuple[Plan, list[list[dict]], dict]:
-    plan = understand(tenant, user_id, question, history)
+async def analyse(tenant: str, user_id: str, question: str, history=(), llm=None) -> tuple[Plan, list[list[dict]], dict]:
+    plan = await understand_with_model(llm, tenant, user_id, question, history) or understand(tenant, user_id, question, history)
     results = await traverse(plan, walks(plan))
     sheet = reconcile(plan, results)
     sheet["actions"] = actions(plan, results)

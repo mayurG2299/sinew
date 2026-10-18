@@ -92,7 +92,12 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
     # The analysis layer goes first: understand and break down the question, walk the graph from what it
     # names (as this person), reconcile into a fact sheet, and write a correct draft from it. The model
     # then only rewrites the draft for the person; it may call more read tools if something is missing.
-    plan, per_part, sheet = await brain.analyse(tenant, user_id, task, history or [])
+    unavailable: LLMUnavailable | None = None
+    try:
+        llm = llm or Gemini()
+    except LLMUnavailable as e:  # no key, switched off: the word patterns read the question and the graph answers
+        unavailable, llm = e, None
+    plan, per_part, sheet = await brain.analyse(tenant, user_id, task, history or [], llm)
     for got in per_part:
         for result in got:
             call = result.pop("_call", {})
@@ -107,9 +112,9 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
     for act in sheet.get("actions", []):  # actions the facts call for, offered only if this person may take them
         if not actions.precheck(tenant, user_id, act["name"], act["args"]):
             run.pending_actions.append(act)
-    unavailable: LLMUnavailable | None = None
     try:
-        llm = llm or Gemini()
+        if llm is None:
+            raise unavailable or LLMUnavailable("no model")
         async with Client(server) as mcp:
             listed = [t for t in (await mcp.list_tools()).tools if t.name in allowed]
             destructive = {t.name for t in listed if t.annotations and t.annotations.destructive_hint}
@@ -117,7 +122,8 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
                        f"(permissions applied). Fact sheet:\n{brain.for_model(sheet)}\n\n"
                        f"Correct draft written from the fact sheet:\n{run.draft}\n\n"
                        "Rewrite the draft as your answer for this person: keep every fact and number, add nothing that "
-                       "is not in the fact sheet, follow the format rules. Keep each number attached to the same thing it "
+                       "is not in the fact sheet, follow the format rules. Do not leave out any line of the draft: you may reorder, "
+                       "merge lines about the same thing and improve the wording, nothing else. Keep each number attached to the same thing it "
                        "is attached to in the draft; never join facts from different lines into one sentence. Keep any \"What to do:\" lines exactly as "
                        "written, and keep the note that an overlap is not proof of cause. Call a tool only if something "
                        "asked is missing.")
@@ -194,6 +200,10 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
         run.ms = round((time.perf_counter() - start) * 1000, 1)
         return run
     ok, why = check.check(run.answer, run.results, task, brain.for_model(sheet)) if run.answer else (False, "the model gave no answer")
+    if ok:  # the rewrite must keep what the graph found: if it dropped the draft's numbers, the draft is the answer
+        share, left = check.coverage(run.draft, run.answer)
+        if share < 0.75:
+            ok, why = False, f"the rewrite left out facts from the graph ({', '.join(left[:4])})"
     if not ok:
         run.check_failed, run.answer, run.answer_source = why, run.draft or check.fallback(run.results), "rows"
     else:

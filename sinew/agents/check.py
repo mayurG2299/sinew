@@ -87,6 +87,20 @@ def _pct(v) -> str:
     return f"{round(v * 100)}%" if isinstance(v, (int, float)) and v <= 1 else str(v)
 
 
+def coverage(draft: str, answer: str) -> tuple[float, list[str]]:
+    """How much of the draft's numbers survive in the rewrite. A ratio and a percentage count as the same number
+    (1.57 and 157%), and so do a figure and its rounding. (fraction kept, the numbers that were left out)"""
+    def nums(text: str) -> set[float]:
+        return {float(n.replace(",", "")) for n, _ in NUMBER.findall(text)}
+    want, have = nums(draft), nums(answer)
+    want = {w for w in want if w not in (0.0, 1.0)}  # a bare 0 or 1 says nothing
+    def kept(w: float) -> bool:
+        return any(abs(w - h) < 0.006 or abs(w * 100 - h) < 0.6 or abs(w - h * 100) < 0.6 or abs(w - round(h)) < 0.006
+                   or abs(round(w) - h) < 0.006 for h in have)
+    missing = sorted(w for w in want if not kept(w))
+    return (1 - len(missing) / len(want) if want else 1.0), [f"{m:g}" for m in missing]
+
+
 def fallback(tool_results: list[dict]) -> str:
     """Plain sentences built only from the rows, for when the model's own answer fails the check."""
     out = []

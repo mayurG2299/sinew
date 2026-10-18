@@ -42,8 +42,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2999,
-  "got": "[{\"scope\": \"order #4091\", \"from\": \"order_detail\", \"named\": [\"o-4091\"], \"asked\": \"Which hubs did order #4091 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4091\", \"placed\": \"22 Sep, 22:55\", \"customer_orders_in_total\": 2, \"total\": 245.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": "
+  "size": 2998,
+  "got": "[{\"scope\": \"order #4091\", \"from\": \"order_detail\", \"named\": [\"o-4091\"], \"asked\": \"Which hubs did order #4091 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4091\", \"placed\": \"22 Sep, 22:55\", \"customer_orders_in_total\": 2, \"total\": 245.25, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Earbuds Air\", \"qty\": 1"
  },
  {
   "who": "u-agent-n1",
@@ -133,8 +133,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2946,
-  "got": "[{\"scope\": \"order #4472\", \"from\": \"order_detail\", \"named\": [\"o-4472\"], \"asked\": \"Which hubs did order #4472 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4472\", \"placed\": \"13 Oct, 03:33\", \"customer_orders_in_total\": 7, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": "
+  "size": 2945,
+  "got": "[{\"scope\": \"order #4472\", \"from\": \"order_detail\", \"named\": [\"o-4472\"], \"asked\": \"Which hubs did order #4472 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4472\", \"placed\": \"13 Oct, 03:33\", \"customer_orders_in_total\": 7, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1"
  },
  {
   "who": "u-agent-w1",
@@ -224,8 +224,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3000,
-  "got": "[{\"scope\": \"order #4307\", \"from\": \"order_detail\", \"named\": [\"o-4307\"], \"asked\": \"Which hubs did order #4307 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4307\", \"placed\": \"6 Oct, 21:16\", \"customer_orders_in_total\": 4, \"total\": 382.57, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hammock\", \"qty\": 1, \"p"
+  "size": 2999,
+  "got": "[{\"scope\": \"order #4307\", \"from\": \"order_detail\", \"named\": [\"o-4307\"], \"asked\": \"Which hubs did order #4307 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4307\", \"placed\": \"6 Oct, 21:16\", \"customer_orders_in_total\": 4, \"total\": 382.57, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hammock\", \"qty\": 1, \"pr"
  },
  {
   "who": "u-agent-w1",
@@ -315,8 +315,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3281,
-  "got": "[{\"scope\": \"order #4288\", \"from\": \"order_detail\", \"named\": [\"o-4288\"], \"asked\": \"Which hubs did order #4288 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4288\", \"placed\": \"5 Oct, 15:35\", \"customer_orders_in_total\": 3, \"total\": 115.19, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Turntable\", \"qty\": 1, "
+  "size": 3280,
+  "got": "[{\"scope\": \"order #4288\", \"from\": \"order_detail\", \"named\": [\"o-4288\"], \"asked\": \"Which hubs did order #4288 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4288\", \"placed\": \"5 Oct, 15:35\", \"customer_orders_in_total\": 3, \"total\": 115.19, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Turntable\", \"qty\": 1, \""
  },
  {
   "who": "u-agent-n1",
@@ -406,8 +406,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2937,
-  "got": "[{\"scope\": \"order #4269\", \"from\": \"order_detail\", \"named\": [\"o-4269\"], \"asked\": \"Which hubs did order #4269 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4269\", \"placed\": \"4 Oct, 13:16\", \"customer_orders_in_total\": 5, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, "
+  "size": 2936,
+  "got": "[{\"scope\": \"order #4269\", \"from\": \"order_detail\", \"named\": [\"o-4269\"], \"asked\": \"Which hubs did order #4269 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4269\", \"placed\": \"4 Oct, 13:16\", \"customer_orders_in_total\": 5, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \""
  },
  {
   "who": "u-agent-n1",
@@ -497,8 +497,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3206,
-  "got": "[{\"scope\": \"order #4009\", \"from\": \"order_detail\", \"named\": [\"o-4009\"], \"asked\": \"Which hubs did order #4009 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4009\", \"placed\": \"18 Sep, 03:40\", \"customer_orders_in_total\": 2, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": "
+  "size": 3205,
+  "got": "[{\"scope\": \"order #4009\", \"from\": \"order_detail\", \"named\": [\"o-4009\"], \"asked\": \"Which hubs did order #4009 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4009\", \"placed\": \"18 Sep, 03:40\", \"customer_orders_in_total\": 2, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1"
  },
  {
   "who": "u-agent-s1",
@@ -588,8 +588,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3285,
-  "got": "[{\"scope\": \"order #4290\", \"from\": \"order_detail\", \"named\": [\"o-4290\"], \"asked\": \"Which hubs did order #4290 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4290\", \"placed\": \"5 Oct, 19:28\", \"customer_orders_in_total\": 5, \"total\": 13.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Storage Box\", \"qty\": 1,"
+  "size": 3284,
+  "got": "[{\"scope\": \"order #4290\", \"from\": \"order_detail\", \"named\": [\"o-4290\"], \"asked\": \"Which hubs did order #4290 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4290\", \"placed\": \"5 Oct, 19:28\", \"customer_orders_in_total\": 5, \"total\": 13.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Storage Box\", \"qty\": 1, "
  },
  {
   "who": "u-agent-w1",
@@ -679,8 +679,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2950,
-  "got": "[{\"scope\": \"order #4192\", \"from\": \"order_detail\", \"named\": [\"o-4192\"], \"asked\": \"Which hubs did order #4192 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4192\", \"placed\": \"28 Sep, 20:58\", \"customer_orders_in_total\": 3, \"total\": 102.82, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Toaster Duo\", \"qty\": "
+  "size": 2949,
+  "got": "[{\"scope\": \"order #4192\", \"from\": \"order_detail\", \"named\": [\"o-4192\"], \"asked\": \"Which hubs did order #4192 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4192\", \"placed\": \"28 Sep, 20:58\", \"customer_orders_in_total\": 3, \"total\": 102.82, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Toaster Duo\", \"qty\": 1"
  },
  {
   "who": "u-agent-w1",
@@ -770,8 +770,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2949,
-  "got": "[{\"scope\": \"order #4021\", \"from\": \"order_detail\", \"named\": [\"o-4021\"], \"asked\": \"Which hubs did order #4021 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4021\", \"placed\": \"18 Sep, 22:44\", \"customer_orders_in_total\": 4, \"total\": 166.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1"
+  "size": 2948,
+  "got": "[{\"scope\": \"order #4021\", \"from\": \"order_detail\", \"named\": [\"o-4021\"], \"asked\": \"Which hubs did order #4021 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4021\", \"placed\": \"18 Sep, 22:44\", \"customer_orders_in_total\": 4, \"total\": 166.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1,"
  },
  {
   "who": "u-agent-w1",
@@ -861,8 +861,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2959,
-  "got": "[{\"scope\": \"order #4111\", \"from\": \"order_detail\", \"named\": [\"o-4111\"], \"asked\": \"Which hubs did order #4111 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4111\", \"placed\": \"24 Sep, 03:39\", \"customer_orders_in_total\": 2, \"total\": 156.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Picnic Set\", \"qty\": 1"
+  "size": 2958,
+  "got": "[{\"scope\": \"order #4111\", \"from\": \"order_detail\", \"named\": [\"o-4111\"], \"asked\": \"Which hubs did order #4111 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4111\", \"placed\": \"24 Sep, 03:39\", \"customer_orders_in_total\": 2, \"total\": 156.45, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Picnic Set\", \"qty\": 1,"
  },
  {
   "who": "u-agent-n1",
@@ -952,8 +952,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2953,
-  "got": "[{\"scope\": \"order #4018\", \"from\": \"order_detail\", \"named\": [\"o-4018\"], \"asked\": \"Which hubs did order #4018 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4018\", \"placed\": \"18 Sep, 14:47\", \"customer_orders_in_total\": 6, \"total\": 109.69, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Coffee Grinder\", \"qty"
+  "size": 2952,
+  "got": "[{\"scope\": \"order #4018\", \"from\": \"order_detail\", \"named\": [\"o-4018\"], \"asked\": \"Which hubs did order #4018 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4018\", \"placed\": \"18 Sep, 14:47\", \"customer_orders_in_total\": 6, \"total\": 109.69, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Coffee Grinder\", \"qty\""
  },
  {
   "who": "u-agent-s1",
@@ -1043,8 +1043,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2944,
-  "got": "[{\"scope\": \"order #4147\", \"from\": \"order_detail\", \"named\": [\"o-4147\"], \"asked\": \"Which hubs did order #4147 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4147\", \"placed\": \"26 Sep, 06:18\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1,"
+  "size": 2943,
+  "got": "[{\"scope\": \"order #4147\", \"from\": \"order_detail\", \"named\": [\"o-4147\"], \"asked\": \"Which hubs did order #4147 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4147\", \"placed\": \"26 Sep, 06:18\", \"customer_orders_in_total\": 2, \"total\": 27.88, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettle Pro\", \"qty\": 1, "
  },
  {
   "who": "u-agent-s1",
@@ -1134,8 +1134,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2956,
-  "got": "[{\"scope\": \"order #4150\", \"from\": \"order_detail\", \"named\": [\"o-4150\"], \"asked\": \"Which hubs did order #4150 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4150\", \"placed\": \"26 Sep, 09:16\", \"customer_orders_in_total\": 4, \"total\": 226.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hammock\", \"qty\": 1, \""
+  "size": 2955,
+  "got": "[{\"scope\": \"order #4150\", \"from\": \"order_detail\", \"named\": [\"o-4150\"], \"asked\": \"Which hubs did order #4150 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4150\", \"placed\": \"26 Sep, 09:16\", \"customer_orders_in_total\": 4, \"total\": 226.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hammock\", \"qty\": 1, \"p"
  },
  {
   "who": "u-agent-n1",
@@ -1225,8 +1225,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2949,
-  "got": "[{\"scope\": \"order #4489\", \"from\": \"order_detail\", \"named\": [\"o-4489\"], \"asked\": \"Which hubs did order #4489 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4489\", \"placed\": \"13 Oct, 16:53\", \"customer_orders_in_total\": 3, \"total\": 166.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1"
+  "size": 2948,
+  "got": "[{\"scope\": \"order #4489\", \"from\": \"order_detail\", \"named\": [\"o-4489\"], \"asked\": \"Which hubs did order #4489 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4489\", \"placed\": \"13 Oct, 16:53\", \"customer_orders_in_total\": 3, \"total\": 166.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cooler Box\", \"qty\": 1,"
  },
  {
   "who": "u-agent-n1",
@@ -1316,8 +1316,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3290,
-  "got": "[{\"scope\": \"order #4218\", \"from\": \"order_detail\", \"named\": [\"o-4218\"], \"asked\": \"Which hubs did order #4218 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4218\", \"placed\": \"30 Sep, 05:49\", \"customer_orders_in_total\": 5, \"total\": 13.73, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Throw Blanket\", \"qty\":"
+  "size": 3289,
+  "got": "[{\"scope\": \"order #4218\", \"from\": \"order_detail\", \"named\": [\"o-4218\"], \"asked\": \"Which hubs did order #4218 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4218\", \"placed\": \"30 Sep, 05:49\", \"customer_orders_in_total\": 5, \"total\": 13.73, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Throw Blanket\", \"qty\": "
  },
  {
   "who": "u-agent-n1",
@@ -1407,8 +1407,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2986,
-  "got": "[{\"scope\": \"order #4298\", \"from\": \"order_detail\", \"named\": [\"o-4298\"], \"asked\": \"Which hubs did order #4298 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4298\", \"placed\": \"6 Oct, 10:26\", \"customer_orders_in_total\": 3, \"total\": 77.78, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Desk Lamp\", \"qty\": 1, \""
+  "size": 2985,
+  "got": "[{\"scope\": \"order #4298\", \"from\": \"order_detail\", \"named\": [\"o-4298\"], \"asked\": \"Which hubs did order #4298 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4298\", \"placed\": \"6 Oct, 10:26\", \"customer_orders_in_total\": 3, \"total\": 77.78, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Desk Lamp\", \"qty\": 1, \"p"
  },
  {
   "who": "u-agent-w1",
@@ -1498,8 +1498,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3181,
-  "got": "[{\"scope\": \"order #4143\", \"from\": \"order_detail\", \"named\": [\"o-4143\"], \"asked\": \"Which hubs did order #4143 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4143\", \"placed\": \"25 Sep, 23:52\", \"customer_orders_in_total\": 4, \"total\": 226.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hammock\", \"qty\": 1, \""
+  "size": 3180,
+  "got": "[{\"scope\": \"order #4143\", \"from\": \"order_detail\", \"named\": [\"o-4143\"], \"asked\": \"Which hubs did order #4143 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4143\", \"placed\": \"25 Sep, 23:52\", \"customer_orders_in_total\": 4, \"total\": 226.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hammock\", \"qty\": 1, \"p"
  },
  {
   "who": "u-agent-w1",
@@ -1589,8 +1589,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2945,
-  "got": "[{\"scope\": \"order #4206\", \"from\": \"order_detail\", \"named\": [\"o-4206\"], \"asked\": \"Which hubs did order #4206 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4206\", \"placed\": \"29 Sep, 12:30\", \"customer_orders_in_total\": 6, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": "
+  "size": 2944,
+  "got": "[{\"scope\": \"order #4206\", \"from\": \"order_detail\", \"named\": [\"o-4206\"], \"asked\": \"Which hubs did order #4206 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4206\", \"placed\": \"29 Sep, 12:30\", \"customer_orders_in_total\": 6, \"total\": 24.68, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Cushion Pair\", \"qty\": 1"
  },
  {
   "who": "u-agent-w1",
@@ -1680,8 +1680,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2986,
-  "got": "[{\"scope\": \"order #4298\", \"from\": \"order_detail\", \"named\": [\"o-4298\"], \"asked\": \"Which hubs did order #4298 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4298\", \"placed\": \"6 Oct, 10:26\", \"customer_orders_in_total\": 3, \"total\": 77.78, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Desk Lamp\", \"qty\": 1, \""
+  "size": 2985,
+  "got": "[{\"scope\": \"order #4298\", \"from\": \"order_detail\", \"named\": [\"o-4298\"], \"asked\": \"Which hubs did order #4298 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4298\", \"placed\": \"6 Oct, 10:26\", \"customer_orders_in_total\": 3, \"total\": 77.78, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Desk Lamp\", \"qty\": 1, \"p"
  },
  {
   "who": "u-agent-w1",
@@ -1771,8 +1771,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3285,
-  "got": "[{\"scope\": \"order #4290\", \"from\": \"order_detail\", \"named\": [\"o-4290\"], \"asked\": \"Which hubs did order #4290 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4290\", \"placed\": \"5 Oct, 19:28\", \"customer_orders_in_total\": 5, \"total\": 13.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Storage Box\", \"qty\": 1,"
+  "size": 3284,
+  "got": "[{\"scope\": \"order #4290\", \"from\": \"order_detail\", \"named\": [\"o-4290\"], \"asked\": \"Which hubs did order #4290 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4290\", \"placed\": \"5 Oct, 19:28\", \"customer_orders_in_total\": 5, \"total\": 13.54, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Storage Box\", \"qty\": 1, "
  },
  {
   "who": "u-agent-w1",
@@ -1862,8 +1862,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2997,
-  "got": "[{\"scope\": \"order #4522\", \"from\": \"order_detail\", \"named\": [\"o-4522\"], \"asked\": \"Which hubs did order #4522 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4522\", \"placed\": \"14 Oct, 09:42\", \"customer_orders_in_total\": 5, \"total\": 37.73, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Hand Mixer\", \"qty\""
+  "size": 2996,
+  "got": "[{\"scope\": \"order #4522\", \"from\": \"order_detail\", \"named\": [\"o-4522\"], \"asked\": \"Which hubs did order #4522 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4522\", \"placed\": \"14 Oct, 09:42\", \"customer_orders_in_total\": 5, \"total\": 37.73, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Hand Mixer\", \"qty\":"
  },
  {
   "who": "u-agent-w1",
@@ -1953,8 +1953,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2997,
-  "got": "[{\"scope\": \"order #4455\", \"from\": \"order_detail\", \"named\": [\"o-4455\"], \"asked\": \"Which hubs did order #4455 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4455\", \"placed\": \"12 Oct, 12:39\", \"customer_orders_in_total\": 3, \"total\": 73.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettlebell 8kg\", \"qty\""
+  "size": 2996,
+  "got": "[{\"scope\": \"order #4455\", \"from\": \"order_detail\", \"named\": [\"o-4455\"], \"asked\": \"Which hubs did order #4455 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4455\", \"placed\": \"12 Oct, 12:39\", \"customer_orders_in_total\": 3, \"total\": 73.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Kettlebell 8kg\", \"qty\":"
  },
  {
   "who": "u-agent-s1",
@@ -2044,8 +2044,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3203,
-  "got": "[{\"scope\": \"order #4167\", \"from\": \"order_detail\", \"named\": [\"o-4167\"], \"asked\": \"Which hubs did order #4167 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4167\", \"placed\": \"27 Sep, 05:14\", \"customer_orders_in_total\": 2, \"total\": 107.74, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headlamp\", \"qty\": 1, "
+  "size": 3202,
+  "got": "[{\"scope\": \"order #4167\", \"from\": \"order_detail\", \"named\": [\"o-4167\"], \"asked\": \"Which hubs did order #4167 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4167\", \"placed\": \"27 Sep, 05:14\", \"customer_orders_in_total\": 2, \"total\": 107.74, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Headlamp\", \"qty\": 1, \""
  },
  {
   "who": "u-agent-s1",
@@ -2135,8 +2135,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2941,
-  "got": "[{\"scope\": \"order #4219\", \"from\": \"order_detail\", \"named\": [\"o-4219\"], \"asked\": \"Which hubs did order #4219 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4219\", \"placed\": \"30 Sep, 11:23\", \"customer_orders_in_total\": 4, \"total\": 77.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Foam Roller\", \"qty\": 1"
+  "size": 2940,
+  "got": "[{\"scope\": \"order #4219\", \"from\": \"order_detail\", \"named\": [\"o-4219\"], \"asked\": \"Which hubs did order #4219 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4219\", \"placed\": \"30 Sep, 11:23\", \"customer_orders_in_total\": 4, \"total\": 77.49, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Foam Roller\", \"qty\": 1,"
  },
  {
   "who": "u-agent-s1",
@@ -2226,8 +2226,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3279,
-  "got": "[{\"scope\": \"order #4244\", \"from\": \"order_detail\", \"named\": [\"o-4244\"], \"asked\": \"Which hubs did order #4244 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, "
+  "size": 3278,
+  "got": "[{\"scope\": \"order #4244\", \"from\": \"order_detail\", \"named\": [\"o-4244\"], \"asked\": \"Which hubs did order #4244 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4244\", \"placed\": \"2 Oct, 13:15\", \"customer_orders_in_total\": 6, \"total\": 41.31, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Wall Clock\", \"qty\": 1, \""
  },
  {
   "who": "u-agent-w1",
@@ -2317,8 +2317,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 3238,
-  "got": "[{\"scope\": \"order #4429\", \"from\": \"order_detail\", \"named\": [\"o-4429\"], \"asked\": \"Which hubs did order #4429 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4429\", \"placed\": \"11 Oct, 10:15\", \"customer_orders_in_total\": 7, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qt"
+  "size": 3237,
+  "got": "[{\"scope\": \"order #4429\", \"from\": \"order_detail\", \"named\": [\"o-4429\"], \"asked\": \"Which hubs did order #4429 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4429\", \"placed\": \"11 Oct, 10:15\", \"customer_orders_in_total\": 7, \"total\": 33.98, \"currency\": \"USD\", \"coupon\": \"FEST40\", \"items\": [{\"item\": \"Air Fryer 5L\", \"qty"
  },
  {
   "who": "u-agent-w1",
@@ -2408,8 +2408,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2998,
-  "got": "[{\"scope\": \"order #4285\", \"from\": \"order_detail\", \"named\": [\"o-4285\"], \"asked\": \"Which hubs did order #4285 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4285\", \"placed\": \"5 Oct, 10:49\", \"customer_orders_in_total\": 2, \"total\": 254.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Tent 2P\", \"qty\": 1, \"p"
+  "size": 2997,
+  "got": "[{\"scope\": \"order #4285\", \"from\": \"order_detail\", \"named\": [\"o-4285\"], \"asked\": \"Which hubs did order #4285 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4285\", \"placed\": \"5 Oct, 10:49\", \"customer_orders_in_total\": 2, \"total\": 254.12, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Tent 2P\", \"qty\": 1, \"pr"
  },
  {
   "who": "u-agent-w1",
@@ -2499,8 +2499,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2937,
-  "got": "[{\"scope\": \"order #4342\", \"from\": \"order_detail\", \"named\": [\"o-4342\"], \"asked\": \"Which hubs did order #4342 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4342\", \"placed\": \"8 Oct, 09:02\", \"customer_orders_in_total\": 8, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \""
+  "size": 2936,
+  "got": "[{\"scope\": \"order #4342\", \"from\": \"order_detail\", \"named\": [\"o-4342\"], \"asked\": \"Which hubs did order #4342 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4342\", \"placed\": \"8 Oct, 09:02\", \"customer_orders_in_total\": 8, \"total\": 35.0, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Hand Mixer\", \"qty\": 1, \"p"
  },
  {
   "who": "u-agent-w1",
@@ -2590,8 +2590,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2941,
-  "got": "[{\"scope\": \"order #4399\", \"from\": \"order_detail\", \"named\": [\"o-4399\"], \"asked\": \"Which hubs did order #4399 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4399\", \"placed\": \"10 Oct, 05:38\", \"customer_orders_in_total\": 6, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"p"
+  "size": 2940,
+  "got": "[{\"scope\": \"order #4399\", \"from\": \"order_detail\", \"named\": [\"o-4399\"], \"asked\": \"Which hubs did order #4399 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4399\", \"placed\": \"10 Oct, 05:38\", \"customer_orders_in_total\": 6, \"total\": 88.05, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Mic USB\", \"qty\": 1, \"pr"
  },
  {
   "who": "u-agent-w1",
@@ -2681,8 +2681,8 @@
    "company_pulse",
    "reconcile"
   ],
-  "size": 2763,
-  "got": "[{\"scope\": \"order #4590\", \"from\": \"order_detail\", \"named\": [\"o-4590\"], \"asked\": \"Which hubs did order #4590 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": false, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4590\", \"placed\": \"17 Oct, 01:08\", \"customer_orders_in_total\": 2, \"total\": 23.53, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Doormat\", \"qty\": 1, \"p"
+  "size": 2762,
+  "got": "[{\"scope\": \"order #4590\", \"from\": \"order_detail\", \"named\": [\"o-4590\"], \"asked\": \"Which hubs did order #4590 go through\", \"intents\": [\"status\", \"rank\"], \"answers\": true, \"tool\": \"order_detail\", \"outcome\": \"answered_path\", \"data\": {\"order\": \"#4590\", \"placed\": \"17 Oct, 01:08\", \"customer_orders_in_total\": 2, \"total\": 23.53, \"currency\": \"USD\", \"coupon\": null, \"items\": [{\"item\": \"Doormat\", \"qty\": 1, \"pr"
  },
  {
   "who": "u-agent-s1",
@@ -2748,11 +2748,12 @@
   "expect": "$17,949.49",
   "ok": true,
   "tools": [
+   "search_docs",
    "company_pulse",
    "reconcile"
   ],
-  "size": 2773,
-  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [], \"asked\": \"What was our revenue this week\", \"intents\": [\"cost\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"finance\", \"marketing\", \"operations\"], \"operations\": {\"delivered_this_week\": 196, \"on_time_rate\": 0.8469, \"weakest_hub\": {\"hub\": \"hub-w2\", \"on_"
+  "size": 3236,
+  "got": "[{\"scope\": \"search_docs\", \"from\": \"search_docs\", \"named\": [], \"asked\": \"What was our revenue this week\", \"intents\": [\"cost\"], \"answers\": true, \"tool\": \"search_docs\", \"outcome\": \"answered_path\", \"data\": [{\"passage\": \"doc-cost-sheet-q4-2\", \"doc\": \"doc-cost-sheet-q4\", \"title\": \"Cost sheet, October\", \"kind\": \"finance\", \"heading\": \"Campaign spend\", \"text\": \"The Festive Flash Sale (FEST40) has $3,500 of"
  },
  {
   "who": "u-marketing",
@@ -2763,8 +2764,8 @@
    "reconcile",
    "reconcile"
   ],
-  "size": 220,
-  "got": "[{\"tool\": \"reconcile\", \"outcome\": \"not_permitted\", \"reason\": \"\"}, {\"tool\": \"reconcile\", \"outcome\": \"answered_path\", \"hidden\": [{\"kind\": \"area\", \"count\": 2, \"reason\": \"support, finance figures are outside your access\"}]}]"
+  "size": 360,
+  "got": "[{\"tool\": \"reconcile\", \"outcome\": \"not_permitted\", \"reason\": \"the documents that match are in an area your role can't read\"}, {\"tool\": \"reconcile\", \"outcome\": \"answered_path\", \"hidden\": [{\"kind\": \"passage\", \"count\": 1, \"reason\": \"in documents your role can't read\"}, {\"kind\": \"area\", \"count\": 2, \"reason\": \"support, finance figures are outside your access\"}]}]"
  },
  {
   "who": "u-logistics",
@@ -2806,10 +2807,11 @@
   "expect": "$4.20",
   "ok": true,
   "tools": [
+   "decision_detail",
    "search_docs"
   ],
-  "size": 1637,
-  "got": "[{\"scope\": \"search_docs\", \"from\": \"search_docs\", \"named\": [\"courier-y\"], \"asked\": \"What does Courier Y cost per parcel\", \"intents\": [\"status\", \"cost\"], \"answers\": true, \"tool\": \"search_docs\", \"outcome\": \"answered_path\", \"data\": [{\"passage\": \"doc-cost-sheet-q4-1\", \"doc\": \"doc-cost-sheet-q4\", \"title\": \"Cost sheet, October\", \"kind\": \"finance\", \"heading\": \"Delivery cost per parcel\", \"text\": \"Courier X"
+  "size": 2840,
+  "got": "[{\"scope\": \"decision \\\"Switch west region deliveries to Courier Y to cut cost\\\"\", \"from\": \"decision_detail\", \"named\": [\"courier-y\"], \"asked\": \"What does Courier Y cost per parcel\", \"intents\": [\"status\", \"cost\"], \"answers\": false, \"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Switch west region deliveries to Courier Y to cut cost\", \"made\": \"18 Aug, 12:00\", \"owner\": \"L"
  },
  {
   "who": "u-marketing",
@@ -2817,11 +2819,13 @@
   "expect": "no cost figure",
   "ok": true,
   "tools": [
+   "decision_detail",
+   "search_docs",
    "reconcile",
    "reconcile"
   ],
-  "size": 360,
-  "got": "[{\"tool\": \"reconcile\", \"outcome\": \"not_permitted\", \"reason\": \"1 more matching passages are in an area your role can't read; if the passages here don't answer the question, say the information is outside your access\"}, {\"tool\": \"reconcile\", \"outcome\": \"answered_path\", \"hidden\": [{\"kind\": \"passage\", \"count\": 1, \"reason\": \"in documents your role can't read\"}]}]"
+  "size": 2900,
+  "got": "[{\"scope\": \"decision \\\"Switch west region deliveries to Courier Y to cut cost\\\"\", \"from\": \"decision_detail\", \"named\": [\"courier-y\"], \"asked\": \"What does Courier Y cost per parcel\", \"intents\": [\"status\", \"cost\"], \"answers\": false, \"tool\": \"decision_detail\", \"outcome\": \"answered_path\", \"data\": {\"decision\": \"Switch west region deliveries to Courier Y to cut cost\", \"made\": \"18 Aug, 12:00\", \"owner\": \"L"
  },
  {
   "who": "u-agent-w1",

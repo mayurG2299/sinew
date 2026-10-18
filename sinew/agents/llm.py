@@ -90,6 +90,28 @@ class Gemini:
         )
         self.history = [types.Content(role="user", parts=[types.Part.from_text(text=user_message)])]
 
+    async def plan(self, system: str, user: str) -> dict:
+        """One stateless call that returns JSON: the model's reading of a question (no tools, no answer)."""
+        last_error = None
+        for model in self.models:
+            if _exhausted(model):
+                continue
+            if not _count_call(model):
+                last_error = f"today's free limit for {model} ({DAILY_CAP} calls) is used up"
+                continue
+            try:
+                r = await self.client.aio.models.generate_content(
+                    model=model, contents=user,
+                    config=types.GenerateContentConfig(system_instruction=system, temperature=0,
+                                                       response_mime_type="application/json"))
+                import json as _json
+                return _json.loads(r.text or "{}")
+            except Exception as e:  # quota, busy, or malformed JSON: next model, then the caller falls back
+                last_error = e
+                if "429" in str(e) and "perday" in str(e).lower().replace(" ", ""):
+                    _mark_exhausted(model)
+        raise LLMUnavailable(str(last_error or "no model available")[:200])
+
     async def next(self) -> Turn:
         last_error = None
         for model in self.models:

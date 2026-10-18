@@ -64,7 +64,8 @@ def test_the_written_answer_follows_from_the_facts():
     assert "Route the Winter Sale through Hub W4" in why and "What to do:" in why
     b7 = write(sheet("u-ceo", "Is batch B7 causing problems?"))
     assert "Batch B7" in b7 and "per 100" in b7
-    assert write(sheet("u-marketing", "What does Courier Y cost per parcel?")) == "That's outside your access."
+    refused = write(sheet("u-marketing", "What does Courier Y cost per parcel?"))
+    assert refused.startswith("That's outside your access.") and "$4" not in refused and "per parcel" not in refused
     contractor = write(sheet("u-contractor-1", "Ticket t-90520: help me handle this customer."))
     assert "[NAME]" not in contractor and "Payment details are for staff only" in contractor
 
@@ -197,3 +198,50 @@ def test_capacity_questions_compare_every_hub_and_explain_the_figure():
     assert "Within capacity" in out and "Hub W4 0 of 10" in out and "Hub N1" in out
     assert "Tickets:" not in out  # not a company summary
     assert "outside your access" in write(sheet("u-marketing", "which hub has spare capacity?")).lower() or "Hub W2" in write(sheet("u-marketing", "which hub has spare capacity?"))
+
+
+class FakePlanner:
+    """Stands in for the model's reading of a question."""
+
+    def __init__(self, plan):
+        self.plan_ = plan
+
+    async def plan(self, system, user):
+        if isinstance(self.plan_, Exception):
+            raise self.plan_
+        return self.plan_
+
+
+def test_the_models_reading_drives_the_walks_and_is_checked():
+    import asyncio as aio
+    llm = FakePlanner({"parts": [{"ask": "which hubs are nearly full", "intents": ["capacity", "made_up_intent"],
+                                  "entities": [{"kind": "Hub", "id": "hub-zz"}, {"kind": "Order", "id": "o-99999"}]}]})
+    plan, res, sheet = aio.run(analyse(T, "u-ceo", "which hubs are nearly full", (), llm))
+    assert "capacity" in plan.parts[0].intents and "made_up_intent" not in plan.parts[0].intents  # only the fixed list
+    assert plan.entities == [] and plan.missing  # invented hubs and orders are dropped, and said not to exist
+    assert "Hub W2 1.57x" in write(sheet)
+
+
+def test_a_model_that_is_down_or_wrong_falls_back_to_the_word_patterns():
+    import asyncio as aio
+    for broken in (RuntimeError("quota"), {"parts": []}, {"nonsense": 1}):
+        plan, res, sheet = aio.run(analyse(T, "u-ceo", "Is Hub W2 coping?", (), FakePlanner(broken)))
+        assert [e.id for e in plan.entities] == ["hub-w2"]
+
+
+def test_customer_questions_get_customer_steps_not_company_launch_checks():
+    out = write(sheet("u-agent-w1", "what should I do about order 4520?"))
+    assert "Tell the customer the parcel is 30 h late at Hub W2" in out and "agreed is 18 Oct" in out
+    assert "Winter Sale" not in out and "Route the" not in out
+
+
+def test_a_money_question_without_finance_still_shows_what_the_person_may_see():
+    out = write(sheet("u-marketing", "did the FEST40 promo pay off versus what we spent?"))
+    assert "outside your access" in out.lower() and "$3,500" not in out and "3500" not in out
+    assert "What I can show about it:" in out
+
+
+def test_a_held_back_document_does_not_make_a_customers_own_order_look_blocked():
+    out = write(sheet("u-agent-w1", "what should I tell the customer about order 4520?"))
+    assert "That's outside your access" not in out and "Order #4520" in out
+    assert "Tell the customer the parcel is 30 h late at Hub W2" in out

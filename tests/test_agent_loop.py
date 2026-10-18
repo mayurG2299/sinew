@@ -49,7 +49,8 @@ def run(llm, agent="support", user="u-agent-w1", task="Ticket t-90520: parcel la
     return asyncio.run(loop.run_agent("sandbox", user, agent, task, llm=llm))
 
 
-def test_tools_run_and_a_checked_answer_is_kept():
+def test_tools_run_and_a_checked_answer_is_kept(monkeypatch):
+    monkeypatch.setattr(check, "coverage", lambda d, a: (1.0, []))  # this test is about something else
     r = run(Scripted([Turn(calls=[{"name": "related_issues", "args": {"ticket_id": "t-90520"}}]),
                       Turn(text="Others are affected through hub-w2.")]))
     assert r.answer_source == "model" and ai(r)[0]["outcome"] == "answered_path"
@@ -132,7 +133,8 @@ class Repairable(Scripted):
         self.seen.append(("correction", text))
 
 
-def test_one_corrected_rewrite_is_checked_and_kept():
+def test_one_corrected_rewrite_is_checked_and_kept(monkeypatch):
+    monkeypatch.setattr(check, "coverage", lambda d, a: (1.0, []))  # this test is about something else
     llm = Repairable([Turn(calls=[{"name": "trace_decisions", "args": {"hub_id": "hub-w2"}}]),
                       Turn(text="Courier Y broke because of the sale."),
                       Turn(text="The complaints went through Hub W2.")])
@@ -176,3 +178,17 @@ def test_when_the_ai_cannot_start_the_answer_still_comes_from_the_graph(monkeypa
     monkeypatch.setenv("SINEW_AI", "off")
     r = asyncio.run(loop.run_agent("sandbox", "u-agent-w1", "ask", "What was the total of order #4581?"))
     assert r.answer_source == "graph" and "$65.81" in r.answer and "unavailable" not in r.answer.lower()
+
+
+def test_a_rewrite_that_drops_the_graphs_numbers_is_replaced_by_the_draft():
+    assert check.coverage("Hub W2 is at 1.57x: 22 parcels against 14 a day.", "It is at 157%, 22 parcels vs 14.")[0] == 1.0
+    share, left = check.coverage("Hub W2 is at 1.57x: 22 parcels against 14 a day. Hub N1 1.80x.", "Hubs within capacity are fine.")
+    assert share < 0.2 and "22" in left
+    assert check.coverage("No access.", "No access.")[0] == 1.0  # nothing numeric to keep
+
+
+def test_the_loop_uses_the_draft_when_the_rewrite_drops_the_facts():
+    r = run(Scripted([Turn(text="Everything looks fine here.")]), agent="ask", user="u-ceo",
+            task="Why are complaints up this week, and what should we do?")
+    assert r.answer_source == "rows" and "left out facts" in r.check_failed and r.answer == r.draft
+    assert "Hub W2" in r.answer and "77%" in r.answer
