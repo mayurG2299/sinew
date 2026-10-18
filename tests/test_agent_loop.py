@@ -192,3 +192,10 @@ def test_the_loop_uses_the_draft_when_the_rewrite_drops_the_facts():
             task="Why are complaints up this week, and what should we do?")
     assert r.answer_source == "rows" and "left out facts" in r.check_failed and r.answer == r.draft
     assert "Hub W2" in r.answer and "77%" in r.answer
+
+
+def test_totals_and_shares_derived_from_the_facts_are_allowed_but_made_up_numbers_are_not():
+    res = [{"tool": "graph_query", "outcome": "answered_path", "data": {"columns": ["n", "customers"], "rows": [[3, 9], [2, 19], [1, 24]]}}]
+    assert check.check("28 customers have more than one open ticket.", res)[0]  # 9 + 19
+    assert check.check("9 of 52 customers, about 17%, have three.", res)[0]  # 9 / (9 + 19 + 24)
+    assert not check.check("31 customers have more than one open ticket.", res)[0]

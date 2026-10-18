@@ -23,6 +23,27 @@ def _numbers_in(blob: str) -> set[float]:
     return {float(n.replace(",", "")) for n, _ in NUMBER.findall(blob)}
 
 
+def _derived(known: set[float], tool_results: list[dict]) -> set[float]:
+    """Numbers a careful analyst may state that the tools never printed: totals of a returned column (or of any
+    two of the numbers), differences, and shares (a of b, as a percentage). Never anything the facts don't imply."""
+    out: set[float] = set()
+    for r in tool_results:
+        rows = (r.get("data") or {}).get("rows") if isinstance(r.get("data"), dict) else None
+        for col in zip(*rows) if rows else []:
+            nums = [x for x in col if isinstance(x, (int, float)) and not isinstance(x, bool)]
+            for i in range(len(nums)):
+                out.add(round(sum(nums[i:]), 2))      # a running total from here to the end
+                out.add(round(sum(nums[:i + 1]), 2))  # and from the start to here
+    pool = sorted(x for x in known if 0 < x < 1e7)[:140]
+    for i, a in enumerate(pool):
+        for b in pool[i:]:
+            out |= {round(a + b, 2), round(abs(a - b), 2)}
+            if b:
+                out |= {round(a / b * 100, 1), round(a / b * 100)}
+                out |= {round(b / a * 100, 1), round(b / a * 100)} if a else set()
+    return out
+
+
 def check(answer: str, tool_results: list[dict], question: str = "", extra: str = "") -> tuple[bool, str]:
     """`extra` is more text the model was given (the fact sheet), whose names and numbers are allowed too."""
     blob = json.dumps(tool_results, default=str).lower() + " " + extra.lower()
@@ -34,6 +55,7 @@ def check(answer: str, tool_results: list[dict], question: str = "", extra: str 
             if template.format(m.group(1)).lower() not in blob and m.group(0).lower() not in blob:  # code or words
                 return False, f"names {m.group(0)!r}, which no tool returned"
     known = _numbers_in(blob) | _numbers_in(question)
+    known |= _derived(known, tool_results)
     for raw, pct in NUMBER.findall(answer):
         n = float(raw.replace(",", ""))
         if n in known:

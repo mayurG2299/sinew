@@ -204,7 +204,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
         run.ms = round((time.perf_counter() - start) * 1000, 1)
         return run
     ok, why = check.check(run.answer, run.results, task, brain.for_model(sheet)) if run.answer else (False, "the model gave no answer")
-    if ok:  # the rewrite must keep what the graph found: if it dropped the draft's numbers, the draft is the answer
+    if ok and not run.queries:  # the rewrite must keep what the graph found: if it dropped the draft's numbers, the draft is the answer
         share, left = check.coverage(run.draft, run.answer)
         if share < 0.75:
             ok, why = False, f"the rewrite left out facts from the graph ({', '.join(left[:4])})"

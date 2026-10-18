@@ -108,3 +108,80 @@ def test_anchor_ids_match_whatever_the_case():
                         "return": [{"agg": "count_distinct", "of": "Order", "as": "orders"}]}
     truth = q("MATCH (:Coupon {id: 'FEST40'})<-[:USED]-(o:Order) RETURN count(DISTINCT o)")[0][0]
     assert run("u-ceo", spec("fest40")).data["rows"] == [[truth]] == run("u-ceo", spec("FEST40")).data["rows"]
+
+
+def test_things_can_be_listed_but_customer_records_never_are():
+    spec = {"match": [{"label": "Decision", "id": "dec-courier-y"}, {"rel": "BUILDS_ON", "dir": "in", "label": "Decision"}],
+            "list": [{"of": "Decision", "prop": "title", "as": "decision"}]}
+    r = run("u-ceo", spec)
+    assert r.outcome == "answered_path" and "RETURN DISTINCT" in r.data["cypher"]
+    truth = {t for t, in q("MATCH (:Decision {id: 'dec-courier-y'})<-[:BUILDS_ON]-(d:Decision) RETURN d.title")}
+    assert {row[0] for row in r.data["rows"]} == truth and len(truth) == 2
+    bad = {"match": [{"label": "Order"}], "list": [{"of": "Order", "prop": "total"}]}
+    assert run("u-ceo", bad).outcome == "not_in_graph" and "can't be listed" in run("u-ceo", bad).reason
+
+
+def test_staff_come_back_by_name_not_id():
+    spec = {"match": [{"label": "Ticket"}, {"rel": "HANDLED_BY", "dir": "out", "label": "User"}],
+            "group_by": [{"of": "User", "prop": "id", "as": "agent"}],
+            "return": [{"agg": "count_distinct", "of": "Ticket", "as": "tickets"}], "order_by": {"by": "tickets", "desc": True}}
+    r = run("u-ceo", spec)
+    top_id, top_n = q("MATCH (t:Ticket)-[:HANDLED_BY]->(u:User) RETURN u.id, count(DISTINCT t) AS n ORDER BY n DESC LIMIT 1")[0]
+    assert r.data["rows"][0][1] == top_n and not str(r.data["rows"][0][0]).startswith("u-")
+
+
+def test_a_failed_walk_is_sent_back_to_the_model_once_and_corrected():
+    import asyncio as aio
+    from sinew.brain import analyse, write
+
+    class Planner:
+        """First reading uses a relationship that doesn't exist; the repair call returns a valid walk."""
+        calls = 0
+
+        async def plan(self, system, user):
+            Planner.calls += 1
+            if "failed or found nothing" in system:
+                return {"query": {"match": [{"label": "Decision"}, {"rel": "RESTS_ON", "dir": "out", "label": "Assumption",
+                                                                    "where": [{"prop": "status", "op": "=", "value": "broken"}]}],
+                                  "list": [{"of": "Decision", "prop": "title", "as": "decision"}]}}
+            return {"parts": [{"ask": "decisions with broken assumptions", "intents": ["status"], "entities": [],
+                               "query": {"match": [{"label": "Decision"}, {"rel": "DEPENDS", "dir": "out", "label": "Assumption"}],
+                                         "list": [{"of": "Decision", "prop": "title"}]}}]}
+
+    plan, res, sheet = aio.run(analyse(T, "u-ceo", "which decisions have broken assumptions?", (), Planner()))
+    assert Planner.calls == 2  # the first reading, then one repair of the walk that didn't fit
+    assert any("corrected" in n for n in plan.notes)
+    assert "Switch west region deliveries to Courier Y" in write(sheet)
+
+
+def test_a_repeated_label_means_the_last_one_and_at_picks_another():
+    spec = lambda of: {"match": [{"label": "Decision", "id": "dec-courier-y"}, {"rel": "BUILDS_ON", "dir": "in", "label": "Decision"}],
+                       "list": [{"of": of, "prop": "title", "as": "t"}]}
+    assert len(run("u-ceo", spec("Decision")).data["rows"]) == 2 and "Switch west" not in str(run("u-ceo", spec("Decision")).data["rows"])
+    assert run("u-ceo", spec("Decision@1")).data["rows"] == [["Switch west region deliveries to Courier Y to cut cost"]]
+    assert run("u-ceo", spec("Decision@3")).outcome == "not_in_graph"
+
+
+WAITING = {"match": [{"label": "Promise", "where": [{"prop": "kind", "op": "=", "value": "refund"}, {"prop": "status", "op": "=", "value": "broken"}]},
+                     {"rel": "CONCERNS", "dir": "out", "label": "Order"}, {"rel": "PLACED", "dir": "in", "label": "Profile"},
+                     {"rel": "OF", "dir": "out", "label": "Customer"}],
+           "group_by": [{"of": "Customer", "prop": "id", "as": "customer"}],
+           "return": [{"agg": "min", "of": "Promise", "prop": "due_at", "as": "due"}], "order_by": {"by": "due", "desc": False}}
+
+
+def test_a_support_agent_lists_only_their_own_customers_by_name():
+    from sinew.tools import guard
+    ravi = run("u-agent-w1", WAITING)
+    names_w = {r[0] for r in ravi.data["rows"]}
+    truth_w = q("MATCH (:User {id: 'u-agent-w1'})-[:MEMBER_OF]->(:Team)-[:COVERS]->(:Region)<-[:IN]-(c:Customer)<-[:OF]-(:Profile)-[:PLACED]->(:Order)"
+                "<-[:CONCERNS]-(p:Promise {kind: 'refund', status: 'broken'}) RETURN count(DISTINCT c)")[0][0]
+    assert ravi.outcome == "answered_path" and len(names_w) == truth_w and all(not str(n).startswith("cu-") for n in names_w)
+    tom = run("u-agent-n1", WAITING)  # the north agent sees none of the west customers
+    assert not (names_w & {r[0] for r in tom.data.get("rows", [])})
+    head = run("u-sup-head", WAITING)
+    assert len(head.data["rows"]) >= len(names_w)
+
+
+def test_roles_that_do_not_handle_customers_can_only_count_them():
+    assert run("u-ceo", WAITING).outcome == "not_in_graph" and "identifies a customer" in run("u-ceo", WAITING).reason
+    assert run("u-marketing", WAITING).outcome == "not_permitted"  # no support area for promises

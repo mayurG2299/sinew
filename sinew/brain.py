@@ -288,7 +288,12 @@ Split a question into parts only when it asks for different things. Resolve "it"
 follow-ups ("more details", "why?") from the earlier questions: use their entities and intents, and add "detail" when more
 is asked. A question about something that exists in none of the lists has no entities. Never invent ids.
 
-ALWAYS give a part a "query" when it asks for a count, total or breakdown "by" or "for each" something, or "how many ... that ...".
+Give EVERY part that asks about data in the graph its own "query" (a part may have several words but one walk; split a
+question into several parts when it needs several walks). Only a pure policy/document question, a company summary (pulse),
+a launch verdict, a capacity question or a what-to-do question can go without one. To LIST things use "list" instead of
+"return": [{"of": "<label>", "prop": "<property>", "as": "<name>"}] (decisions, hubs, couriers, products, suppliers,
+campaigns, staff; never customers). Staff are User nodes (their ids come back as names).
+Never answer a question the schema cannot answer: give no query and no intents, and it will be said honestly.
 If a part asks for a custom count, total or breakdown across the graph that the intents alone can't give ("how many gold
 customers are waiting at Hub W2", "which couriers carried FEST40 orders", "complaints by issue for batch B7"), ALSO give that
 part a "query": a walk through the graph, written in this form (labels, relationships and properties ONLY from the schema below):
@@ -298,10 +303,17 @@ part a "query": a walk through the graph, written in this form (labels, relation
  "return": [{"agg": "count|count_distinct|sum|avg|min|max", "of": "<label>", "prop": "<property, for sum/avg/min/max>", "as": "<name>"}],
  "order_by": {"by": "<name>", "desc": true}, "limit": 20}
 "dir": "out" follows the relationship as written in the schema from the previous label; "in" follows it backwards.
+"of" names a step by its label; if a label appears twice in the walk it means the LAST one, and "Decision@1" means the first.
 Time filters use "now-7d" or "now-12h" as the value. Only counts and totals can be returned, never customers.
 Query examples:
 gold customers waiting at Hub W2 -> match [Shipment where last_hub = hub-w2 and status in [in_transit, delayed]] <-[SHIPPED_AS]- Order <-[PLACED]- Profile -[OF]-> Customer where tier = gold; return count_distinct Customer.
 couriers that carried FEST40 orders -> match [Coupon id FEST40] <-[USED]- Order -[SHIPPED_AS]-> Shipment -[VIA]-> Courier; group_by Courier.id; return count_distinct Order.
+decisions built on top of the Courier Y decision -> match [Decision id dec-courier-y] <-[BUILDS_ON]- Decision; list Decision.title.
+decisions whose assumptions are broken -> match [Decision] -[RESTS_ON]-> Assumption where status = broken; list Decision.title, Assumption.statement.
+average delay by hub -> match [Scan] -[AT]-> Hub; group_by Hub.id; return avg Scan.late_hours.
+which supplier is behind the damage complaints -> match [Ticket where issue_type = damaged] -[ABOUT]-> Order -[HAS]-> LineItem -[FROM]-> Batch -[MADE_BY]-> Supplier; group_by Supplier.id; return count_distinct Ticket.
+which of my customers are waiting longest for a refund -> match [Promise where kind = refund and status = broken] -[CONCERNS]-> Order <-[PLACED]- Profile -[OF]-> Customer; group_by Customer.id; return min Promise.due_at as due; order_by due, desc false. (People who handle customers get their own customers by name; others only counts.)
+who handles the most tickets -> match [Ticket] -[HANDLED_BY]-> User; group_by User.id; return count_distinct Ticket; order_by desc.
 orders by region in the last 7 days -> match [Order where placed_at >= now-7d] <-[PLACED]- Profile -[OF]-> Customer; group_by Customer.region; return count_distinct Order.
 complaints by issue for batch B7 -> match [Batch id b7] <-[FROM]- LineItem <-[HAS]- Order <-[ABOUT]- Ticket; group_by Ticket.issue_type; return count_distinct Ticket.
 
@@ -361,9 +373,8 @@ async def understand_with_model(llm, tenant: str, user_id: str, question: str, h
             if query:  # checked now: a walk that doesn't fit the schema is dropped before anything runs
                 try:
                     graphquery.compile_spec(tenant, query, now)
-                except Exception as e:
-                    plan.notes.append(f"dropped a walk the model described: {e}")
-                    query = None
+                except Exception as e:  # kept: it fails when run and goes back to the model to be corrected
+                    plan.notes.append(f"a walk the model described didn't fit the graph: {e}")
             intents = [i for i in part.get("intents") or [] if i in ALLOWED_INTENTS]
             # the word patterns may only add the phrase-based intents they are good at ("what do I tell her", "safe to
             # launch", "more details"); anything single-word ("standard" is also a customer tier) is the model's call
@@ -452,11 +463,13 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
             calls += [("company_pulse", {"days": plan.window["days"]}), ("cluster_incidents", {}), ("prelaunch_check", {})]
         if "rank" in p.intents and "capacity" not in p.intents:
             t = p.text.lower()
-            calls.append(("product_ranking", {"days": max(plan.window["days"], 30)}) if re.search(r"product|item|batch", t)
-                         else ("company_pulse", {"days": plan.window["days"]}))
+            if re.search(r"product|item|batch", t):
+                calls.append(("product_ranking", {"days": max(plan.window["days"], 30)}))
+            elif re.search(r"\bhubs?\b|on.?time|late|delay|slowest|worst|weakest", t):
+                calls.append(("company_pulse", {"days": plan.window["days"]}))
         if ("why" in p.intents and not (about_customer or about_product)) or ("what_to_do" in p.intents and not p.entities):
             calls += [("cluster_incidents", {}), ("prelaunch_check", {})]
-        if "what_to_do" in p.intents and not about_customer:
+        if "what_to_do" in p.intents and not (about_customer or about_product):
             calls.append(("prelaunch_check", {}))
         if "what_to_do" in p.intents and about_customer:  # what to tell the customer: the company's own rules for it
             calls.append(("search_docs", {"text": "late parcel customer new delivery date refund apologise"}))
@@ -694,7 +707,9 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
             status, why = "no_access", next((r.get("reason") for r in blocked if r.get("reason")), "")
         else:
             status, why = "no_data", next((r.get("reason") for r in got if r.get("reason")), "")
-        keep = answering + (context if answering or not blocked or part.entities else [])
+        walked = [r for r in answering if r.get("tool") == "graph_query"]
+        keep = walked if (part.query and walked) else (
+            answering + (context if answering or not blocked or part.entities else []))
         answered = [r for r in got if r in keep]  # in the order walked: what was named first, then what rests on it
         facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities],
                   "asked": part.text, "intents": part.intents,
@@ -733,6 +748,14 @@ def _recommend(got: list[dict]) -> list[str]:
                            + (f" and that the delivery date already agreed is {due}." if due else " and give a new delivery date today."))
                 if dl["late_hours"] > 24:
                     out.append("It is more than 24 hours late, so tell your team lead (delivery standard).")
+        if r.get("tool") == "product_status" and r.get("outcome") == "answered_path":
+            mine = float(str(d.get("complaints_per_100_orders", "0")).split()[0] or 0)
+            base = float(str(d.get("baseline_complaints_per_100_orders", "0")).split()[0] or 0)
+            if base and mine > 1.5 * base:
+                who = f" from supplier {d['supplier']}" if d.get("supplier") else ""
+                out.append(f"{d['item']}{who} has {mine:g} complaints per 100 orders against {base:g} for all products: "
+                           f"{d['quality_complaints']} are about the product itself, so review the {d['kind']} with its supplier and "
+                           "consider pausing it until that is explained.")
         if r.get("tool") == "hub_status" and r.get("outcome") == "answered_path" and d.get("busiest_day_parcels", 0) > d.get("capacity_per_day", 1e9):
             out.append(f"{d['hub']} handled up to {d['busiest_day_parcels']} parcels in a day against a capacity of "
                        f"{d['capacity_per_day']}, so it cannot carry sale volume on its own: plan a second route or limit the offer.")
@@ -955,7 +978,7 @@ def _verdict(sheet: dict) -> str | None:
         return None
     named = {n for f in facts for n in f.get("named", [])}
     warns = [w for f in facts if f["from"] == "prelaunch_check" for w in (f.get("data") or {}).get("warnings", [])]
-    mine = [w for w in warns if w["campaign"] in named] or ([w for w in warns[:1]] if not any(n in named for n in ("fest40",)) else [])
+    mine = [w for w in warns if w["campaign"] in named]
     if mine:
         w = mine[0]
         hub = w["hub"].replace("hub-", "Hub ").upper().replace("HUB", "Hub")
@@ -1067,9 +1090,46 @@ def write(sheet: dict) -> str:
     return "\n".join(out) or "Sinew couldn't find anything about that."
 
 
+REPAIR = """A graph walk you described for part of a question failed or found nothing. Fix it, or say it cannot be answered.
+Reply with JSON only: {"query": <the corrected spec in the same form>} or {"query": null, "why": "<what the graph cannot answer>"}.
+Use only labels, relationships (check the direction), and properties from the schema. Do not widen the question."""
+
+
+def _failed(got: list[dict]) -> str | None:
+    g = [r for r in got if r.get("tool") == "graph_query"]
+    if g and not any(r.get("outcome") == "answered_path" for r in g):
+        return g[0].get("reason") or "found nothing"
+    return None
+
+
+async def _repair(llm, plan: Plan, results: list[list[dict]]) -> bool:
+    """Ask the model to correct each failed walk once; True if any part changed."""
+    changed = False
+    for i, part in enumerate(plan.parts):
+        why = _failed(results[i]) if part.query else None
+        if not why or "access" in why:
+            continue
+        try:
+            fix = await llm.plan(REPAIR, f"Schema:\n{graphquery.schema_text(plan.tenant)}\n\nQuestion part: {part.text}\n"
+                                         f"Your walk: {json.dumps(part.query)}\nWhat happened: {why}\nNow is {clock(plan.tenant)} (epoch seconds).")
+            new = fix.get("query") if isinstance(fix, dict) else None
+            if isinstance(new, dict):
+                graphquery.compile_spec(plan.tenant, new, clock(plan.tenant))
+                if new != part.query:
+                    part.query, changed = new, True
+                    plan.notes.append(f"corrected a walk after: {why[:80]}")
+        except Exception:
+            continue
+    return changed
+
+
 async def analyse(tenant: str, user_id: str, question: str, history=(), llm=None) -> tuple[Plan, list[list[dict]], dict]:
     plan = await understand_with_model(llm, tenant, user_id, question, history) or understand(tenant, user_id, question, history)
     results = await traverse(plan, walks(plan))
+    for _ in range(2 if llm is not None and hasattr(llm, "plan") else 0):
+        if not await _repair(llm, plan, results):
+            break
+        results = await traverse(plan, walks(plan))
     sheet = reconcile(plan, results)
     sheet["actions"] = actions(plan, results)
     return plan, results, sheet

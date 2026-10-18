@@ -207,6 +207,21 @@ def customer_names(v: Viewer, customer_ids: list[str], tool: str) -> dict[str, s
     return names
 
 
+def visible_customers(v: Viewer) -> list[str] | None:
+    """The customers this person may see, by the same paths as customer_access (None = all of them, for the head)."""
+    g = graph(v.tenant)
+    if v.role == "support_head":
+        return None
+    if v.role == "contractor":
+        q = ("MATCH (:User {id: $u})-[:MEMBER_OF]->(:Team)-[:WORKS]->(:Queue)<-[:IN]-(:Ticket)-[:FROM]->(:Profile)-[:OF]->(c:Customer) "
+             "RETURN DISTINCT c.id")
+    elif v.role in SUPPORT_ROLES:
+        q = "MATCH (:User {id: $u})-[:MEMBER_OF]->(:Team)-[:COVERS]->(:Region)<-[:IN]-(c:Customer) RETURN DISTINCT c.id"
+    else:
+        return []
+    return [c for c, in g.ro_query(q, {"u": v.user_id}).result_set]
+
+
 def staff_name(tenant: str, user_id: str | None) -> str | None:
     """A colleague's display name from the company roster (staff, not customers: shown to colleagues)."""
     if not user_id:

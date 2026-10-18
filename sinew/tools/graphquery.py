@@ -35,8 +35,11 @@ AREA = {
     "Shipment": {"operations"}, "Scan": {"operations"}, "Hub": {"operations"}, "Courier": {"operations"},
     "Decision": {"operations"}, "Assumption": {"operations"}, "Evidence": {"operations"}, "Warehouse": {"operations"},
     "Campaign": {"marketing"}, "Coupon": {"marketing"}, "CostLine": {"finance"},
-    "Product": None, "Batch": None, "Supplier": None, "Region": None, "Queue": None,
+    "Product": None, "Batch": None, "Supplier": None, "Region": None, "Queue": None, "User": None,
 }
+# Things that may be LISTED row by row (never customer records): the company's own structure and decisions.
+ROW_LABELS = {"Hub", "Courier", "Decision", "Assumption", "Evidence", "Campaign", "Coupon", "Product", "Batch", "Supplier",
+              "Region", "Warehouse", "Queue", "User", "CostLine"}
 CUSTOMER_LINKED = {"Order", "LineItem", "Payment", "Refund", "Return", "Ticket", "Promise", "Customer", "Profile"}
 NEVER_RETURNED = {"id", "summary_clean", "hash", "record", "fields", "text_clean"}  # on customer-linked labels
 OPS = {"=": "=", "!=": "<>", "<": "<", "<=": "<=", ">": ">", ">=": ">=", "in": "IN"}
@@ -49,7 +52,9 @@ class QueryError(ValueError):
     """The spec asks for something the graph or this person's role doesn't allow."""
 
 
-_SCHEMA: dict[str, tuple[float, set, dict]] = {}
+_SCHEMA: dict[str, tuple[float, set, dict, dict]] = {}
+NOT_CATEGORIES = {"id", "summary_clean", "text_clean", "heading", "title", "statement", "basis", "record", "name", "hash", "source",
+                  "confirmed_by", "rejected_by", "approved_by", "made_by", "scope_hub", "scope_courier"}
 
 
 def schema(tenant: str) -> tuple[set[tuple[str, str, str]], dict[str, set[str]]]:
@@ -64,8 +69,19 @@ def schema(tenant: str) -> tuple[set[tuple[str, str, str]], dict[str, set[str]]]
     props = {}
     for label in AREA:
         props[label] = {k for k, in g.ro_query(f"MATCH (n:{label}) WITH n LIMIT 50 UNWIND keys(n) AS k RETURN DISTINCT k").result_set}
-    _SCHEMA[tenant] = (time.time(), patterns, props)
+    hints = {}  # the actual values of category-like properties, so the model writes filters that match the data
+    for label, ps in props.items():
+        for p in sorted(ps - NOT_CATEGORIES):
+            vals = [v for v, in g.ro_query(f"MATCH (n:{label}) WHERE n.{p} IS NOT NULL WITH n LIMIT 400 RETURN DISTINCT n.{p} LIMIT 12").result_set]
+            if 1 <= len(vals) <= 10 and all(isinstance(v, str) and len(v) <= 28 for v in vals):
+                hints[(label, p)] = sorted(vals)
+    _SCHEMA[tenant] = (time.time(), patterns, props, hints)
     return patterns, props
+
+
+def value_hints(tenant: str) -> dict:
+    schema(tenant)
+    return _SCHEMA[tenant][3]
 
 
 def schema_text(tenant: str) -> str:
@@ -74,7 +90,10 @@ def schema_text(tenant: str) -> str:
     walks = "; ".join(f"{a} -[{r}]-> {b}" for a, r, b in sorted(patterns))
     shown = "\n".join(f"{label}: " + ", ".join(sorted(p for p in ps if p not in NEVER_RETURNED or label not in CUSTOMER_LINKED)
                                                or ["(none)"]) for label, ps in sorted(props.items()) if ps)
-    return f"Walks (a relationship can be followed in either direction):\n{walks}\n\nProperties:\n{shown}"
+    values = "\n".join(f"{label}.{p} is one of: {', '.join(vs)}" for (label, p), vs in sorted(value_hints(tenant).items()))
+    return (f"Walks (a relationship can be followed in either direction):\n{walks}\n\nProperties:\n{shown}\n\n"
+            f"Values (use exactly these in filters):\n{values}\n"
+            "Time properties (at, placed_at, starts, ends, due_at, since) are epoch seconds; late_hours and the like are numbers.")
 
 
 def _value(v, now: int):
@@ -93,7 +112,7 @@ def _alias(name, default: str) -> str:
     return a if re.match(r"[A-Za-z_]", a) else "_" + a
 
 
-def compile_spec(tenant: str, spec: dict, now: int) -> dict:
+def compile_spec(tenant: str, spec: dict, now: int, customer_rows: bool = False) -> dict:
     """Spec -> {"cypher", "params", "path", "labels", "columns"} or QueryError. Nothing here touches the graph's data."""
     if not isinstance(spec, dict) or not isinstance(spec.get("match"), list) or not spec["match"]:
         raise QueryError("a query needs a 'match' walk that starts at one label")
@@ -142,19 +161,33 @@ def compile_spec(tenant: str, spec: dict, now: int) -> dict:
         labels.append(label)
         add_filters(var, label, step.get("where"))
 
-    def var_of(label_name) -> tuple[str, str]:
-        label_name = str(label_name)
-        if label_name not in labels:
-            raise QueryError(f"'{label_name}' is not part of the walk")
-        return f"v{labels.index(label_name)}", label_name
+    def var_of(ref) -> tuple[str, str]:
+        """A step of the walk: its label (the last one, if a label repeats), "Label@1" for the first, or its position."""
+        if isinstance(ref, int) and 0 <= ref < len(labels):
+            return f"v{ref}", labels[ref]
+        label_name, _, nth = str(ref).partition("@")
+        hits = [i for i, label in enumerate(labels) if label == label_name]
+        if not hits or (nth and (not nth.isdigit() or not 1 <= int(nth) <= len(hits))):
+            raise QueryError(f"'{ref}' is not part of the walk")
+        i = hits[int(nth) - 1] if nth else hits[-1]
+        return f"v{i}", label_name
 
     cols, ret = [], []
-    for g_ in spec.get("group_by") or []:
+    listing = spec.get("list") or []
+    for g_ in listing:  # "list": rows of the company's own structure, e.g. decisions or hubs; never customer records
+        label_ = str(g_.get("of", "")).partition("@")[0]
+        if label_ not in ROW_LABELS:
+            raise QueryError(f"rows of {label_} can't be listed (customer records are never listed); count or total them instead")
+    customer_cols: list[int] = []
+    for g_ in list(spec.get("group_by") or []) + list(listing):
         v, label = var_of(g_.get("of"))
         prop = str(g_.get("prop", ""))
         if prop not in props.get(label, set()):
             raise QueryError(f"{label} has no property '{prop}'")
-        if label in CUSTOMER_LINKED and prop in NEVER_RETURNED:
+        if label == "Customer" and prop == "id" and customer_rows:  # a person who handles customers may list theirs
+            customer_cols.append(len(ret))
+            where.append(f"{v}.id IN $visible")
+        elif label in CUSTOMER_LINKED and prop in NEVER_RETURNED:
             raise QueryError(f"{prop} of {label} identifies a customer record and can't be returned; only counts and totals can")
         a = _alias(g_.get("as"), prop)
         ret.append(f"{v}.{prop} AS {a}")
@@ -170,15 +203,17 @@ def compile_spec(tenant: str, spec: dict, now: int) -> dict:
         a = _alias(r.get("as"), agg)
         ret.append(AGGS[agg].format(v=v, p=prop) + f" AS {a}")
         cols.append(a)
-    if not ret or not (spec.get("return")):
-        raise QueryError("a query must return at least one count or total")
+    if not ret or not (spec.get("return") or listing):
+        raise QueryError("a query must return at least one count or total, or list things")
+    distinct = "DISTINCT " if not spec.get("return") else ""
     order = ""
     ob = spec.get("order_by")
     if isinstance(ob, dict) and ob.get("by") in cols:
         order = f" ORDER BY {ob['by']}" + (" DESC" if ob.get("desc", True) else "")
     limit = min(max(int(spec.get("limit") or 20), 1), MAX_LIMIT)
-    cypher = f"MATCH {pattern}" + (" WHERE " + " AND ".join(where) if where else "") + f" RETURN {', '.join(ret)}{order} LIMIT {limit}"
-    return {"cypher": cypher, "params": params, "path": path, "labels": labels, "columns": cols}
+    cypher = (f"MATCH {pattern}" + (" WHERE " + " AND ".join(where) if where else "")
+              + f" RETURN {distinct}{', '.join(ret)}{order} LIMIT {limit}")
+    return {"cypher": cypher, "params": params, "path": path, "labels": labels, "columns": cols, "customer_cols": customer_cols}
 
 
 def _show(cypher: str, params: dict) -> str:
@@ -191,20 +226,40 @@ def run_query(tenant: str, user_id: str, spec: dict, ask: str = "") -> Answer:
     v = guard.Viewer.load(tenant, user_id)
     if v is None:
         return refused("graph_query", "unknown person")
+    def blocked_areas(labels) -> list[str]:
+        return sorted({sorted(AREA[x])[0] for x in labels if x in AREA and AREA[x] and not (AREA[x] & set(v.areas))})
+    asked = [str(st.get("label")) for st in (spec.get("match") or []) if isinstance(st, dict)] if isinstance(spec, dict) else []
+    if blocked_areas(asked) or not v.areas:  # access first: someone who may not read these areas is told so, not why the walk is invalid
+        return refused("graph_query", f"your role doesn't have access to {', '.join(blocked_areas(asked)) or 'company'} information")
     try:
         now = clock(tenant)
-        c = compile_spec(tenant, spec, now)
+        c = compile_spec(tenant, spec, now, customer_rows=v.role in guard.SUPPORT_ROLES)
     except (QueryError, TypeError, ValueError, AttributeError) as e:
         return Answer("graph_query", "not_in_graph", reason=f"couldn't turn that into a valid walk: {e}")
-    blocked = sorted({sorted(AREA[label])[0] for label in c["labels"] if AREA[label] and not (AREA[label] & set(v.areas))})
-    if blocked or not v.areas:
-        return refused("graph_query", f"your role doesn't have access to {', '.join(blocked) or 'company'} information")
+    if blocked_areas(c["labels"]):
+        return refused("graph_query", f"your role doesn't have access to {', '.join(blocked_areas(c['labels']))} information")
+    if c["customer_cols"]:  # only the customers this person may see, by the same paths as the inbox
+        seen = guard.visible_customers(v)
+        c["params"]["visible"] = seen if seen is not None else [x for x, in graph(tenant).ro_query("MATCH (c:Customer) RETURN c.id").result_set]
     rows = graph(tenant).ro_query(c["cypher"], c["params"]).result_set
+    names = {}
+    if c["customer_cols"]:
+        names = guard.customer_names(v, sorted({r[i] for r in rows for i in c["customer_cols"]}), "graph_query")
     ms = round((time.perf_counter() - start) * 1000, 1)
     shown = _show(c["cypher"], c["params"])
     if not rows or all(all(x in (None, 0) for x in r) for r in rows):
         return Answer("graph_query", "not_in_graph", reason="the walk found nothing matching", ms=ms,
                       data={"ask": ask, "cypher": shown, "path": c["path"], "columns": c["columns"], "rows": []})
+    def cell(x):  # staff and customers appear by name where the person may see names; dates as dates
+        if isinstance(x, str) and re.fullmatch(r"u-[a-z0-9-]+", x):
+            return guard.staff_name(tenant, x) or x
+        if isinstance(x, str) and x in names:
+            return names[x]
+        if isinstance(x, str) and re.fullmatch(r"cu-[a-z0-9-]+", x):
+            return "a customer"
+        if isinstance(x, int) and not isinstance(x, bool) and 1_500_000_000 < x < 2_000_000_000:
+            return time.strftime("%-d %b", time.gmtime(x))
+        return round(x, 2) if isinstance(x, float) else x
     return Answer("graph_query", "answered_path", ms=ms, paths=[c["path"].split(" ")],
                   data={"ask": ask, "cypher": shown, "path": c["path"], "columns": c["columns"],
-                        "rows": [[round(x, 2) if isinstance(x, float) else x for x in r] for r in rows]})
+                        "rows": [[cell(x) for x in r] for r in rows]})

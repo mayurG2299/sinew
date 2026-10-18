@@ -173,3 +173,9 @@ Ask **"How is the company doing this week?"**
 | M7 | Karan (contractor) | how many shipments did each courier handle? | "outside your access" (no operations) | |
 | M8 | Chloe | how many tickets are open by issue? | outside your access (no support) | |
 | M9 | any | ask for something the graph has no path for, e.g. "how many pets do customers own?" | "no information" (never a made-up number) | |
+| M10 | Ravi | which of my customers are waiting longest for a refund? | His own west customers by name, oldest first: Ladli Kakar 3 Oct, Reece Magar 8 Oct, Chad Davis 11 Oct, Desiree Davis 15 Oct | |
+| M11 | Tom (north agent) | same question | Only north customers (Rebecca Tripathi 24 Sep, Valerie Johnson 2 Oct, …): none of Ravi's | |
+| M12 | Daniel | who handles the most tickets? | Tom Becker 24, Karan Mehta 24, Anna Schmidt 22, Sofia Rossi 22, Ravi Kumar 21, Li Wei 20 (by name) | |
+| M13 | Daniel | which supplier is behind the products with the most damage complaints? | sup-s3 (11 damaged-item complaints) | |
+| M14 | Daniel | which hubs does courier y run and what is each one's capacity? | Hub W2, capacity 14 | |
+| M15 | Daniel | list the customers with refunds waiting | Totals only: the CEO may not list customers | |
