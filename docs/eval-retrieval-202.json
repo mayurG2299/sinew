@@ -2735,11 +2735,12 @@
   "expect": "54",
   "ok": true,
   "tools": [
+   "ticket_summary",
    "company_pulse",
    "reconcile"
   ],
-  "size": 1943,
-  "got": "[{\"scope\": \"whole company, this week\", \"from\": \"company_pulse\", \"named\": [], \"asked\": \"How many support tickets did we get this week\", \"intents\": [\"count\"], \"answers\": true, \"tool\": \"company_pulse\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"your_areas\": [\"company\", \"operations\", \"support\"], \"support\": {\"tickets_this_week\": 54, \"tickets_last_week\": 29, \"tickets_change_pct\": 86.2, \"complaints"
+  "size": 3150,
+  "got": "[{\"scope\": \"ticket_summary\", \"from\": \"ticket_summary\", \"named\": [], \"asked\": \"How many support tickets did we get this week\", \"intents\": [\"tickets\", \"count\"], \"answers\": true, \"tool\": \"ticket_summary\", \"outcome\": \"answered_path\", \"data\": {\"open\": 32, \"scope\": \"in your regions\", \"by_issue\": [{\"issue\": \"late delivery\", \"tickets\": 10}, {\"issue\": \"refund status\", \"tickets\": 7}, {\"issue\": \"product issu"
  },
  {
   "who": "u-cmo",
@@ -2853,7 +2854,7 @@
    "trace_decisions",
    "decision_impact"
   ],
-  "size": 4740,
+  "size": 4760,
   "got": "[{\"scope\": \"cluster_incidents\", \"from\": \"cluster_incidents\", \"named\": [], \"asked\": \"Why are complaints up this week\", \"intents\": [\"why\"], \"answers\": true, \"tool\": \"cluster_incidents\", \"outcome\": \"answered_path\", \"data\": {\"days\": 7, \"clusters\": [{\"tickets\": 22, \"issue\": \"late_delivery\", \"root_hub\": \"hub-w2\", \"late_parcels_at_root\": 22, \"shared\": [{\"kind\": \"Hub\", \"id\": \"hub-w1\", \"share\": 1.0}, {\"kin"
  },
  {

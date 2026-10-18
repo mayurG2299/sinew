@@ -241,3 +241,47 @@ def product_ranking(tenant: str, user_id: str, days: int = 30, top: int = 5) -> 
         {"s": clock(tenant) - days * DAY, "n": top}).result_set
     return Answer("product_ranking", "answered_path", ms=_ms(start), data={"days": days, "products": [
         {"product": t, "orders": o, "complaints": c, "per_100": f"{r * 100:.1f} per 100 orders"} for t, o, c, r in rows]})
+
+
+def ticket_summary(tenant: str, user_id: str, top: int = 5) -> Answer:
+    """The open tickets this person may see: by issue and region, how long the oldest has waited, and (for people
+    who handle customers) the most urgent few by name. Aggregates for roles that only see totals."""
+    from collections import Counter
+    from sinew.briefing import _urgency
+    start = time.perf_counter()
+    v = guard.Viewer.load(tenant, user_id)
+    if v is None:
+        return unknown("ticket_summary", f"user {user_id}")
+    now = clock(tenant)
+    g = graph(tenant)
+    if v.role in guard.SUPPORT_ROLES:  # the tickets in your own regions or queue
+        rows = [r for r in guard.visible_tickets(v, 5000) if r[3] != "solved"]
+        scope = "in your queue" if v.role == "contractor" else "in your regions" if v.role != "support_head" else "company-wide"
+        tickets = [{"ticket": r[0], "at": r[1], "issue": r[2], "customer": r[5], "region": r[6]} for r in rows]
+    else:  # totals only: no individual customers
+        rows = g.ro_query("MATCH (t:Ticket) WHERE t.status <> 'solved' OPTIONAL MATCH (t)-[:FROM]->(:Profile)-[:OF]->(c:Customer) "
+                          "RETURN t.id, t.at, t.issue_type, c.region").result_set
+        scope = "company-wide"
+        tickets = [{"ticket": t, "at": at, "issue": i, "customer": None, "region": rg} for t, at, i, rg in rows]
+    if not tickets:
+        return Answer("ticket_summary", "not_in_graph", reason="no open tickets", ms=_ms(start))
+    by_issue = Counter((t["issue"] or "other").replace("_", " ") for t in tickets).most_common()
+    by_region = Counter(t["region"] or "unknown" for t in tickets).most_common()
+    oldest = min(t["at"] for t in tickets)
+    data = {"open": len(tickets), "scope": scope, "by_issue": [{"issue": i, "tickets": n} for i, n in by_issue],
+            "by_region": [{"region": r, "tickets": n} for r, n in by_region], "oldest_waiting_days": round((now - oldest) / DAY, 1)}
+    if v.role in guard.SUPPORT_ROLES:
+        ctx = guard.inbox_context(v, sorted({t["customer"] for t in tickets}), now)
+        latest = {}
+        for t in tickets:
+            c = ctx[t["customer"]]
+            row = {"status": "open", "broken_promises": c["broken_promises"], "due_soon": c["due_soon"], "late_parcels": c["late_parcels"]}
+            if t["customer"] not in latest or t["at"] > latest[t["customer"]]["at"]:
+                latest[t["customer"]] = {**t, **row, "name": c["name"]}
+        urgent = sorted((x for x in latest.values() if _urgency(x) > 0), key=lambda x: (-_urgency(x), x["at"]))[:top]
+        data["most_urgent"] = [{"customer": x["name"] or "a customer", "issue": (x["issue"] or "other").replace("_", " "),
+                                "waiting_days": round((now - x["at"]) / DAY, 1),
+                                "flags": [f for f, on in (("an agreed refund is overdue", x["broken_promises"]), ("a parcel is late", x["late_parcels"])) if on]}
+                               for x in urgent]
+        guard.record_access(v, "ticket_summary", None)
+    return Answer("ticket_summary", "answered_path", data=data, ms=_ms(start), paths=[[v.user_id, "open tickets"]])

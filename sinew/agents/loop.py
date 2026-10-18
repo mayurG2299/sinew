@@ -117,7 +117,8 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
                        f"(permissions applied). Fact sheet:\n{brain.for_model(sheet)}\n\n"
                        f"Correct draft written from the fact sheet:\n{run.draft}\n\n"
                        "Rewrite the draft as your answer for this person: keep every fact and number, add nothing that "
-                       "is not in the fact sheet, follow the format rules. Keep any \"What to do:\" lines exactly as "
+                       "is not in the fact sheet, follow the format rules. Keep each number attached to the same thing it "
+                       "is attached to in the draft; never join facts from different lines into one sentence. Keep any \"What to do:\" lines exactly as "
                        "written, and keep the note that an overlap is not proof of cause. Call a tool only if something "
                        "asked is missing.")
             llm.start(prompts.SYSTEM[agent], [{"name": t.name, "description": t.description or "",

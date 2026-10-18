@@ -67,7 +67,7 @@ TOOL_AREA = {
     "find_approver": "support", "issue_refund": "support", "record_promise": "support", "confirm_promise": "support",
     "promises": "support", "inbox": "support", "order_detail": "support",
     "decision_detail": "operations", "hub_status": "operations", "product_status": "operations",
-    "product_ranking": "operations",
+    "product_ranking": "operations", "ticket_summary": "support",
     "cluster_incidents": "operations", "trace_decisions": "operations", "decision_impact": "operations",
     "prelaunch_check": "operations", "reroute": "operations", "choke_points": "operations",
     "evaluate_assumptions": "operations", "file_incident": "operations", "notify_owner": "operations",

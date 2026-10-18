@@ -64,6 +64,11 @@ def build_server(tenant: str, user_id: str, run_id: str | None = None, read_only
         return guard.gate(tenant, user_id, "product_ranking") or focus.product_ranking(tenant, user_id, days).as_dict()
 
     @mcp.tool(annotations=READ)
+    def ticket_summary() -> dict:
+        """The open tickets you may see: by issue and region, the longest wait, and the most urgent few."""
+        return guard.gate(tenant, user_id, "ticket_summary") or focus.ticket_summary(tenant, user_id).as_dict()
+
+    @mcp.tool(annotations=READ)
     def open_loops(customer: Id) -> dict:
         """What is still open for a customer: open tickets, open or broken promises, late parcels, unrefunded returns."""
         return guard.gate(tenant, user_id, "open_loops") or trace.open_loops(tenant, user_id, customer).as_dict()

@@ -159,3 +159,33 @@ def test_numbers_from_the_fact_sheet_pass_the_check():
     from sinew.agents import check
     assert check.check("Orders total $1,929.89.", [{"tool": "x", "outcome": "answered_path", "data": {}}], "", "their_order_value: 1929.89")[0]
     assert not check.check("Orders total $2,929.89.", [{"tool": "x", "outcome": "answered_path", "data": {}}], "", "their_order_value: 1929.89")[0]
+
+
+def test_a_launch_question_gets_a_verdict_and_steps():
+    out = write(sheet("u-ceo", "Is the Winter Sale safe to launch?"))
+    assert out.startswith("No, not as things stand. The Winter Sale starts in 10 days")
+    assert "77%" in out and "1.57x" in out and "Route the Winter Sale through Hub W4" in out
+    assert "0 other decisions" not in out
+
+
+def test_the_home_shortcut_for_a_launch_goes_through_the_analysis():
+    import json, urllib.request
+    from sinew.home import home
+    item = home(T, "u-logistics")["at_risk"][0]
+    assert item["agent"] == "ask" and item["task"] == "Is the Winter Sale safe to launch?"
+
+
+def test_a_chain_of_follow_ups_keeps_the_original_topic():
+    h = ["Is the Winter Sale safe to launch?", "hey tell me more about this issue this is not enough"]
+    p = understand(T, "u-ceo", "i want to know more", h)
+    assert {e.id for e in p.entities} >= {"winter25"} and p.follow_up_to == h[0]
+
+
+def test_open_tickets_can_be_listed_by_role():
+    from sinew.db import graph
+    truth = graph(T).ro_query("MATCH (t:Ticket) WHERE t.status <> 'solved' RETURN count(t)").result_set[0][0]
+    ceo = write(sheet("u-ceo", "what are those 59 open tickets"))
+    assert f"{truth} open tickets (company-wide)" in ceo and "Most urgent" not in ceo  # totals only: no customers for the CEO
+    ravi = write(sheet("u-agent-w1", "what are my open tickets"))
+    assert "(in your regions)" in ravi and "Most urgent:" in ravi and "Ladli Kakar" in ravi
+    assert "That's outside your access" in write(sheet("u-marketing", "what are the open tickets"))

@@ -81,8 +81,8 @@ def _decisions(tenant: str, v: guard.Viewer, cluster: dict | None) -> dict:
         elif overlaps:
             attention.append(_decision_item(did, title, "overlaps another decision"))
     warnings = impact.prelaunch_check(tenant).data.get("warnings", [])
-    at_risk = [_item(w["campaign"], w["name"], f"Is the {w['name']} safe to launch?", view={"kind": "prelaunch"},
-                     note=f"starts in {w['starts_in_days']:g} days") for w in warnings]
+    at_risk = [_item(w["campaign"], w["name"], f"Is the {w['name']} safe to launch?", "ask", f"Is the {w['name']} safe to launch?",
+                     {"kind": "prelaunch"}, note=f"starts in {w['starts_in_days']:g} days") for w in warnings]
     in_scope = sum(1 for did, title, owner, *_ in rows if not mine_only or owner == v.user_id)
     insights = []
     if cluster:
