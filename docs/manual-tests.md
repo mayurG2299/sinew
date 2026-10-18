@@ -159,3 +159,17 @@ Ask **"How is the company doing this week?"**
 | L1 | Lucas | Profile → Send a live courier scan | "New courier scan received: a parcel is running late" | |
 | L2b | Lucas | Ask "Is Hub W2 coping?" before and after L1 | If the scanned parcel is at Hub W2, "late" goes up by one; the answer reflects the new scan without a reload | |
 | L2 | any | Reset demo data | Back to the numbers above | |
+
+## M. Questions the AI turns into a graph query (open "How Sinew knows" to see the path and the Cypher)
+
+| # | Who | Ask | Correct result | ✓ |
+|---|---|---|---|---|
+| M1 | Daniel | how many orders did each region place in the last 7 days? | north 55 · south 31 · west 105 (total 191) | |
+| M2 | Daniel | which couriers carried the orders that used the FEST40 coupon? | courier-y 100 | |
+| M3 | Daniel | show complaints by issue type for batch B7 | late delivery 4 · product issue 4 · refund status 1 · damaged 1 | |
+| M4 | Daniel | which suppliers' batches show up in the orders that got refunded? | sup-s2 11 · sup-s3 10 · sup-s4 9 · sup-s1 6 (distinct batches) | |
+| M5 | Daniel | how many gold customers are still waiting at Hub W2? | 3 | |
+| M6 | Chloe | how many orders used each coupon? | FEST40 100 (marketing may count orders) | |
+| M7 | Karan (contractor) | how many shipments did each courier handle? | "outside your access" (no operations) | |
+| M8 | Chloe | how many tickets are open by issue? | outside your access (no support) | |
+| M9 | any | ask for something the graph has no path for, e.g. "how many pets do customers own?" | "no information" (never a made-up number) | |

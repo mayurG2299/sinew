@@ -12,10 +12,11 @@ export type Staff = { id: string; role: string; refund_limit: number; team: stri
 
 export type Run = {
   run_id: string; agent: string; task: string; answer: string;
-  answer_source: "model" | "rows" | "replay"; check_failed: string; model: string;
+  answer_source: "model" | "rows" | "replay" | "graph"; check_failed: string; model: string;
   steps: { tool: string; args: any; outcome: string; ms: number; tool_ms?: number }[];
   pending_actions: { name: string; args: any }[]; ms: number; model_ms: number[];
   repaired?: string;
+  queries?: { ask: string; path: string; cypher: string; columns: string[]; rows: any[][] }[];
   draft?: string;
   plan?: { window: string; parts: { ask: string; intents: string[]; named: string[]; status: string }[] };
   sources?: { passage: string; doc: string; title: string; kind: string; heading: string; text: string }[];

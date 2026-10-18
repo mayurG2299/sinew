@@ -59,6 +59,7 @@ class Run:
     sources: list[dict] = field(default_factory=list)  # document passages behind the answer, from the graph
     repaired: str = ""  # what the first answer got wrong, when one corrected rewrite passed the check
     plan: dict = field(default_factory=dict)  # how the question was understood and broken down
+    queries: list = field(default_factory=list)  # the Cypher the graph walks ran, to show with the answer
     draft: str = ""  # the answer written from the fact sheet alone (used if the model can't do better)
 
     def as_dict(self) -> dict:
@@ -106,6 +107,9 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, 
                 run.steps.append({"tool": call.get("tool", result.get("tool")), "args": call.get("args", {}),
                                   "outcome": result.get("outcome"), "ms": call.get("ms"),
                                   "tool_ms": result.get("ms"), "by": "graph"})
+    run.queries = [{"ask": r["data"].get("ask", ""), "path": r["data"]["path"], "cypher": r["data"]["cypher"],
+                    "columns": r["data"]["columns"], "rows": r["data"]["rows"][:10]}
+                   for r in run.results if r.get("tool") == "graph_query" and r.get("data", {}).get("cypher")]
     run.plan = {"parts": [{"ask": p["ask"], "intents": p["intents"], "named": p["named"], "status": p["status"]}
                           for p in sheet["parts"]], "window": sheet["window"]}
     run.draft = brain.write(sheet)

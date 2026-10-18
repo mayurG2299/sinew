@@ -23,7 +23,7 @@ from mcp import Client
 
 from sinew.db import graph
 from sinew.mcp_server import build_server
-from sinew.tools import guard
+from sinew.tools import graphquery, guard
 from sinew.tools.trace import clock
 
 DAY = 86_400
@@ -70,6 +70,7 @@ class Part:
     text: str
     intents: list[str]
     entities: list[Entity]
+    query: dict | None = None  # a graph walk the model described for this part (compiled to Cypher by graphquery)
 
 
 @dataclass
@@ -84,6 +85,7 @@ class Plan:
     parts: list[Part] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)  # names in the question that match nothing in the graph
     follow_up_to: str = ""  # the earlier question this one carries on from
+    notes: list[str] = field(default_factory=list)
     refund_limit: float = 0
 
     def as_dict(self) -> dict:
@@ -286,6 +288,23 @@ Split a question into parts only when it asks for different things. Resolve "it"
 follow-ups ("more details", "why?") from the earlier questions: use their entities and intents, and add "detail" when more
 is asked. A question about something that exists in none of the lists has no entities. Never invent ids.
 
+ALWAYS give a part a "query" when it asks for a count, total or breakdown "by" or "for each" something, or "how many ... that ...".
+If a part asks for a custom count, total or breakdown across the graph that the intents alone can't give ("how many gold
+customers are waiting at Hub W2", "which couriers carried FEST40 orders", "complaints by issue for batch B7"), ALSO give that
+part a "query": a walk through the graph, written in this form (labels, relationships and properties ONLY from the schema below):
+{"match": [{"label": "<start label>", "id": "<optional id>", "where": [{"prop": "...", "op": "=|!=|<|<=|>|>=|in", "value": ...}]},
+           {"rel": "<RELATIONSHIP>", "dir": "out|in", "label": "<next label>", "where": [...]}, ...],
+ "group_by": [{"of": "<label>", "prop": "<property>", "as": "<name>"}],
+ "return": [{"agg": "count|count_distinct|sum|avg|min|max", "of": "<label>", "prop": "<property, for sum/avg/min/max>", "as": "<name>"}],
+ "order_by": {"by": "<name>", "desc": true}, "limit": 20}
+"dir": "out" follows the relationship as written in the schema from the previous label; "in" follows it backwards.
+Time filters use "now-7d" or "now-12h" as the value. Only counts and totals can be returned, never customers.
+Query examples:
+gold customers waiting at Hub W2 -> match [Shipment where last_hub = hub-w2 and status in [in_transit, delayed]] <-[SHIPPED_AS]- Order <-[PLACED]- Profile -[OF]-> Customer where tier = gold; return count_distinct Customer.
+couriers that carried FEST40 orders -> match [Coupon id FEST40] <-[USED]- Order -[SHIPPED_AS]-> Shipment -[VIA]-> Courier; group_by Courier.id; return count_distinct Order.
+orders by region in the last 7 days -> match [Order where placed_at >= now-7d] <-[PLACED]- Profile -[OF]-> Customer; group_by Customer.region; return count_distinct Order.
+complaints by issue for batch B7 -> match [Batch id b7] <-[FROM]- LineItem <-[HAS]- Order <-[ABOUT]- Ticket; group_by Ticket.issue_type; return count_distinct Ticket.
+
 Examples:
 "what is under 157% capacity?" -> one part, intents [capacity], no entities.
 "i want to know more" after "Is the Winter Sale safe to launch?" -> intents [detail, verdict], entities [Campaign winter25].
@@ -308,7 +327,8 @@ async def understand_with_model(llm, tenant: str, user_id: str, question: str, h
         return None
     v = guard.Viewer.load(tenant, user_id)
     now = clock(tenant)
-    prompt = (f"Catalogue of what exists at this company:\n{_catalogue(tenant)}\n\n"
+    prompt = (f"Catalogue of what exists at this company:\n{_catalogue(tenant)}\n\nThe graph's schema:\n{graphquery.schema_text(tenant)}\n\n"
+              f"Now is {now} (epoch seconds).\n\n"
               f"Earlier questions in this chat (oldest first): {json.dumps(list(history)[-3:])}\n\nQuestion: {question}")
     try:
         raw = await llm.plan(PLANNER, prompt)
@@ -337,9 +357,18 @@ async def understand_with_model(llm, tenant: str, user_id: str, question: str, h
                 elif kind in ("Hub", "Order", "Courier", "Campaign", "Decision", "Product", "Batch") and nid:
                     plan.missing.append(nid.replace("hub-", "Hub ").upper() if kind == "Hub" else nid)
             text = str(part.get("ask") or question)[:300]
+            query = part.get("query") if isinstance(part.get("query"), dict) else None
+            if query:  # checked now: a walk that doesn't fit the schema is dropped before anything runs
+                try:
+                    graphquery.compile_spec(tenant, query, now)
+                except Exception as e:
+                    plan.notes.append(f"dropped a walk the model described: {e}")
+                    query = None
             intents = [i for i in part.get("intents") or [] if i in ALLOWED_INTENTS]
-            intents += [i for i in _intents(text, ents) if i in ALLOWED_INTENTS and i not in intents and i not in ("status", "unknown")]
-            plan.parts.append(Part(text, intents or (["status"] if ents else ["unknown"]), ents))
+            # the word patterns may only add the phrase-based intents they are good at ("what do I tell her", "safe to
+            # launch", "more details"); anything single-word ("standard" is also a customer tier) is the model's call
+            intents += [i for i in _intents(text, ents) if i in ("what_to_do", "verdict", "detail") and i not in intents]
+            plan.parts.append(Part(text, intents or (["status"] if ents else ["unknown"]), ents, query))
         if not plan.parts:
             return None
         plan.entities = [e for p in plan.parts for e in p.entities]
@@ -351,6 +380,16 @@ async def understand_with_model(llm, tenant: str, user_id: str, question: str, h
 
 
 # ------------------------------------------------------------------ 2. walks for each part
+
+def _dedupe(calls: list[tuple[str, dict]]) -> list[tuple[str, dict]]:
+    seen, unique = set(), []
+    for c in calls:
+        key = (c[0], json.dumps(c[1], sort_keys=True))
+        if key not in seen:
+            seen.add(key)
+            unique.append(c)
+    return unique
+
 
 def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
     """For each part, the graph walks that answer it, starting at what it names."""
@@ -396,6 +435,11 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
                     calls.append(("decision_impact", {"decision_id": e.id}))
             if "detail" in p.intents and not p.entities:
                 calls += [("company_pulse", {"days": plan.window["days"]}), ("cluster_incidents", {})]
+        heavy = {"why", "what_to_do", "verdict", "pulse", "attention", "capacity", "tickets", "policy", "contact", "personal_bulk"}
+        if p.query and not (set(p.intents) & heavy):  # the model's own walk answers this part: no other lookups
+            calls.append(("graph_query", {"spec": p.query, "ask": p.text}))
+            out.append(_dedupe(calls))
+            continue
         if "capacity" in p.intents and not any(e.kind == "Hub" for e in p.entities):  # every hub, to compare them
             hubs = graph(plan.tenant).ro_query("MATCH (h:Hub) RETURN h.id ORDER BY h.id").result_set
             calls += [("hub_status", {"hub": "Hub " + h.split("-", 1)[1].upper()}) for h, in hubs]
@@ -417,22 +461,18 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
         if "what_to_do" in p.intents and about_customer:  # what to tell the customer: the company's own rules for it
             calls.append(("search_docs", {"text": "late parcel customer new delivery date refund apologise"}))
         other_specific = (SPECIFIC - {"pulse", "tickets"}) & set(p.intents)
-        if "pulse" in p.intents or ("count" in p.intents and not p.entities and not other_specific):
+        if "pulse" in p.intents or ("count" in p.intents and not p.entities and not other_specific and not p.query):
             calls.append(("company_pulse", {"days": plan.window["days"]}))
         if ("cost" in p.intents and not any(e.kind == "Order" for e in p.entities)) or "policy" in p.intents:
             calls.append(("search_docs", {"text": p.text + (" cost spend budget price" if "cost" in p.intents else "")}))
         if "cost" in p.intents and not p.entities and re.search(r"revenue|sales|income|turnover|earn|spend this|money in",
                                                                  p.text.lower()):
             calls.append(("company_pulse", {"days": plan.window["days"]}))
+        if p.query:  # the model's own walk through the graph, compiled to Cypher and checked
+            calls.append(("graph_query", {"spec": p.query, "ask": p.text}))
         if not calls and not plan.missing:
             calls.append(("search_docs", {"text": p.text}))  # nothing named: maybe a document knows
-        seen, unique = set(), []
-        for c in calls:
-            key = (c[0], json.dumps(c[1], sort_keys=True))
-            if key not in seen:
-                seen.add(key)
-                unique.append(c)
-        out.append(unique)
+        out.append(_dedupe(calls))
     return out
 
 
@@ -605,6 +645,8 @@ def _answers(part: Part, r: dict) -> bool:
     # why, is it safe): an order's own data answers "what do I tell her". Money and policy need their own figures.
     own = {"Order": "order_detail", "Hub": "hub_status", "Decision": "decision_detail", "Campaign": "decision_detail",
            "Courier": "decision_detail", "Product": "product_status", "Batch": "product_status", "Ticket": "customer_trace"}
+    if r.get("tool") == "graph_query" and part.query:
+        return True  # the walk was written for exactly this part
     if not {"cost", "policy"} & set(part.intents) and any(r.get("tool") == own.get(e.kind) for e in part.entities):
         return True
     primary = [i for i in part.intents if i in SPECIFIC] or part.intents
@@ -807,6 +849,17 @@ def _say_fact(f: dict) -> list[str]:
             return (len(asked & title) * 3 + len(asked & body))
         ranked = sorted(f.get("data") or [], key=fit, reverse=True)
         return [f"{x['title']}, \"{x['heading']}\": {x['text']}" for x in ranked[:3]]
+    if tool == "graph_query":
+        cols, rows = d["columns"], d["rows"]
+        fmt = lambda x: f"{x:,.2f}" if isinstance(x, float) else f"{x:,}" if isinstance(x, int) else str(x)
+        name = lambda c: c.replace("_", " ")
+        if len(rows) == 1:
+            head = [", ".join(f"{name(c)}: {fmt(v)}" for c, v in zip(cols, rows[0])) + "."]
+        elif len(cols) == 2:
+            head = [f"{name(cols[1]).capitalize()} by {name(cols[0])}:"] + [f"- {fmt(r[0])}: {fmt(r[1])}" for r in rows[:12]]
+        else:
+            head = [" · ".join(name(c) for c in cols) + ":"] + ["- " + " · ".join(fmt(v) for v in r) for r in rows[:12]]
+        return head + [f"(Walked: {d['path']})"]
     if tool == "ticket_summary":
         lines = [f"{d['open']} open tickets ({d['scope']}): " + ", ".join(f"{x['tickets']} {x['issue']}" for x in d["by_issue"][:4]) + "."]
         if len(d["by_region"]) > 1:

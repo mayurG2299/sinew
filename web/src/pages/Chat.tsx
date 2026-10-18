@@ -92,7 +92,7 @@ const STEP: Record<string, string> = {
   recall: "Checked earlier findings", cluster_incidents: "Grouped this week's complaints", trace_decisions: "Found the decisions behind it",
   decision_impact: "Measured what is at risk", prelaunch_check: "Checked upcoming launches", reroute: "Looked for another route",
   choke_points: "Found the busiest hubs", evaluate_assumptions: "Re-measured the assumptions", write_finding: "Saved a note for next time",
-  order_detail: "Walked from the order", decision_detail: "Walked from the decision", hub_status: "Walked from the hub",
+  graph_query: "Walked a custom path through the graph", order_detail: "Walked from the order", decision_detail: "Walked from the decision", hub_status: "Walked from the hub",
   product_status: "Walked from the product or batch", company_pulse: "Summarised the areas you can see",
   issue_refund: "Prepared a refund", record_promise: "Prepared a follow-up", file_incident: "Prepared an incident", notify_owner: "Prepared a message",
 };
@@ -164,6 +164,18 @@ function Extras({ run, view, me }: { run: Run | null; view: Notice["view"] | nul
           <ol className="list-decimal space-y-0.5 pl-5">
             {run.steps.map((s, i) => <li key={i}>{STEP[s.tool] ?? s.tool}{s.tool_ms != null && <span className="text-stone-400"> · {s.tool_ms} ms</span>}</li>)}
           </ol>
+          {run.queries?.length ? (
+            <div className="mb-3 space-y-2">
+              <p className="font-medium text-stone-800">The graph query the AI planned and Sinew checked</p>
+              {run.queries.map((qy, i) => (
+                <div key={i} className="rounded-lg border border-stone-200 bg-white p-3">
+                  <p className="text-xs text-stone-500">Path: {qy.path}</p>
+                  <pre className="mt-1 overflow-x-auto whitespace-pre-wrap font-mono text-[12px] leading-snug text-stone-800">{qy.cypher}</pre>
+                  <p className="mt-1 text-xs text-stone-500">{qy.rows.length} row{qy.rows.length === 1 ? "" : "s"}: {qy.rows.slice(0, 5).map((r) => r.join(" · ")).join("  |  ")}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <p className="mt-2 text-xs text-stone-500">
             {run.answer_source === "model" ? "Written by AI from these results, then every name and number was checked against them."
               : run.answer_source === "replay" ? "The AI is unavailable right now, so this is its last checked answer to the same question."

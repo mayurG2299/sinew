@@ -12,7 +12,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-from sinew.tools import actions, docs, focus, guard, impact, pulse, trace
+from sinew.tools import actions, docs, focus, graphquery, guard, impact, pulse, trace
 
 READ = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
 WRITE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False)
@@ -67,6 +67,12 @@ def build_server(tenant: str, user_id: str, run_id: str | None = None, read_only
     def ticket_summary() -> dict:
         """The open tickets you may see: by issue and region, the longest wait, and the most urgent few."""
         return guard.gate(tenant, user_id, "ticket_summary") or focus.ticket_summary(tenant, user_id).as_dict()
+
+    @mcp.tool(annotations=READ)
+    def graph_query(spec: dict, ask: str = "") -> dict:
+        """A custom walk through the company graph described as a spec (start label, relationships to follow, filters,
+        counts or totals); compiled to Cypher, checked against the schema and your role. Returns counts, never customer rows."""
+        return graphquery.run_query(tenant, user_id, spec, ask[:300]).as_dict()
 
     @mcp.tool(annotations=READ)
     def open_loops(customer: Id) -> dict:
