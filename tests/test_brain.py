@@ -126,3 +126,36 @@ def test_the_facts_propose_actions_and_only_permitted_ones_are_offered():
     assert {a["name"] for a in lucas.pending_actions} == {"file_incident", "notify_owner"}
     assert "file_incident" not in {a["name"] for a in ceo.pending_actions}  # the CEO may not open incidents
     assert [a["name"] for a in ravi.pending_actions] == ["issue_refund"] and ravi.pending_actions[0]["args"]["order_id"] == "o-4397"
+
+
+def test_a_follow_up_carries_on_from_the_previous_question():
+    first = "if we want to use HUB W2 only then what things need to be taken care of?"
+    p = understand(T, "u-ceo", "I want you to give me more details", [first])
+    assert [(e.kind, e.id) for e in p.entities] == [("Hub", "hub-w2")] and "detail" in p.parts[0].intents
+    assert p.follow_up_to == first
+    s = asyncio.run(analyse(T, "u-ceo", "I want you to give me more details", [first]))[2]
+    out = write(s)
+    assert "Hub W2" in out and "Tickets:" not in out  # about the hub, not a company summary
+    # a new question is never mistaken for a follow-up
+    p2 = understand(T, "u-ceo", "How is the company doing this week?", [first])
+    assert p2.follow_up_to == "" and p2.parts[0].intents == ["pulse"]
+    assert understand(T, "u-ceo", "why is that?", ["tell me about the courier y switch"]).entities[0].id == "courier-y"
+
+
+def test_what_if_and_what_needs_care_get_facts_and_next_steps():
+    out = write(sheet("u-ceo", "if we want to use HUB W2 only then what things need to be taken care of?"))
+    assert "22 parcels in a day against a capacity of 14" in out and "cannot carry sale volume" in out
+    assert "assumed" in out and "77%" in out  # the decisions resting on it, with numbers, not "its assumption is broken"
+    assert "What to do:" in out
+
+
+def test_the_impact_line_uses_the_trimmed_fields():
+    out = write(sheet("u-ceo", "Why are complaints up this week, and what should we do?"))
+    assert "21 customers are still waiting on 25 parcels" in out and "gold" in out and "past their delivery date" in out
+    assert "0 customers" not in out and "rely on this one: " in out
+
+
+def test_numbers_from_the_fact_sheet_pass_the_check():
+    from sinew.agents import check
+    assert check.check("Orders total $1,929.89.", [{"tool": "x", "outcome": "answered_path", "data": {}}], "", "their_order_value: 1929.89")[0]
+    assert not check.check("Orders total $2,929.89.", [{"tool": "x", "outcome": "answered_path", "data": {}}], "", "their_order_value: 1929.89")[0]

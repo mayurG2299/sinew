@@ -156,6 +156,7 @@ class AgentRequest(BaseModel):
     task: str
     as_user: str
     tenant: str = "northwind"
+    history: list[str] = []  # this person's earlier questions in the same chat, so a follow-up knows what it follows
 
 
 @app.post("/api/agent")
@@ -165,7 +166,8 @@ async def agent(req: AgentRequest):
         raise HTTPException(404, "unknown agent")
     if guard.Viewer.load(req.tenant, req.as_user) is None:
         raise HTTPException(404, "unknown user")
-    return (await run_agent(req.tenant, req.as_user, req.agent, req.task[:500])).as_dict()
+    history = [h[:300] for h in req.history[-3:]]
+    return (await run_agent(req.tenant, req.as_user, req.agent, req.task[:500], history=history)).as_dict()
 
 
 class Confirm(BaseModel):

@@ -37,7 +37,12 @@ INTENTS = [  # (intent, pattern) in the order they are reported
     ("rank", r"\b(worst|best|most|least|top|biggest|slowest|fastest)\b|which (hub|courier|product|campaign)"),
     ("contact", r"\b(phone|email|e-mail|address|contact|call)\b"),
     ("why", r"\bwhy\b|what('s| is) behind|root cause|what caused|reason for"),
-    ("what_to_do", r"what should (we|i) do|what (do|can) (we|i) do|what to do|recommend|next step|how (do|can) we fix|should we"),
+    ("what_to_do", r"what should (we|i) do|what (do|can) (we|i) do|what to do|recommend|next step|how (do|can) we fix|should we|"
+                   r"taken care of|need(s)? to be (done|handled|taken care|checked)|things? (to|we need to) (do|watch|check|handle)|"
+                   r"what (do )?(we|i) need|watch out|what could go wrong|\brisks?\b|pitfalls?|\bwhat if\b|"
+                   r"\bif we (want to |were to |only |just )?(use|move|switch|stop|drop|end|keep|run|go|rely|continue)"),
+    ("detail", r"\bmore (details?|info|information)\b|\bdetails?\b|elaborate|tell me more|go deeper|break (it|that|this) down|"
+               r"in depth|explain (that|it|this)"),
     ("pulse", r"how is the company|how are we doing|state of the company|company doing|overview|summary|how('s| is) (it|business) going"),
     ("cost", r"\bcost|spend|budget|price|revenue|margin|money"),
     ("policy", r"polic|rule|how fast|who (can|has to|must|should) approve|allowed|contract|agreement|terms|guideline|"
@@ -73,6 +78,7 @@ class Plan:
     entities: list[Entity] = field(default_factory=list)
     parts: list[Part] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)  # names in the question that match nothing in the graph
+    follow_up_to: str = ""  # the earlier question this one carries on from
     refund_limit: float = 0
 
     def as_dict(self) -> dict:
@@ -198,13 +204,32 @@ def _split(question: str) -> list[str]:
     return [p for p in pieces if len(p) > 3] or [question]
 
 
-def understand(tenant: str, user_id: str, question: str) -> Plan:
+def _is_follow_up(tenant: str, question: str, history) -> bool:
+    """A short question that names nothing and asks for more ("more details", "why is that?", "and what about it?")
+    carries on from the previous one."""
+    if not history or len(question.split()) > 16:
+        return False
+    if _link(tenant, question)[0]:
+        return False
+    intents = _intents(question, [])
+    return intents == ["unknown"] or "detail" in intents or len(question.split()) <= 4
+
+
+def understand(tenant: str, user_id: str, question: str, history=()) -> Plan:
     v = guard.Viewer.load(tenant, user_id)
     now = clock(tenant)
     plan = Plan(question, tenant, user_id, v.role if v else "", v.areas if v else [], _window(question, now))
     plan.refund_limit = v.refund_limit if v else 0
     if not question.strip():
         return plan  # nothing asked
+    if _is_follow_up(tenant, question, history):
+        before = next((h for h in reversed(history) if _link(tenant, h)[0] or _intents(h, []) != ["unknown"]), history[-1])
+        ents = _link(tenant, before)[0]
+        inherited = [i for i in _intents(before, ents) if i not in ("unknown", "status", "detail")]
+        own = [i for i in _intents(question, ents) if i not in ("unknown", "status")]
+        plan.entities, plan.follow_up_to = ents, before
+        plan.parts.append(Part(question, (own + [i for i in inherited if i not in own]) or ["status"], ents))
+        return plan
     plan.entities, plan.missing = _link(tenant, question)
     for text in _split(question):
         ents = _link(tenant, text)[0] or ([] if len(_split(question)) > 1 else plan.entities)
@@ -251,6 +276,14 @@ def walks(plan: Plan) -> list[list[tuple[str, dict]]]:
         if "personal_bulk" in p.intents:
             out.append([])  # never walked: Sinew holds no names, emails or phones to list
             continue
+        if {"what_to_do", "detail"} & set(p.intents):  # what rests on the thing, not just how it is
+            for e in p.entities:
+                if e.kind == "Hub":
+                    calls += [("trace_decisions", {"hub_id": e.id}), ("prelaunch_check", {})]
+                elif e.kind == "Decision":
+                    calls.append(("decision_impact", {"decision_id": e.id}))
+            if "detail" in p.intents and not p.entities:
+                calls += [("company_pulse", {"days": plan.window["days"]}), ("cluster_incidents", {})]
         if "contact" in p.intents:
             calls += [("customer_trace", {"customer": "#" + e.id[2:] if e.kind == "Order" else e.id})
                       for e in p.entities if e.kind in ("Order", "Ticket")]
@@ -433,7 +466,7 @@ ANSWERED_BY = {  # which walks can answer an intent; None = any walk about the n
     "what_to_do": {"prelaunch_check", "trace_decisions", "cluster_incidents"},
     "pulse": {"company_pulse"}, "cost": {"search_docs", "company_pulse"}, "policy": {"search_docs", "decision_detail"},
     "count": None, "status": None, "unknown": None,
-    "attention": {"company_pulse", "cluster_incidents", "trace_decisions", "prelaunch_check"},
+    "attention": {"company_pulse", "cluster_incidents", "trace_decisions", "prelaunch_check"}, "detail": None,
     "rank": {"company_pulse", "product_ranking", "choke_points"},
     "contact": {"customer_trace"}, "personal_bulk": set(),
 }
@@ -490,7 +523,8 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
             status, why = "no_access", next((r.get("reason") for r in blocked if r.get("reason")), "")
         else:
             status, why = "no_data", next((r.get("reason") for r in got if r.get("reason")), "")
-        answered = answering + (context if answering or not blocked else [])
+        keep = answering + (context if answering or not blocked else [])
+        answered = [r for r in got if r in keep]  # in the order walked: what was named first, then what rests on it
         facts = [{"scope": _scope(r, plan), "from": r.get("tool"), "named": [e.id for e in part.entities],
                   "asked": part.text, "intents": part.intents,
                   "answers": r in answering, **_slim(r, plan.tenant)} for r in answered]
@@ -509,7 +543,7 @@ def reconcile(plan: Plan, results: list[list[dict]]) -> dict:
             seen.add(r)
             unique_recs.append(r)
     you = {"role": plan.role, "refund_limit": plan.refund_limit} if re.search(r"refund|limit|approve|can i", plan.question.lower()) else None
-    return {"question": plan.question, "asked_by": plan.role, "you": you, "window": plan.window["label"], "parts": parts,
+    return {"question": plan.question, "follows": plan.follow_up_to or None, "asked_by": plan.role, "you": you, "window": plan.window["label"], "parts": parts,
             "what_to_do": unique_recs[:3] if any("what_to_do" in p.intents for p in plan.parts) else [],
             "hidden": hidden, "notes": notes}
 
@@ -519,6 +553,9 @@ def _recommend(got: list[dict]) -> list[str]:
     out = []
     for r in got:
         d = r.get("data") or {}
+        if r.get("tool") == "hub_status" and r.get("outcome") == "answered_path" and d.get("busiest_day_parcels", 0) > d.get("capacity_per_day", 1e9):
+            out.append(f"{d['hub']} handled up to {d['busiest_day_parcels']} parcels in a day against a capacity of "
+                       f"{d['capacity_per_day']}, so it cannot carry sale volume on its own: plan a second route or limit the offer.")
         if r.get("tool") == "prelaunch_check" and r.get("outcome") == "answered_path":
             for w in d.get("warnings", []):
                 if w.get("reroute"):
@@ -680,8 +717,13 @@ def _say_fact(f: dict) -> list[str]:
                     break
         return lines[:4]
     if tool == "decision_impact":
-        return [f"{len(d.get('customers_at_risk', []))} customers are still waiting on {d.get('parcels_in_transit')} parcels there; "
-                f"{len(d.get('dependent_decisions', []))} other decisions rely on this one."]
+        n = d.get("customers_waiting", 0)
+        line = f"{n} customers are still waiting on {d.get('parcels_in_transit')} parcels there"
+        if n:
+            line += (f" (${d['their_order_value']:,.2f} of orders; {d['gold_customers_waiting']} gold; "
+                     f"{d['past_delivery_date']} already past their delivery date)")
+        rel = d.get("decisions_relying_on_it", [])
+        return [line + f"; {len(rel)} other decisions rely on this one" + (": " + "; ".join(f'"{t}"' for t in rel) if rel else "") + "."]
     if tool == "prelaunch_check":
         return [f"{w['name']} starts in {w['starts_in_days']:g} days and its parcels go through "
                 f"{w['hub'].replace('hub-', 'Hub ').upper().replace('HUB', 'Hub')}, which is already struggling."
@@ -757,8 +799,8 @@ def write(sheet: dict) -> str:
     return "\n".join(out) or "Sinew couldn't find anything about that."
 
 
-async def analyse(tenant: str, user_id: str, question: str) -> tuple[Plan, list[list[dict]], dict]:
-    plan = understand(tenant, user_id, question)
+async def analyse(tenant: str, user_id: str, question: str, history=()) -> tuple[Plan, list[list[dict]], dict]:
+    plan = understand(tenant, user_id, question, history)
     results = await traverse(plan, walks(plan))
     sheet = reconcile(plan, results)
     sheet["actions"] = actions(plan, results)

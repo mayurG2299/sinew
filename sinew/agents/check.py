@@ -23,8 +23,9 @@ def _numbers_in(blob: str) -> set[float]:
     return {float(n.replace(",", "")) for n, _ in NUMBER.findall(blob)}
 
 
-def check(answer: str, tool_results: list[dict], question: str = "") -> tuple[bool, str]:
-    blob = json.dumps(tool_results, default=str).lower()
+def check(answer: str, tool_results: list[dict], question: str = "", extra: str = "") -> tuple[bool, str]:
+    """`extra` is more text the model was given (the fact sheet), whose names and numbers are allowed too."""
+    blob = json.dumps(tool_results, default=str).lower() + " " + extra.lower()
     for name in {m.group(0).lower().rstrip("-.") for m in ID.finditer(answer)}:
         if name not in blob:
             return False, f"names {name!r}, which no tool returned"

@@ -53,7 +53,8 @@ export const api = {
   trace: (ref: string, as_user: string) => call<any>(`/api/trace?${q({ ref, as_user })}`),
   impact: (as_user: string) => call<any>(`/api/impact?${q({ as_user })}`),
   promises: (as_user: string) => call<any>(`/api/promises?${q({ as_user })}`),
-  agent: (agent: string, task: string, as_user: string) => post("/api/agent", { agent, task, as_user }) as Promise<Run>,
+  agent: (agent: string, task: string, as_user: string, history: string[] = []) =>
+    post("/api/agent", { agent, task, as_user, history }) as Promise<Run>,
   confirm: (name: string, args: any, as_user: string) => post("/api/confirm", { name, args, as_user }) as Promise<Answer>,
   exportCustomer: (ref: string, as_user: string) => call<Answer>(`/api/privacy/export?${q({ ref, as_user })}`),
   deleteCustomer: (ref: string, as_user: string) => post("/api/privacy/delete", { ref, as_user }) as Promise<Answer>,

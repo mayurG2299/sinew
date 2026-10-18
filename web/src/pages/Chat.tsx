@@ -44,7 +44,8 @@ export function Chat({ me, threads, setThreads, current, setCurrent, start, onSt
       return;
     }
     put(id, { id: replyId, role: "assistant", pending: true, view: notice?.view }, title);
-    api.agent(agent, task, me.id)
+    const history = (thread?.messages ?? []).filter((m) => m.role === "user" && m.text).map((m) => m.text as string).slice(-3);
+    api.agent(agent, task, me.id, history)
       .then((run) => put(id, { id: replyId, role: "assistant", run, view: notice?.view }, title))
       .catch(() => put(id, { id: replyId, role: "assistant", error: true }, title));
   }

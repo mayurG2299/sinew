@@ -83,7 +83,7 @@ def _load_replay(tenant, user_id, agent, task) -> Run | None:
     return run
 
 
-async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) -> Run:
+async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None, history: list[str] | None = None) -> Run:
     start = time.perf_counter()
     snapshot.ensure_loaded(tenant)
     run = Run(run_id=f"run-{uuid.uuid4().hex[:10]}", agent=agent, task=task)
@@ -92,7 +92,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
     # The analysis layer goes first: understand and break down the question, walk the graph from what it
     # names (as this person), reconcile into a fact sheet, and write a correct draft from it. The model
     # then only rewrites the draft for the person; it may call more read tools if something is missing.
-    plan, per_part, sheet = await brain.analyse(tenant, user_id, task)
+    plan, per_part, sheet = await brain.analyse(tenant, user_id, task, history or [])
     for got in per_part:
         for result in got:
             call = result.pop("_call", {})
@@ -161,14 +161,14 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
             # One repair turn: if the answer breaks a rule, say exactly which and let the model rewrite it from
             # the same tool results (no new tools). The rewrite is checked again like any answer.
             if run.answer and run.results and hasattr(llm, "add_user"):
-                ok, why = check.check(run.answer, run.results, task)
+                ok, why = check.check(run.answer, run.results, task, brain.for_model(sheet))
                 if not ok:
                     llm.add_user(f"Your answer failed Sinew's fact check: it {why}. Rewrite the answer using only "
                                  "names and numbers that appear in the tool results, following every rule. "
                                  "Do not call any tools.")
                     try:
                         fix = await llm.next()
-                        if fix.text and not fix.calls and check.check(fix.text.strip(), run.results, task)[0]:
+                        if fix.text and not fix.calls and check.check(fix.text.strip(), run.results, task, brain.for_model(sheet))[0]:
                             run.answer, run.repaired = fix.text.strip(), why
                     except LLMUnavailable:
                         pass  # keep the first answer; the check below falls back to the rows
@@ -192,7 +192,7 @@ async def run_agent(tenant: str, user_id: str, agent: str, task: str, llm=None) 
         run.answer_source, run.check_failed = "rows", f"model unavailable: {str(e)[:120]}"
         run.ms = round((time.perf_counter() - start) * 1000, 1)
         return run
-    ok, why = check.check(run.answer, run.results, task) if run.answer else (False, "the model gave no answer")
+    ok, why = check.check(run.answer, run.results, task, brain.for_model(sheet)) if run.answer else (False, "the model gave no answer")
     if not ok:
         run.check_failed, run.answer, run.answer_source = why, run.draft or check.fallback(run.results), "rows"
     else:
