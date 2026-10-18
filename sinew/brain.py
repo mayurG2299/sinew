@@ -326,6 +326,7 @@ Examples:
 "i want to know more" after "Is the Winter Sale safe to launch?" -> intents [detail, verdict], entities [Campaign winter25].
 "what are those 59 open tickets" -> intents [tickets].
 "if we use hub w2 only what do we need to take care of" -> intents [what_to_do], entities [Hub hub-w2].
+"a parcel is more than 24 hours late, what should I do?" -> intents [policy], no entities: a situation with no named order, hub or customer is asking for the company's own rule, which is in a document.
 "how is order 4520 and what did it cost" -> two parts: [status] with Order o-4520, and [cost] with Order o-4520."""
 
 
